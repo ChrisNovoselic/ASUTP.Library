@@ -37,8 +37,9 @@
     <AssemblyOriginatorKeyFile>HClassLibrary_TemporaryKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MySQL.Data">
-      <HintPath>..\MySQL.Data.dll</HintPath>
+    <Reference Include="MySQL.Data, Version=6.2.2.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ExternalDLL\MySQL.Data.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -69,6 +70,9 @@
     </Compile>
     <Compile Include="FormWait.Designer.cs">
       <DependentUpon>FormWait.cs</DependentUpon>
+    </Compile>
+    <Compile Include="HLabel.cs">
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="HTabCtrlEx.cs">
       <SubType>Component</SubType>
