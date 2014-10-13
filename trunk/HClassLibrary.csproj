@@ -59,6 +59,12 @@
     <Compile Include="DbTSQLInterface.cs" />
     <Compile Include="FileConnSett.cs" />
     <Compile Include="FileINI.cs" />
+    <Compile Include="FormConnectionSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormConnectionSettings.Designer.cs">
+      <DependentUpon>FormConnectionSettings.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormMainBase.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -104,6 +110,9 @@
     <Compile Include="Users.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="FormConnectionSettings.resx">
+      <DependentUpon>FormConnectionSettings.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormWait.resx">
       <DependentUpon>FormWait.cs</DependentUpon>
     </EmbeddedResource>
