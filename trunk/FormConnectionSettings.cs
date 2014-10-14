@@ -7,9 +7,7 @@ using System.Text;
 using System.IO;
 using System.Windows.Forms;
 
-using HClassLibrary;
-
-namespace StatisticCommon
+namespace HClassLibrary
 {
     public delegate void DelegateReadConnSettFunc(int idListener, out List<ConnectionSettings> listConnSett, out int err, out string mes);
     public delegate void DelegateSaveConnSettFunc(int idListener, List<ConnectionSettings> listConnSett, out int err);

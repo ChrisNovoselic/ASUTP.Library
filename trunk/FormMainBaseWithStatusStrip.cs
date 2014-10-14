@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Threading;
 using System.Drawing;
@@ -60,10 +61,14 @@ namespace HClassLibrary
 
     public abstract class FormMainBaseWithStatusStrip : FormMainBase
     {
+        public static List<FormConnectionSettings> s_listFormConnectionSettings;
+        
         public static System.Windows.Forms.StatusStrip m_statusStripMain;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblMainState;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDescError;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDateError;
+
+        protected System.Windows.Forms.Timer m_timer;
 
         public static HReports m_report;
 
@@ -71,8 +76,34 @@ namespace HClassLibrary
         {
             InitializeComponent();
 
+            // 
+            // timer
+            // 
+            this.m_timer = new System.Windows.Forms.Timer ();
+            this.m_timer.Interval = ProgramBase.TIMER_START_INTERVAL;
+            this.m_timer.Tick += new System.EventHandler(this.timer_Tick);
+
             delegateEvent = new DelegateFunc(EventRaised);
+
+            m_report = new HReports();
+            //MessageBox.Show((IWin32Window)null, @"FormMain::FormMain () - new HReports ()", @"Отладка!");
+
+            // m_statusStripMain
+            FormMainBaseWithStatusStrip.m_statusStripMain.Location = new System.Drawing.Point(0, 762);
+            FormMainBaseWithStatusStrip.m_statusStripMain.Size = new System.Drawing.Size(982, 22);
+            // m_lblMainState
+            this.m_lblMainState.Size = new System.Drawing.Size(150, 17);
+            // m_lblDateError
+            this.m_lblDateError.Size = new System.Drawing.Size(150, 17);
+            // m_lblDescError
+            this.m_lblDescError.Size = new System.Drawing.Size(667, 17);
+
+            delegateUpdateActiveGui = new DelegateFunc(UpdateActiveGui);
+            delegateHideGraphicsSettings = new DelegateFunc(HideGraphicsSettings);
         }
+
+        protected abstract void UpdateActiveGui ();
+        protected abstract void HideGraphicsSettings();
 
         private void InitializeComponent()
         {
@@ -155,5 +186,51 @@ namespace HClassLibrary
         }
 
         protected abstract bool UpdateStatusString();
+
+        protected abstract void timer_Start ();
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            if (m_timer.Interval == ProgramBase.TIMER_START_INTERVAL)
+            {
+                timer_Start ();
+
+                m_timer.Interval = 1000;
+            }
+
+            lock (lockEvent)
+            {
+                bool have_eror = UpdateStatusString();
+
+                if (have_eror == true)
+                    m_lblMainState.Text = "ОШИБКА";
+                else
+                    ;
+
+                if ((have_eror == false) || (show_error_alert == false))
+                    m_lblMainState.Text = "";
+                else
+                    ;
+
+                show_error_alert = !show_error_alert;
+                m_lblDescError.Invalidate();
+                m_lblDateError.Invalidate();
+            }
+        }
+
+        protected virtual void Start () {
+            m_timer.Interval = ProgramBase.TIMER_START_INTERVAL; //Признак первой итерации
+            m_timer.Start();
+        }
+
+        protected virtual void Stop()
+        {
+            if (! (m_timer == null)) {
+                m_timer.Stop();
+                m_timer.Dispose ();
+                m_timer = null;
+            } else
+                ;
+        }
     }
 }

@@ -1,4 +1,4 @@
-namespace StatisticCommon
+namespace HClassLibrary
 {
     partial class FormConnectionSettings
     {

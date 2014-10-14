@@ -71,6 +71,9 @@
     <Compile Include="FormMainBaseWithStatusStrip.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="FormParametersBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="FormWait.cs">
       <SubType>Form</SubType>
     </Compile>

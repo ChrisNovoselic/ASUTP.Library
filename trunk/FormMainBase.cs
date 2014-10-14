@@ -13,6 +13,7 @@ namespace HClassLibrary
     public abstract class FormMainBase : Form
     {
         protected FormWait formWait;
+        protected static FIleConnSett s_fileConnSett;
 
         protected object lockEvent;
         private object lockValue;
@@ -49,6 +50,20 @@ namespace HClassLibrary
 
             lockValue = new object();
             waitCounter = 0;
+        }
+
+        protected void Abort(string msg)
+        {
+            throw new Exception(msg);
+        }
+
+        protected void Abort(string msg, bool bThrow = false)
+        {
+            this.Activate();
+
+            string msgThrow = msg + @"." + Environment.NewLine + @"Обратитесь к оператору тех./поддержки по тел. 4444 или по тел. 289-03-37.";
+            MessageBox.Show(this, msgThrow, "Ошибка в работе программы!", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+            if (bThrow == true) Abort(msgThrow); else ;
         }
 
         public static void ThreadProc(object data)

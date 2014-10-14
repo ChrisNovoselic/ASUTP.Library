@@ -7,7 +7,7 @@ using System.Text;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace StatisticCommon
+namespace HClassLibrary
 {
     partial class HLabel
     {

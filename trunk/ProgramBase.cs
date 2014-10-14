@@ -44,6 +44,8 @@ namespace HClassLibrary
             , MessageExit = "***************Выход из приложения...***************"
             , MessageAppAbort = @"Приложение будет закрыто...";
 
+        public const Int32 TIMER_START_INTERVAL = 666;
+
         //Журналирование старта приложения
         public static void Start()
         {

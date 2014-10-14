@@ -479,13 +479,13 @@ namespace HClassLibrary
 
         private string getInsertQuery (MESSAGE msg) {
             return @"INSERT INTO [techsite-2.X.X].[dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE])VALUES" +
-                                @"(" + msg.m_id + @"," + ProgramBase.s_iAppID + @"," + Users.Id + @",'" + msg.m_strDatetimeReg + @"','" + msg.m_text.Replace ('\'', '`') + @"')";
+                                @"(" + msg.m_id + @"," + ProgramBase.s_iAppID + @"," + HUsers.Id + @",'" + msg.m_strDatetimeReg + @"','" + msg.m_text.Replace ('\'', '`') + @"')";
         }
 
         private string getInsertQuery(int id, string text)
         {
             return @"INSERT INTO [techsite-2.X.X].[dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE])VALUES" +
-                                @"(" + id + @"," + ProgramBase.s_iAppID + @"," + Users.Id + @",GETDATE (),'" + text.Replace('\'', '`') + @"')";
+                                @"(" + id + @"," + ProgramBase.s_iAppID + @"," + HUsers.Id + @",GETDATE (),'" + text.Replace('\'', '`') + @"')";
         }
         
         /// <summary>
