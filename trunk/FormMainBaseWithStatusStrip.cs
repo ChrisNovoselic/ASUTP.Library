@@ -219,6 +219,7 @@ namespace HClassLibrary
         }
 
         protected virtual void Start () {
+            if (m_timer == null) m_timer = new System.Windows.Forms.Timer (); else ;
             m_timer.Interval = ProgramBase.TIMER_START_INTERVAL; //Признак первой итерации
             m_timer.Start();
         }

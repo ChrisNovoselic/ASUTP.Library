@@ -52,14 +52,11 @@ namespace HClassLibrary
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            s_iMessageShowUnhandledException = 0;
+            s_iMessageShowUnhandledException = 1;
 
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            //Logging.s_mode = Logging.LOG_MODE.UNKNOWN; //Если назначить неизвестный тип логирования - 1-е сообщения б. утеряны
-            Logging.s_mode = Logging.LOG_MODE.DB;
-            //Logging.s_mode = Logging.LOG_MODE.FILE;
             Logging.Logg().Post(Logging.ID_MESSAGE.START, MessageWellcome, true, true, true);
         }
 
