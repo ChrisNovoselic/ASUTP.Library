@@ -245,9 +245,9 @@ namespace HClassLibrary
 
             if (!(beg.Equals (string.Empty) == true))
             {
-                where = "DATE_TIME>='" + DateTime.Parse (beg).ToString ("yyyy-MM-dd HH:mm:ss") + "'";
+                where = "DATE_TIME>='" + DateTime.Parse (beg).ToString ("yyyyMMdd HH:mm:ss") + "'";
                 if (!(end.Equals (string.Empty) == true))
-                    where += " AND DATE_TIME<'" + DateTime.Parse (end).ToString("yyyy-MM-dd HH:mm:ss") + "'";
+                    where += " AND DATE_TIME<'" + DateTime.Parse (end).ToString("yyyyMMdd HH:mm:ss") + "'";
                 else
                     ;
             }
