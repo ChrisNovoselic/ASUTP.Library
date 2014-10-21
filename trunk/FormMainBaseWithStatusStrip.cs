@@ -79,9 +79,7 @@ namespace HClassLibrary
             // 
             // timer
             // 
-            this.m_timer = new System.Windows.Forms.Timer ();
-            this.m_timer.Interval = ProgramBase.TIMER_START_INTERVAL;
-            this.m_timer.Tick += new System.EventHandler(this.timer_Tick);
+           start ();
 
             delegateEvent = new DelegateFunc(EventRaised);
 
@@ -218,10 +216,15 @@ namespace HClassLibrary
             }
         }
 
+        private void start () {
+        }
+        
         protected virtual void Start () {
-            if (m_timer == null) m_timer = new System.Windows.Forms.Timer (); else ;
+            if (m_timer == null) m_timer = new System.Windows.Forms.Timer(); else ;
             m_timer.Interval = ProgramBase.TIMER_START_INTERVAL; //Признак первой итерации
             m_timer.Start();
+            m_timer.Tick += new System.EventHandler(this.timer_Tick);
+            start ();
         }
 
         protected virtual void Stop()
