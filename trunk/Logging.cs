@@ -131,8 +131,13 @@ namespace HClassLibrary
 
         public static void ReLogg(LOG_MODE mode)
         {
-            m_this = null;
-            s_mode = mode;
+            if (! (s_mode == mode))
+            {
+                m_this = null;
+                s_mode = mode;
+            }
+            else
+                ;
         }
 
         public static Logging Logg()
