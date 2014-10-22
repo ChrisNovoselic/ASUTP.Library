@@ -68,7 +68,12 @@ namespace HClassLibrary
                 if (f is FormMainBase)
                     (f as FormMainBase).Close(true);
                 else
-                    f.Close();
+                    if (f is FormWait)
+                    {
+                        (f as FormWait).StopWaitForm();
+                    }
+                    else
+                        f.Close();
             }
 
             Logging.Logg().Post(Logging.ID_MESSAGE.STOP, MessageExit, true, true, true);
