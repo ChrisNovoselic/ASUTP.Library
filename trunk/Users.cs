@@ -61,6 +61,9 @@ namespace HClassLibrary
 
         public HUsers(int iListenerId)
         {
+            Logging.Logg().Action(@"HUsers::HUsers () - ... кол-во аргументов ком./строки = " + (Environment.GetCommandLineArgs().Length - 1) +
+                @"; DomainUserName = " + Environment.UserDomainName + @"\" + Environment.UserName);
+            
             //ќбрабатываемые слова 'командной строки'
             m_NameArgs = new string[] { @"iuser", @"udn", @"irole", @"itec" }; //ƒлина = COUNT_INDEX_REGISTRATION
 
@@ -73,6 +76,8 @@ namespace HClassLibrary
             m_StateRegistration = new STATE_REGISTRATION[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
 
             ClearValues();
+
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... очистили значени€ ...");
 
             for (int i = 0; i < (int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION; i++)
                 if (i == (int)STATE_REGISTRATION.ENV) f_arRegistration[i](iListenerId); else f_arRegistration[i](null);
@@ -89,6 +94,8 @@ namespace HClassLibrary
 
         private void registrationCmdLine(object par)
         {
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationCmdLine () - в’од ...");
+            
             //ѕриоритет CMD_LINE
             string[] args = Environment.GetCommandLineArgs();
 
@@ -126,34 +133,56 @@ namespace HClassLibrary
 
         private void registrationINI(object par)
         {
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - в’од ...");
+
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - размер массива параметров INI = " + s_REGISTRATION_INI.Length);
+
             //—ледующий приоритет INI
             if (m_bRegistration == false) {
                 bool bValINI = false;
                 for (int i = 1; i < m_DataRegistration.Length; i++)
                 {
-                    if (m_StateRegistration [i] == STATE_REGISTRATION.UNKNOWN) {
-                        bValINI = false;
-                        switch (s_REGISTRATION_INI [i].GetType ().Name) {
-                            case @"String":
-                                bValINI = ((string)s_REGISTRATION_INI [i]).Equals (string.Empty);
-                                break;
-                            case @"Int32":
-                                bValINI = ((Int32)s_REGISTRATION_INI [i]) < 0;
-                                break;
-                            default:
-                                break;
-                        }
+                    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - обработка параметра [" + i + @"]");
 
-                        if (bValINI == false) {
-                            m_DataRegistration [i] = s_REGISTRATION_INI [i];
+                    try
+                    {
+                        if (m_StateRegistration[i] == STATE_REGISTRATION.UNKNOWN)
+                        {
+                            bValINI = false;
+                            //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - состо€ние параметра = " + m_StateRegistration[i].ToString());
 
-                            m_StateRegistration [i] = STATE_REGISTRATION.INI;
+                            //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - объект параметра = " + s_REGISTRATION_INI[i].ToString());
+
+                            //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - тип параметра = " + s_REGISTRATION_INI[i].GetType().Name);
+
+                            switch (s_REGISTRATION_INI[i].GetType().Name)
+                            {
+                                case @"String":
+                                    bValINI = ((string)s_REGISTRATION_INI[i]).Equals(string.Empty);
+                                    break;
+                                case @"Int32":
+                                    bValINI = ((Int32)s_REGISTRATION_INI[i]) < 0;
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            if (bValINI == false)
+                            {
+                                m_DataRegistration[i] = s_REGISTRATION_INI[i];
+
+                                m_StateRegistration[i] = STATE_REGISTRATION.INI;
+                            }
+                            else
+                                ;
                         }
                         else
                             ;
+                    } 
+                    catch (Exception e)
+                    {
+                        Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationINI () - параметр не обработан [" + i + @"]");
                     }
-                    else
-                        ;
                 }
             }
             else
@@ -166,6 +195,9 @@ namespace HClassLibrary
             int idListener = (int)par //idListener = ((int [])par)[0]
                 //, indxDomainName = ((int[])par)[1]
                 ;
+
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - в’од ... idListener = " + idListener);
+
             //—ледующий приоритет DataBase
             if (m_bRegistration == false) {
                 if (m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
