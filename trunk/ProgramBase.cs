@@ -63,7 +63,11 @@ namespace HClassLibrary
         //Журналирование завершения приложения
         public static void Exit()
         {
+            List <Form> listApplicationOpenForms = new List<Form> ();
             foreach (Form f in Application.OpenForms)
+                listApplicationOpenForms.Add (f);
+
+            foreach (Form f in listApplicationOpenForms)
             {
                 if (f is FormMainBase)
                     (f as FormMainBase).Close(true);
