@@ -111,7 +111,7 @@ namespace HClassLibrary
                     id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
                 }
                 else
-                    ;
+                    m_dictDbInterfaces[((ConnectionSettings)connSett).id].Desc = desc;
             }
 
             return RegisterListener (((ConnectionSettings)connSett).id, id, active, out err);

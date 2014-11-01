@@ -408,10 +408,14 @@ namespace HClassLibrary
             if (path.IndexOf(".xls") > -1)
                 connectionOleDB = new OleDbConnection(ConnectionSettings.GetConnectionStringExcel(path));
             else
-                if (path.IndexOf("CSV_PATH") > -1)
-                    connectionOleDB = new OleDbConnection(ConnectionSettings.GetConnectionStringCSV(path.Remove(0, 8)));
+            {
+                if (path.IndexOf("CSV_DATASOURCE=") > -1)
+                    connectionOleDB = new OleDbConnection(ConnectionSettings.GetConnectionStringCSV(path.Remove(0, "CSV_DATASOURCE=".Length)));
                 else
+                {
                     connectionOleDB = new OleDbConnection(ConnectionSettings.GetConnectionStringDBF(path));
+                }
+            }
 
             if (!(connectionOleDB == null))
             {

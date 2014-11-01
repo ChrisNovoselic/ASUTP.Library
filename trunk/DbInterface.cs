@@ -63,13 +63,23 @@ namespace HClassLibrary
         private Semaphore sem;
         private volatile bool threadIsWorking;
         private string m_ThreadName;
+        public string Desc {
+            get { return m_ThreadName; }
+            set
+            {
+                if (m_ThreadName == string.Empty)
+                    m_ThreadName = value;
+                else
+                    m_ThreadName += @"; " + value;
+            }
+        }
 
         protected bool needReconnect;
         private bool connected;
 
         public DbInterface(string name)
         {
-            m_ThreadName = name;
+            Desc = name;
 
             lockListeners = new object();
             lockConnectionSettings = new object();
