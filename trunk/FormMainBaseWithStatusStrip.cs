@@ -175,10 +175,15 @@ namespace HClassLibrary
 
         protected virtual void ErrorReport()
         {
-            if (InvokeRequired == true)
+            //if (InvokeRequired == true)
+            try
+            {
                 m_statusStripMain.BeginInvoke(delegateEvent);
-            else
-                Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
+            } catch (Exception e) {
+                Logging.Logg().Exception(e, @"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
+            }
+            //else
+            //    Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
         }
 
         protected virtual void ActionReport()

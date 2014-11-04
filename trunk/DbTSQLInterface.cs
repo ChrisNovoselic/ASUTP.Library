@@ -307,77 +307,118 @@ namespace HClassLibrary
             return typeDBRes;
         }
 
-        public static DbConnection getConnection (ConnectionSettings connSett, out int er)
+        public DbConnection GetConnection(out int err)
         {
-            er = 0;
+            err = 0;
 
-            string s = string.Empty;
-            DbConnection connRes = null;
+            needReconnect = false;
+            bool bRes = Connect();
 
-            DbTSQLInterface.DB_TSQL_INTERFACE_TYPE typeDB = getTypeDB (connSett.port);
-
-            if (!(typeDB == DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN))
-            {
-                switch (typeDB)
-                {
-                    case DB_TSQL_INTERFACE_TYPE.MySQL:
-                        s = connSett.GetConnectionStringMySQL();
-                        connRes = new MySqlConnection(s);
-                        break;
-                    case DB_TSQL_INTERFACE_TYPE.MSSQL:
-                        s = connSett.GetConnectionStringMSSQL ();
-                        connRes = new SqlConnection(s);
-                        break;
-                    default:
-                        break;
-                }
-
-                try
-                {
-                    connRes.Open();
-
-                    if (!(connSett.id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_open_db(connRes); } else ;
-                }
-                catch (Exception e)
-                {
-                    if (!(connSett.id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_catch_db(connRes, e); } else ;
-
-                    connRes = null;
-
-                    er = -1;
-                }
-            }
+            if (bRes == true)
+                return m_dbConnection;
             else
-                ;
+            {
+                err = -1;
 
-            return connRes;
+                return null;
+            }
         }
 
-        public static void closeConnection(ref DbConnection conn, out int er)
+        ////public static DbConnection getConnection (ConnectionSettings connSett, out int er)
+        //public DbConnection getConnection(ConnectionSettings connSett, out int er)
+        //{
+        //    er = 0;
+
+        //    string s = string.Empty;
+        //    DbConnection connRes = null;
+
+        //    DbTSQLInterface.DB_TSQL_INTERFACE_TYPE typeDB = getTypeDB (connSett.port);
+
+        //    if (!(typeDB == DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN))
+        //    {
+        //        switch (typeDB)
+        //        {
+        //            case DB_TSQL_INTERFACE_TYPE.MySQL:
+        //                s = connSett.GetConnectionStringMySQL();
+        //                connRes = new MySqlConnection(s);
+        //                break;
+        //            case DB_TSQL_INTERFACE_TYPE.MSSQL:
+        //                s = connSett.GetConnectionStringMSSQL ();
+        //                connRes = new SqlConnection(s);
+        //                break;
+        //            default:
+        //                break;
+        //        }
+
+        //        try
+        //        {
+        //            connRes.Open();
+
+        //            if (!(connSett.id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_open_db(connRes); } else ;
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            if (!(connSett.id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_catch_db(connRes, e); } else ;
+
+        //            connRes = null;
+
+        //            er = -1;
+        //        }
+        //    }
+        //    else
+        //        ;
+
+        //    return connRes;
+        //}
+
+        public void CloseConnection(out int er)
         {
             er = 0;
 
-            try
-            {
-                if (!(conn.State == ConnectionState.Closed))
-                {
-                    conn.Close();
+            try {
+                if (!(m_dbConnection.State == ConnectionState.Closed)) {
+                    m_dbConnection.Close();
 
-                    //if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_close_db(conn); } else ;
-                    logging_close_db (conn);
+                    logging_close_db(m_dbConnection);
+
+                    m_dbConnection = null;
                 }
                 else
                     ;
             }
             catch (Exception e)
             {
-                logging_catch_db(conn, e);
-                
-                conn = null;
+                Logging.Logg().Exception(e, @"DbTSQLInterface::CloseConnection () - ...");
 
                 er = -1;
             }
         }
+
+        //public static void closeConnection(ref DbConnection conn, out int er)
+        //{
+        //    er = 0;
+
+        //    try
+        //    {
+        //        if (!(conn.State == ConnectionState.Closed))
+        //        {
+        //            conn.Close();
+
+        //            //if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_close_db(conn); } else ;
+        //            logging_close_db (conn);
+        //        }
+        //        else
+        //            ;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        logging_catch_db(conn, e);
+                
+        //        conn = null;
+
+        //        er = -1;
+        //    }
+        //}
 
         public static string valueForQuery(DataTable table, int row, int col)
         {

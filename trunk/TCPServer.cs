@@ -189,12 +189,8 @@ namespace HClassLibrary
 
                 Console.Read();
             }
-            catch (SocketException ex)
-            {
-                Console.WriteLine(ex);
-            }
-            catch (IOException ex)
-            {
+            catch (Exception ex)
+            { //SocketException, IOException
                 Console.WriteLine(ex);
             }
 

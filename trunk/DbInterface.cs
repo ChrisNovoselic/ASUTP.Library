@@ -62,25 +62,22 @@ namespace HClassLibrary
         private Thread dbThread;
         private Semaphore sem;
         private volatile bool threadIsWorking;
-        private string m_ThreadName;
-        public string Desc {
-            get { return m_ThreadName; }
-            set
-            {
-                if (m_ThreadName == string.Empty)
-                    m_ThreadName = value;
-                else
-                    m_ThreadName += @"; " + value;
-            }
-        }
+        //public string Name {
+        //    get { return dbThread.Name; }
+        //    set
+        //    {
+        //        if (dbThread.Name == string.Empty)
+        //            dbThread.Name = value;
+        //        else
+        //            dbThread.Name += @"; " + value;
+        //    }
+        //}
 
         protected bool needReconnect;
         private bool connected;
 
         public DbInterface(string name)
         {
-            Desc = name;
-
             lockListeners = new object();
             lockConnectionSettings = new object();
             
@@ -91,7 +88,8 @@ namespace HClassLibrary
             needReconnect = false;
 
             dbThread = new Thread(new ParameterizedThreadStart(DbInterface_ThreadFunction));
-            dbThread.Name = m_ThreadName;
+            dbThread.Name = name;
+            //Name = name;
             dbThread.IsBackground = true;
 
             sem = new Semaphore(1, 1);
@@ -161,7 +159,7 @@ namespace HClassLibrary
                 {
                 }
 
-                joined = dbThread.Join(5000);
+                joined = dbThread.Join(6666);
                 if (!joined)
                     dbThread.Abort();
                 else

@@ -111,7 +111,7 @@ namespace HClassLibrary
                     id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
                 }
                 else
-                    m_dictDbInterfaces[((ConnectionSettings)connSett).id].Desc = desc;
+                    ; // m_dictDbInterfaces[((ConnectionSettings)connSett).id].Name = desc;
             }
 
             return RegisterListener (((ConnectionSettings)connSett).id, id, active, out err);
@@ -161,7 +161,12 @@ namespace HClassLibrary
                 err = 0;
             }
             else {
-                dbConn = DbTSQLInterface.getConnection((ConnectionSettings)m_dictDbInterfaces[id].m_connectionSettings, out err);
+                ////Вариант №1
+                //dbConn = DbTSQLInterface.getConnection((ConnectionSettings)m_dictDbInterfaces[id].m_connectionSettings, out err);
+
+                //Вариант №2
+                err = 0;
+                dbConn = ((DbTSQLInterface)m_dictDbInterfaces[id]).GetConnection(out err);
             }
 
             m_dictListeners.Add(idReg, new DbSourceListener(id, idListener, dbConn));
@@ -193,15 +198,26 @@ namespace HClassLibrary
                         if (! (m_dictDbInterfaces[m_dictListeners[id].idDbInterface].ListenerCount > 0)) {
                             m_dictDbInterfaces [m_dictListeners [id].idDbInterface].Stop ();
 
-                            m_dictDbInterfaces.Remove(m_dictListeners[id].idDbInterface);
+                            ////Вариант №1
+                            //m_dictDbInterfaces.Remove(m_dictListeners[id].idDbInterface);
+                            //if (m_dictListeners[id].dbConn == null)
+                            //{
+                            //}
+                            //else
+                            //{
+                            //    DbTSQLInterface.closeConnection(ref m_dictListeners[id].dbConn, out err);                                
+                            //}
 
-                            if (m_dictListeners[id].dbConn == null)
-                            {
-                            }
+                            //Вариант №2
+                            ((DbTSQLInterface)m_dictDbInterfaces [m_dictListeners[id].idDbInterface]).CloseConnection (out err);
+                            if (!(m_dictListeners[id].dbConn == null))
+                                if (!(m_dictListeners[id].dbConn.State == ConnectionState.Closed))
+                                    ; //Ошибка ???
+                                else
+                                    m_dictListeners[id].dbConn = null;
                             else
-                            {
-                                DbTSQLInterface.closeConnection(ref m_dictListeners[id].dbConn, out err);
-                            }
+                                ;
+                            m_dictDbInterfaces.Remove(m_dictListeners[id].idDbInterface);
                         }
                         else
                             ;
