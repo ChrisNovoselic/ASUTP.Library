@@ -25,7 +25,7 @@ namespace HClassLibrary
         protected DelegateFunc delegateStopWait;
         protected DelegateFunc delegateStopWaitForm;
         protected DelegateFunc delegateEvent;
-        protected DelegateFunc delegateUpdateActiveGui;
+        protected DelegateIntFunc delegateUpdateActiveGui;
         protected DelegateFunc delegateHideGraphicsSettings;
         protected DelegateFunc delegateParamsApply;
 

@@ -96,11 +96,11 @@ namespace HClassLibrary
             // m_lblDescError
             this.m_lblDescError.Size = new System.Drawing.Size(667, 17);
 
-            delegateUpdateActiveGui = new DelegateFunc(UpdateActiveGui);
+            delegateUpdateActiveGui = new DelegateIntFunc(UpdateActiveGui);
             delegateHideGraphicsSettings = new DelegateFunc(HideGraphicsSettings);
         }
 
-        protected abstract void UpdateActiveGui ();
+        protected abstract void UpdateActiveGui (int type);
         protected abstract void HideGraphicsSettings();
 
         private void InitializeComponent()
