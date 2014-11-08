@@ -64,6 +64,18 @@ namespace HClassLibrary
             return IsMarked (m_mark, bit);
         }
 
+        public bool IsMarked()
+        {
+            bool bRes = false;
+            for (int iBit = 0; iBit < sizeof(Int32); iBit++)
+                if ((bRes = IsMarked(m_mark, iBit)) == true)
+                    break;
+                else
+                    ;
+
+            return bRes;
+        }
+
         public static bool IsMarked(int val, int bit, int offset = 0)
         {
             bool bRes = false;
