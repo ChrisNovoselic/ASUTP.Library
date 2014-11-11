@@ -203,6 +203,31 @@ namespace HClassLibrary
             return result;
         }
 
+        public override void Disconnect(out int er)
+        {
+            er = 0;
+
+            try
+            {
+                if (!(m_dbConnection.State == ConnectionState.Closed))
+                {
+                    m_dbConnection.Close();
+
+                    logging_close_db(m_dbConnection);
+
+                    m_dbConnection = null;
+                }
+                else
+                    ;
+            }
+            catch (Exception e)
+            {
+                Logging.Logg().Exception(e, @"DbTSQLInterface::CloseConnection () - ...");
+
+                er = -1;
+            }
+        }
+
         protected override bool GetData(DataTable table, object query)
         {
             if (m_dbConnection.State != ConnectionState.Open)
@@ -370,29 +395,6 @@ namespace HClassLibrary
 
         //    return connRes;
         //}
-
-        public void CloseConnection(out int er)
-        {
-            er = 0;
-
-            try {
-                if (!(m_dbConnection.State == ConnectionState.Closed)) {
-                    m_dbConnection.Close();
-
-                    logging_close_db(m_dbConnection);
-
-                    m_dbConnection = null;
-                }
-                else
-                    ;
-            }
-            catch (Exception e)
-            {
-                Logging.Logg().Exception(e, @"DbTSQLInterface::CloseConnection () - ...");
-
-                er = -1;
-            }
-        }
 
         //public static void closeConnection(ref DbConnection conn, out int er)
         //{

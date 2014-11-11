@@ -353,6 +353,7 @@ namespace HClassLibrary
         protected abstract bool Connect();
 
         protected abstract bool Disconnect();
+        public abstract void Disconnect(out int err);
 
         protected abstract bool GetData(DataTable table, object query);
     }

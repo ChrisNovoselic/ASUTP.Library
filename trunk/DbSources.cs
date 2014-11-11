@@ -209,7 +209,7 @@ namespace HClassLibrary
                             //}
 
                             //Вариант №2
-                            ((DbTSQLInterface)m_dictDbInterfaces [m_dictListeners[id].idDbInterface]).CloseConnection (out err);
+                            m_dictDbInterfaces [m_dictListeners[id].idDbInterface].Disconnect (out err);
                             if (!(m_dictListeners[id].dbConn == null))
                                 if (!(m_dictListeners[id].dbConn.State == ConnectionState.Closed))
                                     ; //Ошибка ???
