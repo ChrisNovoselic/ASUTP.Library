@@ -18,7 +18,7 @@ namespace HClassLibrary
     public class Logging //LoggingFS //: Logging
     {
         public enum LOG_MODE { ERROR = -1, UNKNOWN, FILE, DB };
-        public enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR };
+        public enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR, WARNING };
 
         private int MAX_COUNT_MESSAGE_ONETIME = 66;
         
@@ -681,6 +681,11 @@ namespace HClassLibrary
         public void Error(string message, bool bLock = true)
         {
             Post(ID_MESSAGE.ERROR, "!Ошибка!: " + message, true, true, bLock);
+        }
+
+        public void Warning(string message, bool bLock = true)
+        {
+            Post(ID_MESSAGE.WARNING, "!Предупреждение!: " + message, true, true, bLock);
         }
 
         public void Debug(string message, bool bLock = true)
