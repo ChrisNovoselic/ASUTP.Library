@@ -57,11 +57,16 @@ namespace HClassLibrary
             throw new Exception(msg);
         }
 
-        protected void Abort(string msg, bool bThrow = false)
+        protected void Abort(string msg, bool bThrow = false, bool bSupport = true)
         {
             this.Activate();
 
-            string msgThrow = msg + @"." + Environment.NewLine + @"Обратитесь к оператору тех./поддержки по тел. 4444 или по тел. 289-03-37.";
+            string msgThrow = msg + @".";
+            if (bSupport == true)
+                msgThrow += Environment.NewLine + @"Обратитесь к оператору тех./поддержки по тел. 4444 или по тел. 289-03-37.";
+            else
+                ;
+
             MessageBox.Show(this, msgThrow, "Ошибка в работе программы!", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             if (bThrow == true) Abort(msgThrow); else ;
         }

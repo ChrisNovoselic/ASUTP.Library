@@ -69,13 +69,15 @@ namespace HClassLibrary {
         public int Start()
         {
             int iRes = 0;
-            
-            try { this.tcpListener.Start(); }
+
+            try {
+                this.tcpListener.Start();
+                this.tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, null);
+            }
             catch (Exception e) {
                 Logging.Logg().Exception(e, @"tcpListener.Start()");
                 iRes = -1;
             }
-            this.tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, null);
 
             return iRes;
         }
