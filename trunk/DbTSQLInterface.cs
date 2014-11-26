@@ -313,6 +313,27 @@ namespace HClassLibrary
             Logging.Logg().Debug(MessageDbOpen + " (" + s + ")", true);
         }
 
+        public static DbTSQLInterface.DB_TSQL_INTERFACE_TYPE getTypeDB(string strConn)
+        {
+            DB_TSQL_INTERFACE_TYPE res = DB_TSQL_INTERFACE_TYPE.MSSQL;
+            int port = -1;
+            string strMarkPort = @"port="
+                , strPort =  string.Empty;
+            
+            if (! (strConn.IndexOf (strMarkPort) < 0)) {
+                int iPosPort = strConn.IndexOf (strMarkPort) + strMarkPort.Length;
+                strPort = strConn.Substring(iPosPort, strConn.IndexOf(';', iPosPort) - iPosPort);
+
+                if (Int32.TryParse(strPort, out port) == true)
+                    res = getTypeDB (port);
+                else
+                    ;
+            } else
+                ;
+
+            return res;
+        }
+
         public static DbTSQLInterface.DB_TSQL_INTERFACE_TYPE getTypeDB(int port)
         {
             DbTSQLInterface.DB_TSQL_INTERFACE_TYPE typeDBRes = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN;
@@ -500,11 +521,29 @@ namespace HClassLibrary
             return dataTableRes;
         }
 
+        private static void queryValidateOfTypeDB(string strConn, ref string query)
+        {
+            switch (getTypeDB(strConn))
+            {
+                case DB_TSQL_INTERFACE_TYPE.MySQL:
+                    query = query.Replace(@"[dbo].", string.Empty);
+                    query = query.Replace('[', '`');
+                    query = query.Replace(']', '`');
+                    break;
+                case DB_TSQL_INTERFACE_TYPE.MSSQL:
+                    break;
+                default:
+                    break;
+            }
+        }
+
         public static DataTable Select(ref DbConnection conn, string query, DbType[] types, object[] parametrs, out int er)
         {
             er = 0;
 
             DataTable dataTableRes = new DataTable();
+
+            queryValidateOfTypeDB (conn.ConnectionString, ref query);
 
             ParametrsValidate(types, parametrs, out er);
 
@@ -630,6 +669,8 @@ namespace HClassLibrary
             er = 0;
 
             DbCommand cmd = null;
+
+            queryValidateOfTypeDB(conn.ConnectionString, ref query);
 
             ParametrsValidate(types, parametrs, out er);
 
