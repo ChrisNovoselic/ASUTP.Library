@@ -319,7 +319,7 @@ namespace HClassLibrary
             int port = -1;
             string strMarkPort = @"port="
                 , strPort =  string.Empty;
-            
+
             if (! (strConn.IndexOf (strMarkPort) < 0)) {
                 int iPosPort = strConn.IndexOf (strMarkPort) + strMarkPort.Length;
                 strPort = strConn.Substring(iPosPort, strConn.IndexOf(';', iPosPort) - iPosPort);
@@ -337,7 +337,7 @@ namespace HClassLibrary
         public static DbTSQLInterface.DB_TSQL_INTERFACE_TYPE getTypeDB(int port)
         {
             DbTSQLInterface.DB_TSQL_INTERFACE_TYPE typeDBRes = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN;
-            
+
             switch (port)
             {
                 case 3306:
@@ -443,16 +443,20 @@ namespace HClassLibrary
         //    }
         //}
 
+        /// <summary>
+        /// Добавление в начале и в конце значения одинарные кавычки,
+        ///  если тип значения "простой"
+        /// </summary>
+        /// <param name="table">таблица со значениями</param>
+        /// <param name="row">номер записи в таблице со значениями</param>
+        /// <param name="col">номер столбца в записи таблицы со значениями</param>
+        /// <returns>строка - значение из таблицы с одинарными кавычками или без них</returns>
         public static string valueForQuery(DataTable table, int row, int col)
         {
             string strRes = string.Empty;
-            bool bQuote = false;
-
-            if (table.Columns[col].DataType.IsPrimitive == true)
-                //if (table.Columns[col].DataType.IsByRef == false)
-                bQuote = false;
-            else
-                bQuote = true;
+            bool bQuote =
+                //table.Columns[col].DataType.IsByRef;
+                !table.Columns[col].DataType.IsPrimitive;
 
             strRes = (bQuote ? "'" : string.Empty) + (table.Rows[row][col].ToString().Length > 0 ? table.Rows[row][col] : "NULL") + (bQuote ? "'" : string.Empty);
 
@@ -521,6 +525,11 @@ namespace HClassLibrary
             return dataTableRes;
         }
 
+        /// <summary>
+        /// Проверка и преобразование запроса к БД в зависимости от типа БД (MSSQL, MySql)
+        /// </summary>
+        /// <param name="strConn">строка соединения объекта DbConnection</param>
+        /// <param name="query">преобразуемый запрос</param>
         private static void queryValidateOfTypeDB(string strConn, ref string query)
         {
             switch (getTypeDB(strConn))
