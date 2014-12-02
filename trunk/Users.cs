@@ -217,46 +217,57 @@ namespace HClassLibrary
 
                 DbConnection connDB = DbSources.Sources().GetConnection((int)par, out err);
 
-                //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
-                GetUsers(ref connDB, @"DOMAIN_NAME=" + @"'" + m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'", string.Empty, out dataUsers, out err);
+                if ((! (connDB == null)) && (err == 0))
+                {
+                    //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
+                    GetUsers(ref connDB, @"DOMAIN_NAME=" + @"'" + m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'", string.Empty, out dataUsers, out err);
 
-                if ((err == 0) && (dataUsers.Rows.Count > 0))
-                {//Найдена хотя бы одна строка
-                    int i = -1;
-                    for (i = 0; i < dataUsers.Rows.Count; i ++)
-                    {
-                        //Проверка IP-адрес                    
-                        //for (indxIP = 0; indxIP < listIP.Length; indxIP ++) {
-                        //    if (listIP[indxIP].Equals(System.Net.IPAddress.Parse (dataUsers.Rows[i][@"IP"].ToString())) == true) {
-                        //        //IP найден
-                        //        break;
-                        //    }
-                        //    else
-                        //        ;
-                        //}
+                    if ((err == 0) && (dataUsers.Rows.Count > 0))
+                    {//Найдена хотя бы одна строка
+                        int i = -1;
+                        for (i = 0; i < dataUsers.Rows.Count; i ++)
+                        {
+                            //Проверка IP-адрес                    
+                            //for (indxIP = 0; indxIP < listIP.Length; indxIP ++) {
+                            //    if (listIP[indxIP].Equals(System.Net.IPAddress.Parse (dataUsers.Rows[i][@"IP"].ToString())) == true) {
+                            //        //IP найден
+                            //        break;
+                            //    }
+                            //    else
+                            //        ;
+                            //}
 
-                        //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
-                        if (dataUsers.Rows[i][@"DOMAIN_NAME"].ToString().Equals((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase) == true) break; else ;
-                    }
+                            //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
+                            if (dataUsers.Rows[i][@"DOMAIN_NAME"].ToString().Equals((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase) == true) break; else ;
+                        }
 
-                    if (i < dataUsers.Rows.Count)
-                    {
-                        m_DataRegistration[(int)INDEX_REGISTRATION.ID] = Convert.ToInt32(dataUsers.Rows[i]["ID"]); m_StateRegistration[(int)INDEX_REGISTRATION.ID] = STATE_REGISTRATION.ENV;
-                        m_DataRegistration[(int)INDEX_REGISTRATION.ROLE] = Convert.ToInt32(dataUsers.Rows[i]["ID_ROLE"]); m_StateRegistration[(int)INDEX_REGISTRATION.ROLE] = STATE_REGISTRATION.ENV;
-                        m_DataRegistration[(int)INDEX_REGISTRATION.ID_TEC] = Convert.ToInt32(dataUsers.Rows[i]["ID_TEC"]); m_StateRegistration[(int)INDEX_REGISTRATION.ID_TEC] = STATE_REGISTRATION.ENV;
+                        if (i < dataUsers.Rows.Count)
+                        {
+                            m_DataRegistration[(int)INDEX_REGISTRATION.ID] = Convert.ToInt32(dataUsers.Rows[i]["ID"]); m_StateRegistration[(int)INDEX_REGISTRATION.ID] = STATE_REGISTRATION.ENV;
+                            m_DataRegistration[(int)INDEX_REGISTRATION.ROLE] = Convert.ToInt32(dataUsers.Rows[i]["ID_ROLE"]); m_StateRegistration[(int)INDEX_REGISTRATION.ROLE] = STATE_REGISTRATION.ENV;
+                            m_DataRegistration[(int)INDEX_REGISTRATION.ID_TEC] = Convert.ToInt32(dataUsers.Rows[i]["ID_TEC"]); m_StateRegistration[(int)INDEX_REGISTRATION.ID_TEC] = STATE_REGISTRATION.ENV;
+                        }
+                        else
+                            throw new Exception("Пользователь не найден в списке БД конфигурации");
                     }
                     else
-                        throw new Exception("Пользователь не найден в списке БД конфигурации");
-                }
-                else
-                {//Не найдено ни одной строки
+                    {//Не найдено ни одной строки
+                        if (connDB == null)
+                            throw new HException(-4, "Нет соединения с БД конфигурации");
+                        else
+                            if (err == 0)
+                                throw new HException(-3, "Пользователь не найден в списке БД конфигурации");
+                            else
+                                throw new HException(-2, "Ошибка получения списка пользователей из БД конфигурации");
+                    }
+                } else {//Нет возможности для проверки
                     if (connDB == null)
                         throw new HException(-4, "Нет соединения с БД конфигурации");
                     else
-                        if (err == 0)
-                            throw new HException(-3, "Пользователь не найден в списке БД конфигурации");
+                        if (! (err == 0))
+                            throw new HException(-3, "Не удалось установить связь с БД конфигурации");
                         else
-                            throw new HException(-2, "Ошибка получения списка пользователей из БД конфигурации");
+                            ;
                 }
             }
             else {
