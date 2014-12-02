@@ -57,34 +57,40 @@ namespace HClassLibrary
             }
             else
             {
-                for (i = 0; i < m_connectionSettingsEdit.Count; i ++)
+                if (m_connectionSettingsEdit.Count > 0)
                 {
-                    addConnSett (i);
+                    for (i = 0; i < m_connectionSettingsEdit.Count; i ++)
+                    {
+                        addConnSett (i);
+                    }
+
+                    tbxServer.Text =
+                    m_connectionSettings[0].server =
+                    m_connectionSettingsEdit[0].server;
+
+                    nudnPort.Value =
+                    m_connectionSettings[0].port =
+                    m_connectionSettingsEdit[0].port;
+
+                    tbxDataBase.Text =
+                    m_connectionSettings[0].dbName = 
+                    m_connectionSettingsEdit[0].dbName;
+
+                    tbxUserId.Text =
+                    m_connectionSettings[0].userName =
+                    m_connectionSettingsEdit[0].userName;
+
+                    mtbxPass.Text =
+                    m_connectionSettings[0].password =
+                    m_connectionSettingsEdit[0].password;
+
+                    cbxIgnore.Checked =
+                    m_connectionSettings[0].ignore =
+                    m_connectionSettingsEdit[0].ignore;
+                } else {
+                    //Не найдено ни одного источника
+                    addConnSett(new ConnectionSettings());
                 }
-
-                tbxServer.Text =
-                m_connectionSettings[0].server =
-                m_connectionSettingsEdit[0].server;
-
-                nudnPort.Value =
-                m_connectionSettings[0].port =
-                m_connectionSettingsEdit[0].port;
-
-                tbxDataBase.Text =
-                m_connectionSettings[0].dbName = 
-                m_connectionSettingsEdit[0].dbName;
-
-                tbxUserId.Text =
-                m_connectionSettings[0].userName =
-                m_connectionSettingsEdit[0].userName;
-
-                mtbxPass.Text =
-                m_connectionSettings[0].password =
-                m_connectionSettingsEdit[0].password;
-
-                cbxIgnore.Checked =
-                m_connectionSettings[0].ignore =
-                m_connectionSettingsEdit[0].ignore;
             }
 
             cbxConnFor.SelectedIndex = oldSelectedIndex = 0;

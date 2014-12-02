@@ -236,7 +236,6 @@ namespace HClassLibrary
             ((System.ComponentModel.ISupportInitialize)(this.nudnPort)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
