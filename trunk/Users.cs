@@ -326,17 +326,39 @@ namespace HClassLibrary
         public static void GetUsers(ref DbConnection conn, string where, string orderby, out DataTable users, out int err)
         {
             err = 0;
-            users = new DataTable();
-
-            users = DbTSQLInterface.Select(ref conn, getUsersRequest(where, orderby), null, null, out err);
+            users = null;
+            
+            if (! (conn == null))
+            {
+                users = new DataTable();                        
+                users = DbTSQLInterface.Select(ref conn, getUsersRequest(where, orderby), null, null, out err);
+            } else {
+                err = -1;
+            }
         }
 
         public static void GetRoles(ref DbConnection conn, string where, string orderby, out DataTable roles, out int err)
         {
             err = 0;
-            roles = new DataTable();
+            roles = null;
+            string query = string.Empty;
 
-            roles = DbTSQLInterface.Select(ref conn, @"SELECT * FROM ROLES WHERE ID < 500", null, null, out err);
+            if (! (conn == null))
+            {
+                roles = new DataTable();
+                query = @"SELECT * FROM ROLES";
+
+                if ((where.Equals(null) == true) || (where.Equals(string.Empty) == true))
+                    query += @" WHERE ID < 500";
+                else
+                    query += @" WHERE " + where;
+
+                roles = DbTSQLInterface.Select(ref conn, query, null, null, out err);
+            }
+            else
+            {
+                err = -1;
+            }
         }
 
         public static int Id
