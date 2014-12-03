@@ -55,7 +55,23 @@ namespace HClassLibrary
         //    return val;
         //}
 
-        private bool m_bRegistration { get { bool bRes = true; for (int i = 0; i < m_StateRegistration.Length; i++) if (m_StateRegistration[i] == STATE_REGISTRATION.UNKNOWN) { bRes = false; break; } else ; return bRes; } }
+        private bool m_bRegistration {
+            get {
+                bool bRes = true;
+
+                if (! (m_StateRegistration == null))
+                    for (int i = 0; i < m_StateRegistration.Length; i++)
+                        if (m_StateRegistration[i] == STATE_REGISTRATION.UNKNOWN) {
+                            bRes = false;
+                            break;
+                        }
+                        else ;
+                else
+                    bRes = false;
+
+                return bRes;
+            }
+        }
 
         protected DelegateObjectFunc[] f_arRegistration; // = { registrationCmdLine, registrationINI, registrationEnv };
 
@@ -64,18 +80,22 @@ namespace HClassLibrary
             Logging.Logg().Action(@"HUsers::HUsers () - ... кол-во аргументов ком./строки = " + (Environment.GetCommandLineArgs().Length - 1) +
                 @"; DomainUserName = " + Environment.UserDomainName + @"\" + Environment.UserName);
             
-            //ќбрабатываемые слова 'командной строки'
-            m_NameArgs = new string[] { @"iuser", @"udn", @"irole", @"itec" }; //ƒлина = COUNT_INDEX_REGISTRATION
+            try {
+                //ќбрабатываемые слова 'командной строки'
+                m_NameArgs = new string[] { @"iuser", @"udn", @"irole", @"itec" }; //ƒлина = COUNT_INDEX_REGISTRATION
 
-            f_arRegistration = new DelegateObjectFunc[(int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION];
-            f_arRegistration[(int)STATE_REGISTRATION.CMD] = registrationCmdLine;
-            f_arRegistration[(int)STATE_REGISTRATION.INI] = registrationINI;
-            f_arRegistration[(int)STATE_REGISTRATION.ENV] = registrationEnv;
+                f_arRegistration = new DelegateObjectFunc[(int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION];
+                f_arRegistration[(int)STATE_REGISTRATION.CMD] = registrationCmdLine;
+                f_arRegistration[(int)STATE_REGISTRATION.INI] = registrationINI;
+                f_arRegistration[(int)STATE_REGISTRATION.ENV] = registrationEnv;
 
-            m_DataRegistration = new object[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
-            m_StateRegistration = new STATE_REGISTRATION[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
+                m_DataRegistration = new object[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
+                m_StateRegistration = new STATE_REGISTRATION[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
 
-            ClearValues();
+                ClearValues();
+            } catch (Exception e) {
+                Logging.Logg().Exception(e, @"HUsers::HUsers ()...");
+            }
 
             Logging.Logg().Debug(@"HUsers::HUsers () - ... очистили значени€ ...");
 
@@ -196,20 +216,25 @@ namespace HClassLibrary
                 //, indxDomainName = ((int[])par)[1]
                 ;
 
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - в’од ... idListener = " + idListener);
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - в’од ... idListener = " + idListener + @"; m_bRegistration = " + m_bRegistration.ToString() + @"; m_StateRegistration = " + m_StateRegistration);
 
             //—ледующий приоритет DataBase
             if (m_bRegistration == false) {
-                if (m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
-                    //ќпределить из ENV
-                    //ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя
-                    try { m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.UserDomainName + @"\" + Environment.UserName; }
-                    catch (Exception e) {
-                        throw e;
+                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME].ToString ());
+
+                try {
+                    if (m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
+                        Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + Environment.UserDomainName + @"\" + Environment.UserName);
+                        //ќпределить из ENV
+                        //ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя
+                        m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.UserDomainName + @"\" + Environment.UserName;
+                        m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = STATE_REGISTRATION.ENV;
                     }
-                    m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = STATE_REGISTRATION.ENV;
-                }
-                else {
+                    else {
+                    }
+                } catch (Exception e) {
+                    Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationEnv () ... ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя ... ");
+                    throw e;                    
                 }
 
                 int err = -1;
@@ -221,6 +246,8 @@ namespace HClassLibrary
                 {
                     //ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя
                     GetUsers(ref connDB, @"DOMAIN_NAME=" + @"'" + m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'", string.Empty, out dataUsers, out err);
+
+                    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - найдено пользователей = " + dataUsers.Rows.Count);
 
                     if ((err == 0) && (dataUsers.Rows.Count > 0))
                     {//Ќайдена хот€ бы одна строка
@@ -271,6 +298,7 @@ namespace HClassLibrary
                 }
             }
             else {
+                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_bRegistration = " + m_bRegistration.ToString());
             }
         }
 
@@ -330,7 +358,8 @@ namespace HClassLibrary
             
             if (! (conn == null))
             {
-                users = new DataTable();                        
+                users = new DataTable();
+                Logging.Logg().Debug(@"HUsers::GetUsers () - запрос дл€ поиска пользователей = [" + getUsersRequest(where, orderby) + @"]");
                 users = DbTSQLInterface.Select(ref conn, getUsersRequest(where, orderby), null, null, out err);
             } else {
                 err = -1;

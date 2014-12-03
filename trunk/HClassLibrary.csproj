@@ -98,6 +98,7 @@
     <Compile Include="FormWait.Designer.cs">
       <DependentUpon>FormWait.cs</DependentUpon>
     </Compile>
+    <Compile Include="HInterfacePlugIn.cs" />
     <Compile Include="HLabel.cs">
       <SubType>Component</SubType>
     </Compile>
