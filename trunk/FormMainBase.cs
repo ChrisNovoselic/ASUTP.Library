@@ -120,6 +120,55 @@ namespace HClassLibrary
             }
         }
 
+        private ToolStripMenuItem findMainMenuItemOfText(ToolStripMenuItem miParent, string text)
+        {
+            ToolStripMenuItem itemRes = null;
+
+            if (miParent.Text == text) {
+                itemRes = miParent;
+            } else
+                foreach (ToolStripItem mi in miParent.DropDownItems)
+                {
+                    if (mi is ToolStripMenuItem)
+                        if (mi.Text == text)
+                        {
+                            itemRes = mi as ToolStripMenuItem;
+                            break;
+                        }
+                        else
+                        {
+                            if (((ToolStripMenuItem)mi).DropDownItems.Count > 0)
+                            {
+                                findMainMenuItemOfText(mi as ToolStripMenuItem, text);
+                            }
+                            else
+                            {
+                            }
+                        }
+                    else
+                        ;
+                }
+
+            return itemRes;
+        }
+
+        public ToolStripMenuItem FindMainMenuItemOfText(string text)
+        {
+            ToolStripMenuItem itemRes = null;
+
+            foreach (ToolStripMenuItem mi in MainMenuStrip.Items)
+            {
+                itemRes = findMainMenuItemOfText(mi, text);
+
+                if (! (itemRes == null))
+                    break;
+                else
+                    ;
+            }
+
+            return itemRes;
+        }
+
         public virtual void Close (bool bForce) { base.Close (); }
     }
 }
