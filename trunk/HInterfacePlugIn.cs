@@ -17,17 +17,20 @@ namespace HClassLibrary
             par = o;
         }
     }
-    
+
     public interface IPlugIn
     {
         IPlugInHost Host { get; set; }
 
         object Object { get; }
+
+        Type TypeOfObject { get ; }
     }
 
     public abstract class HPlugIn : IPlugIn
     {
         IPlugInHost _host;
+        //protected Type _type;
         protected object _object;
         public Int16 _Id;
 
@@ -45,15 +48,71 @@ namespace HClassLibrary
             //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);
         }
 
-        protected abstract bool createObject();
+        ////Вариант №1 - создание объекта по шаблону
+        //private static T CreateType<T>() where T : new()
+        //{
+        //    return new T();
+        //}
+
+        ////Вариант №2 - создание сущности объекта по шаблону
+        //private static T GetInstance<T>(params object[] args)
+        //{
+        //    return (T)Activator.CreateInstance(typeof(T), args);
+        //}
+
+        ////Вариант №3 - создание сущности объекта по шаблону - возвращает 'object'
+        //private static object GetInstance<T>(params object[] args)
+        //{
+        //    return Activator.CreateInstance(typeof(T), args);
+        //}
+
+        ////Вариант №1
+        //protected bool createObject <T>() {
+        //    bool bRes = false;
+            
+        //    if (_object == null) {
+        //        _object = GetInstance <T> (this);
+
+        //        bRes = true; //Объект только создан
+        //    }
+        //    else
+        //        ;
+
+        //    return bRes;
+        //}
+
+        //Вариант №2
+        /// <summary>
+        /// Создание объекта(объектов) библиотеки
+        /// </summary>
+        /// <returns>признак создания</returns>
+        protected bool createObject (Type type)
+        {
+            bool bRes = false;
+
+            if (_object == null)
+            {
+                _object = Activator.CreateInstance(type, this);
+
+                bRes = true; //Объект только создан
+            }
+            else
+                ;
+
+            return bRes;
+        }
 
         public object Object
         {
             get
             {
-                createObject();
-
                 return _object;
+            }
+        }
+
+        public Type TypeOfObject {
+            get {
+                return _object.GetType ();
             }
         }
 
@@ -85,10 +144,22 @@ namespace HClassLibrary
 
         public abstract string NameMenuItem { get; }
 
+        /// <summary>
+        /// Обработчик выбора пункта меню для плюг'ина
+        /// </summary>
+        /// <param name="obj">объект-инициатор события</param>
+        /// <param name="ev">параметры события</param>
         public abstract void OnClickMenuItem (object obj, EventArgs ev);
 
+        /// <summary>
+        /// Событие запроса данных для плюг'ина из главной формы
+        /// </summary>
         public event DelegateObjectFunc EvtDataAskedHost;
         //public event DelegateObjectFunc EvtDataRecievedHost;
+        /// <summary>
+        /// Обработчик события ответа от главной формы
+        /// </summary>
+        /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public /*protected*/ abstract void OnEvtDataRecievedHost(object obj);
     }
 
