@@ -108,9 +108,7 @@
     <Compile Include="HTabCtrlEx.Designer.cs">
       <DependentUpon>HTabCtrlEx.cs</DependentUpon>
     </Compile>
-    <Compile Include="HTabPageEx.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="HTabPageEx.cs" />
     <Compile Include="HTabPageEx.Designer.cs">
       <DependentUpon>HTabPageEx.cs</DependentUpon>
     </Compile>
