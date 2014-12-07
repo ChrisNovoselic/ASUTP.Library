@@ -31,8 +31,13 @@ namespace HClassLibrary
             if (started)
             {
                 started = false;
-                this.Close();
+                BeginInvoke(new DelegateFunc (stopWaitForm));
             }
+        }
+
+        private void stopWaitForm()
+        {
+            this.Close();
         }
 
         private void WaitForm_FormClosing(object sender, FormClosingEventArgs e)

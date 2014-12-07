@@ -74,6 +74,8 @@ namespace HClassLibrary
                 else
                     if (f is FormWait)
                     {
+                        //Здесь м. возникнуть ошибка -
+                        // вызов формы из потока в котором форма не была создана ???
                         (f as FormWait).StopWaitForm();
                     }
                     else
