@@ -10,6 +10,67 @@ namespace HClassLibrary
 {    
     public class HUsers : object
     {
+        private class DbTable_dictionary
+        {
+            enum INDEX_QUERY { SELECT, INSERT, UPDATE, DELETE }
+
+            ConnectionSettings m_connSett;
+            DbConnection m_dbConn;
+            string[] m_query;
+
+            public DbTable_dictionary(ConnectionSettings connSett, string nameTable, string where)
+            {
+            }
+
+            public void ReadString(string[] opt, string[] valDef)
+            {
+            }
+
+            public void WriteString(string[] opt, string[] val)
+            {
+            }
+        }
+
+        private class HProfiles
+        {
+            DataTable m_tblValues;
+
+            public HProfiles(int iListenerId, int id_role, int id_user)
+            {
+                int err = -1;
+                string query = @"SELECT * FROM profiles WHERE ID_EXT IN (" + id_role + @"," + id_user + @")"
+                    , errMsg = string.Empty;
+
+                DbConnection dbConn = DbSources.Sources().GetConnection(iListenerId, out err);
+
+                if (!(err == 0))
+                    errMsg = @"нет соединения с БД";
+                else
+                {
+                    m_tblValues = DbTSQLInterface.Select(ref dbConn, @"", null, null, out err);
+
+                    if (!(err == 0))
+                        errMsg = @"Ошибка при чтении настроек для группы(роли) (irole = " + id_role + @"), пользователя (iuser=" + id_user + @")";
+                    else
+                        ;
+                }
+
+                if (!(err == 0))
+                    throw new Exception(@"HProfiles::HProfiles () - " + errMsg + @"...");
+                else
+                    ;
+            }
+
+            public bool IsAllowed(int id)
+            {
+                bool bRes = false;
+
+                return bRes;
+            }
+        }
+
+        HProfiles m_profiles;
+
         //Идентификаторы из БД
         //public enum ID_ROLES { ...
 
@@ -300,6 +361,8 @@ namespace HClassLibrary
             else {
                 Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_bRegistration = " + m_bRegistration.ToString());
             }
+
+            m_profiles = new HProfiles (idListener, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE]);
         }
 
         //protected abstract void Registration (DataRow rowUser)  { }
@@ -405,8 +468,6 @@ namespace HClassLibrary
                 return (string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME];
             }
         }
-
-        
 
         public static int allTEC
         {
