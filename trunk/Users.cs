@@ -33,12 +33,12 @@ namespace HClassLibrary
 
         private class HProfiles
         {
-            DataTable m_tblValues;
+            static DataTable m_tblValues;
 
             public HProfiles(int iListenerId, int id_role, int id_user)
             {
                 int err = -1;
-                string query = @"SELECT * FROM profiles WHERE ID_EXT IN (" + id_role + @"," + id_user + @")"
+                string query = @"SELECT * FROM profiles WHERE (ID_EXT=" + id_role + @" AND IS_ROLE=1)" + @" OR (ID_EXT=" + id_user + @" AND IS_ROLE=0)"
                     , errMsg = string.Empty;
 
                 DbConnection dbConn = DbSources.Sources().GetConnection(iListenerId, out err);
@@ -47,7 +47,7 @@ namespace HClassLibrary
                     errMsg = @"нет соединения с БД";
                 else
                 {
-                    m_tblValues = DbTSQLInterface.Select(ref dbConn, @"", null, null, out err);
+                    m_tblValues = DbTSQLInterface.Select(ref dbConn, query, null, null, out err);
 
                     if (!(err == 0))
                         errMsg = @"Ошибка при чтении настроек для группы(роли) (irole = " + id_role + @"), пользователя (iuser=" + id_user + @")";
@@ -61,15 +61,23 @@ namespace HClassLibrary
                     ;
             }
 
-            public bool IsAllowed(int id)
+            public static bool IsAllowed(int id)
             {
                 bool bRes = false;
+                Int16 val = -1;
+                
+                bRes = Int16.TryParse (m_tblValues.Select (@"ID_UNIT=" + id) [0][@"VALUE"].ToString (), out val);
+
+                if (bRes == true)
+                    bRes = val == 1;
+                else
+                    ;
 
                 return bRes;
             }
         }
 
-        HProfiles m_profiles;
+        static HProfiles m_profiles;
 
         //Идентификаторы из БД
         //public enum ID_ROLES { ...
@@ -139,8 +147,9 @@ namespace HClassLibrary
         public HUsers(int iListenerId)
         {
             Logging.Logg().Action(@"HUsers::HUsers () - ... кол-во аргументов ком./строки = " + (Environment.GetCommandLineArgs().Length - 1) +
-                @"; DomainUserName = " + Environment.UserDomainName + @"\" + Environment.UserName);
-            
+                @"; DomainUserName = " + Environment.UserDomainName + @"\" + Environment.UserName +
+                @"; MashineName=" + Environment.MachineName);
+
             try {
                 //Обрабатываемые слова 'командной строки'
                 m_NameArgs = new string[] { @"iuser", @"udn", @"irole", @"itec" }; //Длина = COUNT_INDEX_REGISTRATION
@@ -362,7 +371,11 @@ namespace HClassLibrary
                 Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_bRegistration = " + m_bRegistration.ToString());
             }
 
-            m_profiles = new HProfiles (idListener, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE]);
+            try {
+                m_profiles = new HProfiles (idListener, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID]);
+            } catch (Exception e) {
+                throw new HException(-6, e.Message);
+            }
         }
 
         //protected abstract void Registration (DataRow rowUser)  { }
@@ -476,5 +489,7 @@ namespace HClassLibrary
                 return (m_DataRegistration == null) ? 0 : ((!((int)INDEX_REGISTRATION.ID_TEC < m_DataRegistration.Length)) || (m_DataRegistration[(int)INDEX_REGISTRATION.ID_TEC] == null)) ? 0 : (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID_TEC];
             }
         }
+
+        public static bool IsAllowed (int id) { return HProfiles.IsAllowed (id); }
     }
 }

@@ -549,64 +549,69 @@ namespace HClassLibrary
         public static DataTable Select(ref DbConnection conn, string query, DbType[] types, object[] parametrs, out int er)
         {
             er = 0;
+            DataTable dataTableRes = null;
 
-            DataTable dataTableRes = new DataTable();
+            if (conn == null)
+                er = -1;
+            else {
+                dataTableRes = new DataTable();
 
-            queryValidateOfTypeDB (conn.ConnectionString, ref query);
+                queryValidateOfTypeDB (conn.ConnectionString, ref query);
 
-            ParametrsValidate(types, parametrs, out er);
+                ParametrsValidate(types, parametrs, out er);
 
-            if (er == 0)
-            {
-                DbCommand cmd = null;
-                DbDataAdapter adapter = null;
-
-                if (conn is MySqlConnection)
+                if (er == 0)
                 {
-                    cmd = new MySqlCommand();
-                    adapter = new MySqlDataAdapter();
-                }
-                else if (conn is SqlConnection) {
-                        cmd = new SqlCommand();
-                        adapter = new SqlDataAdapter();
-                    }
-                    else
-                        ;
+                    DbCommand cmd = null;
+                    DbDataAdapter adapter = null;
 
-                if ((!(cmd == null)) && (!(adapter == null))) {
-                    cmd.Connection = conn;
-                    cmd.CommandType = CommandType.Text;
-
-                    adapter.SelectCommand = cmd;
-
-                    cmd.CommandText = query;
-                    ParametrsAdd(cmd, types, parametrs);
-
-                    dataTableRes.Reset();
-                    dataTableRes.Locale = System.Globalization.CultureInfo.InvariantCulture;
-
-                    try
+                    if (conn is MySqlConnection)
                     {
-                        if (conn.State == ConnectionState.Open)
-                        {
-                            adapter.Fill(dataTableRes);
+                        cmd = new MySqlCommand();
+                        adapter = new MySqlDataAdapter();
+                    }
+                    else if (conn is SqlConnection) {
+                            cmd = new SqlCommand();
+                            adapter = new SqlDataAdapter();
                         }
                         else
-                            er = -1; //
-                    }
-                    catch (Exception e)
-                    {
-                        logging_catch_db(conn, e);
+                            ;
 
-                        er = -1;
+                    if ((!(cmd == null)) && (!(adapter == null))) {
+                        cmd.Connection = conn;
+                        cmd.CommandType = CommandType.Text;
+
+                        adapter.SelectCommand = cmd;
+
+                        cmd.CommandText = query;
+                        ParametrsAdd(cmd, types, parametrs);
+
+                        dataTableRes.Reset();
+                        dataTableRes.Locale = System.Globalization.CultureInfo.InvariantCulture;
+
+                        try
+                        {
+                            if (conn.State == ConnectionState.Open)
+                            {
+                                adapter.Fill(dataTableRes);
+                            }
+                            else
+                                er = -1; //
+                        }
+                        catch (Exception e)
+                        {
+                            logging_catch_db(conn, e);
+
+                            er = -1;
+                        }
                     }
+                    else
+                        er = -1;
                 }
                 else
-                    er = -1;
-            }
-            else
-            {
-                // Логгирование в 'ParametrsValidate'
+                {
+                    // Логгирование в 'ParametrsValidate'
+                }
             }
 
             return dataTableRes;
