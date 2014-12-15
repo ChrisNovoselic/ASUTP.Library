@@ -175,6 +175,22 @@ namespace HClassLibrary
             this.TabPages.Add(text, text);
         }
 
+        public int IndexOfItemControl (Control ctrl) {
+            int iRes = -1
+                , indx = 0;
+
+            while ((indx < TabPages.Count) && (iRes < 0)) {
+                if (TabPages [indx].Controls.Contains (ctrl) == true)
+                    iRes = indx;
+                else
+                    ;
+
+                indx ++;
+            }
+
+            return iRes;
+        }
+
         public static string GetNameTab (string text) { return new string(' ', 1) + text + new string(' ', 5); }
     }
 
@@ -218,3 +234,4 @@ namespace HClassLibrary
         }
     }
 }
+                    ;
