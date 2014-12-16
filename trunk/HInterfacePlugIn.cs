@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Runtime.Remoting.Messaging;
 
+using System.Windows.Forms; //Control
+
 namespace HClassLibrary
 {
     public class EventArgsDataHost {
@@ -33,6 +35,8 @@ namespace HClassLibrary
         //protected Type _type;
         protected object _object;
         public Int16 _Id;
+        protected HMark m_markDataHost;
+        private ManualResetEvent m_evObjectHandleCreated;
 
         public IPlugInHost Host
         {
@@ -45,6 +49,8 @@ namespace HClassLibrary
         }
 
         public HPlugIn () : base () {
+            m_markDataHost = new HMark ();
+            m_evObjectHandleCreated = new ManualResetEvent (false);
             //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);
         }
 
@@ -94,12 +100,21 @@ namespace HClassLibrary
             {
                 _object = Activator.CreateInstance(type, this);
 
+                if (_object is Control)
+                    ((Control)_object).HandleCreated += new EventHandler(plugInObject_HandleCreated);
+                else
+                    ;
+
                 bRes = true; //Объект только создан
             }
             else
                 ;
 
             return bRes;
+        }
+
+        private void plugInObject_HandleCreated (object obj, EventArgs ev) {
+            m_evObjectHandleCreated.Set ();
         }
 
         public object Object
@@ -160,7 +175,14 @@ namespace HClassLibrary
         /// Обработчик события ответа от главной формы
         /// </summary>
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
-        public /*protected*/ abstract void OnEvtDataRecievedHost(object obj);
+        public virtual void OnEvtDataRecievedHost(object obj) {
+            if (_object is Control)
+                m_evObjectHandleCreated.WaitOne (-1);
+            else
+                ;
+
+            m_markDataHost.Marked(((EventArgsDataHost)obj).id);
+        }
     }
 
     public interface IPlugInHost
