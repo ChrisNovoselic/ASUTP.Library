@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 
 using System.Threading;
+using System.Diagnostics; //Process
 
 namespace HClassLibrary
 {
@@ -127,6 +128,38 @@ namespace HClassLibrary
             {
                 return Logging.AppName + ".exe";
             }
+        }
+
+        public static void AppRestart()
+        {
+            string commandLineArgs = getCommandLineArgs();
+            string exePath = Application.ExecutablePath;
+            try
+            {
+                Application.Exit();
+                wait_allowingEvents(6666);
+            }
+            catch (ArgumentException ex)
+            {
+                throw;
+            }
+            Process.Start(exePath, commandLineArgs);
+        }
+
+        static string getCommandLineArgs()
+        {
+            Queue<string> args = new Queue<string>(Environment.GetCommandLineArgs());
+            args.Dequeue(); // args[0] is always exe path/filename
+            return string.Join(" ", args.ToArray());
+        }
+
+        static void wait_allowingEvents(int durationMS)
+        {
+            DateTime start = DateTime.Now;
+            do
+            {
+                Application.DoEvents();
+            } while (start.Subtract(DateTime.Now).TotalMilliseconds > durationMS);
         }
     }
 }
