@@ -175,7 +175,7 @@ namespace HClassLibrary
 
         protected virtual void ErrorReport()
         {
-            //if (InvokeRequired == true)
+            //if (IsHandleCreated/*InvokeRequired*/ == true)
             try
             {
                 m_statusStripMain.BeginInvoke(delegateEvent);
@@ -188,7 +188,7 @@ namespace HClassLibrary
 
         protected virtual void ActionReport()
         {
-            if (InvokeRequired == true)
+            if (IsHandleCreated/*InvokeRequired*/ == true)
                 m_statusStripMain.BeginInvoke(delegateEvent);
             else
                 Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...");
