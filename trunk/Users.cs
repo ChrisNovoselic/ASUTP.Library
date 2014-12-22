@@ -5,6 +5,7 @@ using System.Windows.Forms;
 //using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using System.Windows.Forms; //Application.ProductVersion
 
 namespace HClassLibrary
 {    
@@ -388,6 +389,8 @@ namespace HClassLibrary
             for (indxIP = 0; indxIP < listIP.Length; indxIP ++) {
                 strMes += @", ip[" + indxIP + @"]=" + listIP[indxIP].ToString ();
             }
+
+            strMes += @"; Version=" + Application.ProductVersion.ToString ()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/;
 
             Logging.Logg().Action(strMes);
         }
