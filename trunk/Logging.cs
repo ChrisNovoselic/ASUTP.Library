@@ -183,8 +183,12 @@ namespace HClassLibrary
         public void Stop () {
             m_arEvtThread[(int)INDEX_SEMATHREAD.STOP].Set ();
 
-            if ((! (m_threadPost == null)) && (m_threadPost.Join(6666) == false))
-                m_threadPost.Abort ();
+            if ((!(m_threadPost == null)) && (m_threadPost.IsAlive == true)) {
+                if ((m_threadPost.Join(6666) == false))
+                    m_threadPost.Abort ();
+                else
+                    ;
+            }
             else
                 ;
 
@@ -197,7 +201,28 @@ namespace HClassLibrary
                 m_evtConnSett.Reset();
             }
             else
-                ;
+                if ((s_mode == LOG_MODE.FILE) || (s_mode == LOG_MODE.UNKNOWN)) {
+                    if ((!(m_sw == null)) && (! (m_sw.BaseStream == null)) && (m_sw.BaseStream.CanWrite == true))
+                    {
+                        m_sw.Flush();
+                        m_sw.Close ();
+                    } else
+                        ;
+                } else
+                    ;
+
+            //if (! (m_arEvtThread == null)) {
+            //    for (int i = 0; i < (int)(INDEX_SEMATHREAD.STOP + 1); i ++)
+            //        if (!(m_arEvtThread[i] == null))
+            //        {
+            //            m_arEvtThread[i].Close();
+            //            m_arEvtThread[i] = null;
+            //        } else
+            //            ;
+
+            //    m_arEvtThread = null;
+            //} else
+            //    ;
 
             m_threadPost = null;
         }
