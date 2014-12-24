@@ -90,18 +90,23 @@ namespace HClassLibrary
         }
 
         /// <summary>
-        /// Конструктор только для параметров соединения с БД логирования
+        /// Конструктор для параметров соединения с БД
         /// </summary>
-        /// <param name="r"></param>
-        public ConnectionSettings(DataRow r)
+        /// <param name="r">строка таблицы с параметрами соединения</param>
+        /// <param name="bLogConnSett">признак предназначения параметров соединения (БД логирования/обычная)</param>
+        public ConnectionSettings(DataRow r, bool bLogConnSett)
         {
-            id = ID_LISTENER_LOGGING; //Int32.Parse (r[@"ID"].ToString ());
+            if (bLogConnSett == true)
+                id = ID_LISTENER_LOGGING;
+            else
+                id = Int32.Parse (r[@"ID"].ToString ());
             name = r[@"NAME_SHR"].ToString ();
             server = r[@"IP"].ToString ();
+            port = Int32.Parse(r[@"PORT"].ToString());
             dbName = r[@"DB_NAME"].ToString();
             userName = r[@"UID"].ToString();
             password = r[@"PASSWORD"].ToString();
-            port = Int32.Parse (r[@"PORT"].ToString ());
+            
 
             ignore = Int32.Parse(r[@"IGNORE"].ToString ()) == 1;
         }
