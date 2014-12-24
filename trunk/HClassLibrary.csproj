@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HStates.cs" />
     <Compile Include="ConnectionSettings.cs" />
     <Compile Include="ConnectionSettingsSource.cs" />
     <Compile Include="Crypt.cs" />

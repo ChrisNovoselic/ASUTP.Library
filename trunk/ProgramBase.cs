@@ -14,6 +14,7 @@ namespace HClassLibrary
     public delegate void DelegateBoolFunc(bool param);
     public delegate void DelegateObjectFunc(object obj);
     public delegate void DelegateRefObjectFunc(ref object obj);
+    public delegate void DelegateDateFunc(DateTime date);
 
     public class HException : Exception
     {
