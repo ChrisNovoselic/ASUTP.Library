@@ -131,6 +131,21 @@ namespace HClassLibrary
             }
         }
 
+        public static void AppExit()
+        {
+            string commandLineArgs = getCommandLineArgs();
+            string exePath = Application.ExecutablePath;
+            try
+            {
+                Application.Exit();
+                wait_allowingEvents(6666);
+            }
+            catch (ArgumentException ex)
+            {
+                throw;
+            }
+        }
+
         public static void AppRestart()
         {
             string commandLineArgs = getCommandLineArgs();
