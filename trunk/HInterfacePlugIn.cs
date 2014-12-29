@@ -12,11 +12,12 @@ namespace HClassLibrary
 {
     public class EventArgsDataHost {
         public int id;
-        public object par;
+        public object [] par;
 
-        public EventArgsDataHost (int id_, object o) {
+        public EventArgsDataHost (int id_, object [] arObj) {
             id = id_;
-            par = o;
+            par = new object [arObj.Length];
+            arObj.CopyTo(par, 0);
         }
     }
 
@@ -134,7 +135,7 @@ namespace HClassLibrary
         protected void DataAskedHost(object par)
         {
             //Вариант №1 - без потока
-            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost (_Id, par), new AsyncCallback(this.dataRecievedHost), new Random ());
+            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost (_Id, new object [] { par } ), new AsyncCallback(this.dataRecievedHost), new Random ());
 
             ////Вариант №2 - спотоком
             //Thread thread = new Thread (new ParameterizedThreadStart (dataAskedHost));
