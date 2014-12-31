@@ -246,7 +246,9 @@ namespace HClassLibrary
         public static string GetConnectionStringCSV(string path)
         {
             string var1 = @"Provider=Microsoft.Jet.OLEDB.4.0;Data Source='" + path + @"';Extended Properties='text;HDR=Yes;FMT=Delimited'",
-                    var2 = @"";
+                        //@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source='" + path + @"';Extended Properties='text;HDR=Yes;FMT=CSVDelimited'",
+                    var2 = //@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source= " + path + ";Extended Properties='Excel 12.0;HDR=YES;IMEX=1;'";
+                            @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source= " + path + ";Extended Properties='text;HDR=YES;IMEX=1;FMT=Delimited'";
 
             return var1;
         }
