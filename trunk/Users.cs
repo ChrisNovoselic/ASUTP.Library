@@ -66,13 +66,26 @@ namespace HClassLibrary
             {
                 bool bRes = false;
                 Int16 val = -1;
-                
-                bRes = Int16.TryParse (m_tblValues.Select (@"ID_UNIT=" + id) [0][@"VALUE"].ToString (), out val);
 
-                if (bRes == true)
-                    bRes = val == 1;
+                DataRow [] rowsAllowed = m_tblValues.Select (@"ID_UNIT=" + id);
+                if ((rowsAllowed.Length == 0) || (rowsAllowed.Length > 2))
+                {//Ошибка - исключение
+                }
                 else
-                    ;
+                {//1 или 2 записи = норма
+                    if (rowsAllowed.Length == 1)
+                        bRes = Int16.TryParse(rowsAllowed[0][@"VALUE"].ToString(), out val);
+                    else
+                        //В табл. с настройками возможность 'id' определена как для "роли", так и для "пользователя"
+                        // требуется выбрать строку с 'IS_ROLE' == 0 (пользователя)
+                        // ...
+                        ;
+
+                    if (bRes == true)
+                        bRes = val == 1;
+                    else
+                        ;
+                }
 
                 return bRes;
             }

@@ -16,6 +16,9 @@ namespace HClassLibrary
     public delegate void DelegateRefObjectFunc(ref object obj);
     public delegate void DelegateDateFunc(DateTime date);
 
+    public delegate string StringDelegateIntFunc (int param);
+    public delegate string StringDelegateStringFunc(string keyParam);
+
     public class HException : Exception
     {
         public int m_code;
