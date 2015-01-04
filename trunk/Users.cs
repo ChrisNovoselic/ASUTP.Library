@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Windows.Forms;
+using System.Windows.Forms; //Application.ProductVersion
 //using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Windows.Forms; //Application.ProductVersion
 
 namespace HClassLibrary
 {    
@@ -15,7 +14,7 @@ namespace HClassLibrary
         {
             enum INDEX_QUERY { SELECT, INSERT, UPDATE, DELETE }
 
-            ConnectionSettings m_connSett;
+            //ConnectionSettings m_connSett;
             DbConnection m_dbConn;
             string[] m_query;
 
@@ -62,32 +61,70 @@ namespace HClassLibrary
                     ;
             }
 
-            public static bool IsAllowed(int id)
+            public static object GetAllowed(int id)
             {
-                bool bRes = false;
+                object objRes = false;
+                bool bValidate = false;
                 Int16 val = -1;
+                string strVal = string.Empty;
 
                 DataRow [] rowsAllowed = m_tblValues.Select (@"ID_UNIT=" + id);
-                if ((rowsAllowed.Length == 0) || (rowsAllowed.Length > 2))
-                {//Ошибка - исключение
-                }
-                else
-                {//1 или 2 записи = норма
-                    if (rowsAllowed.Length == 1)
-                        bRes = Int16.TryParse(rowsAllowed[0][@"VALUE"].ToString(), out val);
-                    else
+                switch (rowsAllowed.Length)
+                {
+                    case 1:
+                        strVal = rowsAllowed[0][@"VALUE"].ToString().Trim ();
+                        break;
+                    case 2:
                         //В табл. с настройками возможность 'id' определена как для "роли", так и для "пользователя"
                         // требуется выбрать строку с 'IS_ROLE' == 0 (пользователя)
                         // ...
-                        ;
-
-                    if (bRes == true)
-                        bRes = val == 1;
-                    else
-                        ;
+                        foreach (DataRow r in rowsAllowed)
+                            if (Int16.Parse(r[@"IS_ROLE"].ToString()) == 0)
+                            {
+                                strVal = r [@"VALUE"].ToString ().Trim ();
+                                break;
+                            }
+                            else
+                                ;
+                        break;
+                    default: //Ошибка - исключение
+                        throw new Exception(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найдено ни одной записи...");
                 }
 
-                return bRes;
+                bValidate = Int16.TryParse(strVal, out val);
+
+                if (bValidate == true)
+                    objRes = val == 1;
+                else
+                    objRes = strVal;
+
+                return objRes;
+            }
+
+            public static void SetAllowed(int iListenerId, int id, string val)
+            {
+                string query = string.Empty;
+                int err = -1;
+                DbConnection dbConn = null;
+
+                //Проверить наличие индивидуальной записи...
+                switch (m_tblValues.Select(@"ID_UNIT=" + id).Length)
+                {
+                    case 1: //Вставка записи...
+                        query = @"INSERT INTO profiles ([ID_EXT],[IS_ROLE],[ID_UNIT],[VALUE]) VALUES (" + Id + @"," + @",0," + id + @",'" + val + @"')";
+                        break;
+                    case 2: //Обновление записи...
+                        query = @"UPDATE TABLE profiles SET [VALUE]='" + val + @"' WHERE ID_EXT=" + Id + @" AND IS_ROLE=0 AND ID_UNIT=" + id;
+                        break;
+                    default: //Ошибка - исключение
+                        throw new Exception(@"HUsers.HProfiles::SetAllowed (id=" + id + @") - не найдено ни одной записи...");
+                }
+
+                dbConn = DbSources.Sources().GetConnection(iListenerId, out err);
+                if ((!(dbConn == null)) && (err == 0))
+                    DbTSQLInterface.ExecNonQuery(ref dbConn, query, null, null, out err);
+                else
+                    ;
             }
         }
 
@@ -506,6 +543,9 @@ namespace HClassLibrary
             }
         }
 
-        public static bool IsAllowed (int id) { return HProfiles.IsAllowed (id); }
+        public static bool IsAllowed (int id) { return (bool)HProfiles.GetAllowed (id); }
+
+        public static string GetAllowed(int id) { return (string)HProfiles.GetAllowed(id); }
+        public static void SetAllowed(int iListenerId, int id, string val) { HProfiles.SetAllowed(iListenerId, id, val); }
     }
 }
