@@ -88,17 +88,25 @@ namespace HClassLibrary {
         /// </summary>
         public void Stop()
         {
-            //this.tcpListener.BeginAcceptTcpClient(null, null);
-            this.tcpListener.Stop();
-
-            lock (this.clients)
+            if (!(tcpListener == null))
             {
-                foreach (Client client in this.clients)
-                {
-                    client.TcpClient.Client.Disconnect(false);
-                }
-                this.clients.Clear();
+                //this.tcpListener.BeginAcceptTcpClient(null, null);
+                this.tcpListener.Stop();
+
+                if (!(this.clients == null))
+                    lock (this.clients)
+                    {
+                        foreach (Client client in this.clients)
+                        {
+                            client.TcpClient.Client.Disconnect(false);
+                        }
+                        this.clients.Clear();
+                    }
+                else
+                    ;
             }
+            else
+                ;
         }
 
         /// <summary>

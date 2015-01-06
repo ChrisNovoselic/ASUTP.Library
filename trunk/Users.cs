@@ -33,12 +33,16 @@ namespace HClassLibrary
 
         private class HProfiles
         {
+            public static string m_nameTableProfilesData = @"profiles"
+                , m_nameTableProfilesUnit = @"profiles_unit";
+            
             static DataTable m_tblValues;
+            static DataTable m_tblTypes;
 
             public HProfiles(int iListenerId, int id_role, int id_user)
             {
                 int err = -1;
-                string query = @"SELECT * FROM profiles WHERE (ID_EXT=" + id_role + @" AND IS_ROLE=1)" + @" OR (ID_EXT=" + id_user + @" AND IS_ROLE=0)"
+                string query = string.Empty
                     , errMsg = string.Empty;
 
                 DbConnection dbConn = DbSources.Sources().GetConnection(iListenerId, out err);
@@ -47,12 +51,21 @@ namespace HClassLibrary
                     errMsg = @"нет соединения с БД";
                 else
                 {
+                    query = @"SELECT * FROM " + m_nameTableProfilesData + @" WHERE (ID_EXT=" + id_role + @" AND IS_ROLE=1)" + @" OR (ID_EXT=" + id_user + @" AND IS_ROLE=0)";
                     m_tblValues = DbTSQLInterface.Select(ref dbConn, query, null, null, out err);
 
                     if (!(err == 0))
-                        errMsg = @"Ошибка при чтении настроек для группы(роли) (irole = " + id_role + @"), пользователя (iuser=" + id_user + @")";
+                        errMsg = @"Ошибка при чтении НАСТРоек для группы(роли) (irole = " + id_role + @"), пользователя (iuser=" + id_user + @")";
                     else
-                        ;
+                    {
+                        query = @"SELECT * from " + m_nameTableProfilesUnit;
+                        m_tblTypes = DbTSQLInterface.Select(ref dbConn, query, null, null, out err);
+
+                        if (!(err == 0))
+                            errMsg = @"Ошибка при чтении ТИПов ДАНных настроек для группы(роли) (irole = " + id_role + @"), пользователя (iuser=" + id_user + @")";
+                        else
+                            ;
+                    }
                 }
 
                 if (!(err == 0))
@@ -91,12 +104,22 @@ namespace HClassLibrary
                         throw new Exception(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найдено ни одной записи...");
                 }
 
-                bValidate = Int16.TryParse(strVal, out val);
-
-                if (bValidate == true)
-                    objRes = val == 1;
-                else
-                    objRes = strVal;
+                //По идкнтификатору параметра должны знать тип...
+                int type = Int32.Parse (m_tblTypes.Select (@"ID=" + id)[0][@"ID_UNIT"].ToString ());
+                switch (type) {
+                    case 8: //bool
+                        bValidate = Int16.TryParse(strVal, out val);
+                        if (bValidate == true)
+                            objRes = val == 1;
+                        else
+                            objRes = false;
+                        break;
+                    case 9: //string
+                        objRes = strVal;
+                        break;
+                    default:
+                        throw new Exception(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найден тип параметра...");
+                }
 
                 return objRes;
             }
@@ -104,17 +127,19 @@ namespace HClassLibrary
             public static void SetAllowed(int iListenerId, int id, string val)
             {
                 string query = string.Empty;
-                int err = -1;
+                int err = -1
+                    , cntRows = -1;
                 DbConnection dbConn = null;
 
                 //Проверить наличие индивидуальной записи...
-                switch (m_tblValues.Select(@"ID_UNIT=" + id).Length)
+                cntRows = m_tblValues.Select(@"ID_UNIT=" + id).Length;
+                switch (cntRows)
                 {
                     case 1: //Вставка записи...
-                        query = @"INSERT INTO profiles ([ID_EXT],[IS_ROLE],[ID_UNIT],[VALUE]) VALUES (" + Id + @"," + @",0," + id + @",'" + val + @"')";
+                        query = @"INSERT INTO " + m_nameTableProfilesData + @" ([ID_EXT],[IS_ROLE],[ID_UNIT],[VALUE]) VALUES (" + Id + @",0," + id + @",'" + val + @"')";
                         break;
                     case 2: //Обновление записи...
-                        query = @"UPDATE TABLE profiles SET [VALUE]='" + val + @"' WHERE ID_EXT=" + Id + @" AND IS_ROLE=0 AND ID_UNIT=" + id;
+                        query = @"UPDATE " + m_nameTableProfilesData + @" SET [VALUE]='" + val + @"' WHERE ID_EXT=" + Id + @" AND IS_ROLE=0 AND ID_UNIT=" + id;
                         break;
                     default: //Ошибка - исключение
                         throw new Exception(@"HUsers.HProfiles::SetAllowed (id=" + id + @") - не найдено ни одной записи...");
@@ -122,7 +147,28 @@ namespace HClassLibrary
 
                 dbConn = DbSources.Sources().GetConnection(iListenerId, out err);
                 if ((!(dbConn == null)) && (err == 0))
+                {
                     DbTSQLInterface.ExecNonQuery(ref dbConn, query, null, null, out err);
+                    //Проверить результат сохранения...
+                    if (err == 0)
+                    {//Обновить таблицу пользовательских настроек...
+                        switch (cntRows)
+                        {
+                            case 1: //Вставка записи...
+                                m_tblValues.Rows.Add(new object [] { Id, 0, id, val });
+                                break;
+                            case 2: //Обновление записи...
+                                DataRow[] rows = m_tblValues.Select(@"ID_EXT=" + Id + @" AND IS_ROLE=0 AND ID_UNIT=" + id);
+                                rows[0][@"VALUE"] = val;
+                                break;
+                            default: //Ошибка - исключение
+                                //Ошибка обработана - создано исключение...
+                                break;
+                        }
+                    }
+                    else
+                        ;
+                }
                 else
                     ;
             }
