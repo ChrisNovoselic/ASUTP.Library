@@ -8,6 +8,8 @@ using System.Data.OleDb;
 using System.Data.SqlClient;
 using MySql.Data.MySqlClient;
 
+using System.IO; //StreamReader
+
 //namespace HClassLibrary
 namespace HClassLibrary
 {
@@ -461,6 +463,54 @@ namespace HClassLibrary
             strRes = (bQuote ? "'" : string.Empty) + (table.Rows[row][col].ToString().Length > 0 ? table.Rows[row][col] : "NULL") + (bQuote ? "'" : string.Empty);
 
             return strRes;
+        }
+
+        /// <summary>
+        /// Импорт содержания текстового файла с разделителем в таблицу
+        /// </summary>
+        /// <param name="path">путь к файлу</param>
+        /// <param name="fields">наименования полей таблицы (не используется)</param>
+        /// <param name="er"></param>
+        /// <returns></returns>
+        public static DataTable CSVImport(string path, string fields, out int er)
+        {
+            er = 0;
+
+            DataTable dataTableRes = new DataTable();
+
+            string [] data;
+            //Открыть поток чтения файла...
+            try
+            {
+                StreamReader sr = new StreamReader(path);
+                //Из 1-ой строки сформировать столбцы...
+                data = sr.ReadLine().Split(';');
+                foreach (string field in data)
+                    dataTableRes.Columns.Add(field, typeof(string));
+                //Из остальных строк сформировать записи...
+                while (sr.EndOfStream == false)
+                {
+                    try
+                    {
+                        data = sr.ReadLine().Split(';');
+                        dataTableRes.Rows.Add(data);
+                    }
+                    catch (Exception e)
+                    {
+                        er = -2;
+                        break;
+                    }
+                }
+
+                //Закрыть поток чтения файла
+                sr.Close();
+            }
+            catch (Exception e)
+            {
+                er = -1;
+            }
+
+            return dataTableRes;
         }
 
         public static DataTable Select(string path, string query, out int er)
