@@ -229,7 +229,7 @@ namespace HClassLibrary
 
         private void threadPost (object par) {
             while (true) {
-                INDEX_SEMATHREAD indx = (INDEX_SEMATHREAD)WaitHandle.WaitAny(m_arEvtThread);
+                INDEX_SEMATHREAD indx_semathread = (INDEX_SEMATHREAD)WaitHandle.WaitAny(m_arEvtThread);
 
                 //Отправление сообщений...
                 int err = -1;
@@ -239,26 +239,77 @@ namespace HClassLibrary
                 {
                     switch (s_mode) {
                         case LOG_MODE.DB:
-                            int cnt = 0;
                             if (m_evtConnSett.WaitOne (0) == true)
                             {                                
                                 lock (m_objQueueMessage)
                                 {
-                                    while ((cnt < m_listQueueMessage.Count) && (cnt < MAX_COUNT_MESSAGE_ONETIME))
+                                    ////Отладка!!!
+                                    //Console.WriteLine(@"Логгирование: сообщений на вХоде=" + m_listQueueMessage.Count);
+                                    
+                                    int indx_queue = 0
+                                        , cnt_running = 0;
+                                    while ((indx_queue < m_listQueueMessage.Count) && (cnt_running < MAX_COUNT_MESSAGE_ONETIME))
                                     {
-                                        toPost += getInsertQuery(m_listQueueMessage[cnt ++]) + @";";
-                                    }
+                                        if (m_listQueueMessage[indx_queue].m_state == STATE_MESSAGE.QUEUE)
+                                        {
+                                            toPost += getInsertQuery(m_listQueueMessage[indx_queue]) + @";";
+                                            m_listQueueMessage[indx_queue].m_state = STATE_MESSAGE.RUNNING;
 
-                                    DbTSQLInterface.ExecNonQuery(ref s_dbConn, toPost, null, null, out err);
+                                            cnt_running ++;
+                                        }
+                                        else
+                                            ;
 
-                                    if (!(err == 0))
-                                    {
-                                        disconnect();
-                                        m_evtConnSett.Reset ();
+                                        indx_queue++;
                                     }
-                                    else
-                                        m_listQueueMessage.RemoveRange(0, cnt);
                                 }
+
+                                DbTSQLInterface.ExecNonQuery(ref s_dbConn, toPost, null, null, out err);
+
+                                if (!(err == 0))
+                                { //Ошибка при записи сообщений...
+                                    lock (m_objQueueMessage)
+                                    {
+                                        //Постановка ПОВТОРно сообщений в очередь
+                                        foreach (MESSAGE msg in m_listQueueMessage)
+                                            if (msg.m_state == STATE_MESSAGE.RUNNING)
+                                                msg.m_state = STATE_MESSAGE.QUEUE;
+                                            else
+                                                ;
+                                    }
+
+                                    disconnect();
+                                    m_evtConnSett.Reset ();
+                                }
+                                else
+                                { //Успех при записи сообщений...
+                                    lock (m_objQueueMessage)
+                                    {
+                                        //Найти обработанные сообщения
+                                        List<int> listIndxMsgRunning = new List<int>();
+                                        foreach (MESSAGE msg in m_listQueueMessage)
+                                            if (msg.m_state == STATE_MESSAGE.RUNNING)
+                                                listIndxMsgRunning.Add(m_listQueueMessage.IndexOf (msg));
+                                            else
+                                                ;
+
+                                        //Сортировать список индексов в ОБРАТном порядке
+                                        // для удаления сообщений из списка по ИНДЕКСу
+                                        listIndxMsgRunning.Sort(delegate(int i1, int i2) { return i1 > i2 ? -1 : 1; });
+
+                                        //Удалить обработанные сообщения
+                                        foreach (int indx in listIndxMsgRunning)
+                                            m_listQueueMessage.RemoveAt(indx);
+                                    }
+                                }
+
+                                ////Отладка!!!
+                                //lock (m_objQueueMessage)
+                                //{
+                                //    Console.WriteLine(@"Логгирование: сообщений на вЫходе=" + m_listQueueMessage.Count);
+                                //    foreach (MESSAGE msg in m_listQueueMessage)
+                                //        Console.WriteLine(@"Тип сообщения=" + msg.m_state.ToString ());
+                                //}
                             }
                             else
                                 ; //Нет соединения с БД
@@ -290,7 +341,7 @@ namespace HClassLibrary
                                         else
                                             ;
 
-                                        m_listQueueMessage.RemoveAt(0);
+                                        m_listQueueMessage[0].m_state = STATE_MESSAGE.RUNNING;
                                     }
                                 }
 
@@ -343,6 +394,10 @@ namespace HClassLibrary
                                 //else
                                 //    ;
 
+                                lock (m_objQueueMessage) {
+                                    m_listQueueMessage.RemoveAt (0);
+                                }
+
                                 if (locking == true)
                                     LogUnlock();
                                 else
@@ -360,7 +415,7 @@ namespace HClassLibrary
                 else
                     ;
 
-                if (indx == INDEX_SEMATHREAD.STOP)
+                if (indx_semathread == INDEX_SEMATHREAD.STOP)
                     break;
                 else {
                     m_arEvtThread[(int)INDEX_SEMATHREAD.MSG].Reset();                    
@@ -481,9 +536,11 @@ namespace HClassLibrary
             sema.Release();
         }
 
+        private enum STATE_MESSAGE { UNKNOWN, QUEUE, RUNNING };
         private enum INDEX_SEMATHREAD {MSG, STOP};
         private class MESSAGE {
             public int m_id;
+            public STATE_MESSAGE m_state;
             public string m_strDatetimeReg;
             public string m_text;
             
@@ -493,6 +550,7 @@ namespace HClassLibrary
 
             public MESSAGE (int id, DateTime dtReg, string text, bool bSep, bool bDatetime, bool bLock) {
                 m_id = id;
+                m_state = STATE_MESSAGE.QUEUE;
                 m_strDatetimeReg = dtReg.ToString (@"yyyyMMdd HH:mm:ss.fff");
                 m_text = text;
 
@@ -508,14 +566,14 @@ namespace HClassLibrary
         }
 
         private string getInsertQuery (MESSAGE msg) {
-            return @"INSERT INTO [dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE])VALUES" +
-                                @"(" + msg.m_id + @"," + ProgramBase.s_iAppID + @"," + HUsers.Id + @",'" + msg.m_strDatetimeReg + @"','" + msg.m_text.Replace ('\'', '`') + @"')";
+            return @"INSERT INTO [dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE], [INSERT_DATETIME])VALUES" +
+                                @"(" + msg.m_id + @"," + ProgramBase.s_iAppID + @"," + HUsers.Id + @",'" + msg.m_strDatetimeReg + @"','" + msg.m_text.Replace ('\'', '`') + @"', GETDATE())";
         }
 
         private string getInsertQuery(int id, string text)
         {
-            return @"INSERT INTO [dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE])VALUES" +
-                                @"(" + id + @"," + ProgramBase.s_iAppID + @"," + HUsers.Id + @",GETDATE (),'" + text.Replace('\'', '`') + @"')";
+            return @"INSERT INTO [dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE], [INSERT_DATETIME])VALUES" +
+                                @"(" + id + @"," + ProgramBase.s_iAppID + @"," + HUsers.Id + @",GETDATE (),'" + text.Replace('\'', '`') + @"', GETDATE())";
         }
         
         /// <summary>
