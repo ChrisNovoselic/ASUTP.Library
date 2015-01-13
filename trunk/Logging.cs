@@ -320,28 +320,32 @@ namespace HClassLibrary
                             {
                                 lock (m_objQueueMessage)
                                 {
-                                    while (m_listQueueMessage.Count > 0) {
-                                        if (m_listQueueMessage[0].m_bSeparator == true)
+                                    int indx_queue = 0;
+                                    while (indx_queue < m_listQueueMessage.Count)
+                                    {
+                                        if (m_listQueueMessage[indx_queue].m_bSeparator == true)
                                             toPost += MessageSeparator + Environment.NewLine;
                                         else
                                             ;
 
-                                        if (m_listQueueMessage[0].m_bDatetimeStamp == true)
+                                        if (m_listQueueMessage[indx_queue].m_bDatetimeStamp == true)
                                         {
-                                            toPost += m_listQueueMessage[0].m_strDatetimeReg + Environment.NewLine;
+                                            toPost += m_listQueueMessage[indx_queue].m_strDatetimeReg + Environment.NewLine;
                                             toPost += DatetimeStampSeparator + Environment.NewLine;
                                         }
                                         else
                                             ;
 
-                                        toPost += m_listQueueMessage[0].m_text + Environment.NewLine;
+                                        toPost += m_listQueueMessage[indx_queue].m_text + Environment.NewLine;
 
                                         if (m_listQueueMessage.Count == 1)
-                                            locking = m_listQueueMessage[0].m_bLockFile;
+                                            locking = m_listQueueMessage[indx_queue].m_bLockFile;
                                         else
                                             ;
 
-                                        m_listQueueMessage[0].m_state = STATE_MESSAGE.RUNNING;
+                                        m_listQueueMessage[indx_queue].m_state = STATE_MESSAGE.RUNNING;
+
+                                        indx_queue ++;
                                     }
                                 }
 
@@ -395,7 +399,8 @@ namespace HClassLibrary
                                 //    ;
 
                                 lock (m_objQueueMessage) {
-                                    m_listQueueMessage.RemoveAt (0);
+                                    int indx_queue = 0;
+                                    m_listQueueMessage.RemoveAt (indx_queue);
                                 }
 
                                 if (locking == true)
