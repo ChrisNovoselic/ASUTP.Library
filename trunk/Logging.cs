@@ -21,7 +21,8 @@ namespace HClassLibrary
         public enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR, WARNING };
 
         private int MAX_COUNT_MESSAGE_ONETIME = 66;
-        
+        private int MAXCOUNT_LISTQUEUEMESSAGE = 666;
+
         private string m_fileNameStart;
         private string m_fileName;
         //private bool externalLog;
@@ -40,6 +41,8 @@ namespace HClassLibrary
         private const int logRotateFilesDefault = 1;
         private const int logRotateFilesMax = 100;
         private int logRotateFiles;
+        private DateTime logRotateCheckLast; //Дата/время крайней проверки размера файла (для окончания записи)
+        private int logRotateChekMaxSeconds; //Макс. кол-во сек. между проверки размера файла (для окончания записи)
 
         public static string DatetimeStampSeparator = new string ('-', 49); //"------------------------------------------------";
         public static string MessageSeparator = new string('=', 49); //"================================================";
@@ -268,39 +271,14 @@ namespace HClassLibrary
 
                                 if (!(err == 0))
                                 { //Ошибка при записи сообщений...
-                                    lock (m_objQueueMessage)
-                                    {
-                                        //Постановка ПОВТОРно сообщений в очередь
-                                        foreach (MESSAGE msg in m_listQueueMessage)
-                                            if (msg.m_state == STATE_MESSAGE.RUNNING)
-                                                msg.m_state = STATE_MESSAGE.QUEUE;
-                                            else
-                                                ;
-                                    }
+                                    retryQueueMessage ();
 
                                     disconnect();
                                     m_evtConnSett.Reset ();
                                 }
                                 else
                                 { //Успех при записи сообщений...
-                                    lock (m_objQueueMessage)
-                                    {
-                                        //Найти обработанные сообщения
-                                        List<int> listIndxMsgRunning = new List<int>();
-                                        foreach (MESSAGE msg in m_listQueueMessage)
-                                            if (msg.m_state == STATE_MESSAGE.RUNNING)
-                                                listIndxMsgRunning.Add(m_listQueueMessage.IndexOf (msg));
-                                            else
-                                                ;
-
-                                        //Сортировать список индексов в ОБРАТном порядке
-                                        // для удаления сообщений из списка по ИНДЕКСу
-                                        listIndxMsgRunning.Sort(delegate(int i1, int i2) { return i1 > i2 ? -1 : 1; });
-
-                                        //Удалить обработанные сообщения
-                                        foreach (int indx in listIndxMsgRunning)
-                                            m_listQueueMessage.RemoveAt(indx);
-                                    }
+                                    clearQueueMessage ();
                                 }
 
                                 ////Отладка!!!
@@ -343,6 +321,15 @@ namespace HClassLibrary
                                         else
                                             ;
 
+                                        if (locking == false)
+                                            if ((DateTime.Now - logRotateCheckLast).TotalSeconds > logRotateChekMaxSeconds)
+                                                //Принудить к проверке размера файла
+                                                locking = true;
+                                            else
+                                                ;
+                                        else
+                                            ;                                                
+
                                         m_listQueueMessage[indx_queue].m_state = STATE_MESSAGE.RUNNING;
 
                                         indx_queue ++;
@@ -380,13 +367,15 @@ namespace HClassLibrary
                                     }
                                     catch (Exception e)
                                     {
+                                        retryQueueMessage ();
+                                        
                                         /*m_sw.Close ();*/
                                         m_sw = null;
                                         m_fi = null;
                                     }
                                 }
                                 else
-                                    ;
+                                    retryQueueMessage();
 
                                 //if (externalLog == true)
                                 //{
@@ -398,10 +387,7 @@ namespace HClassLibrary
                                 //else
                                 //    ;
 
-                                lock (m_objQueueMessage) {
-                                    int indx_queue = 0;
-                                    m_listQueueMessage.RemoveAt (indx_queue);
-                                }
+                                clearQueueMessage ();
 
                                 if (locking == true)
                                     LogUnlock();
@@ -425,6 +411,39 @@ namespace HClassLibrary
                 else {
                     m_arEvtThread[(int)INDEX_SEMATHREAD.MSG].Reset();                    
                 }
+            }
+        }
+
+        private void retryQueueMessage () {
+            lock (m_objQueueMessage)
+            {
+                //Постановка ПОВТОРно сообщений в очередь
+                foreach (MESSAGE msg in m_listQueueMessage)
+                    if (msg.m_state == STATE_MESSAGE.RUNNING)
+                        msg.m_state = STATE_MESSAGE.QUEUE;
+                    else
+                        ;
+            }
+        }
+
+        private void clearQueueMessage () {
+            lock (m_objQueueMessage)
+            {
+                //Найти обработанные сообщения
+                List<int> listIndxMsgRunning = new List<int>();
+                foreach (MESSAGE msg in m_listQueueMessage)
+                    if (msg.m_state == STATE_MESSAGE.RUNNING)
+                        listIndxMsgRunning.Add(m_listQueueMessage.IndexOf (msg));
+                    else
+                        ;
+
+                //Сортировать список индексов в ОБРАТном порядке
+                // для удаления сообщений из списка по ИНДЕКСу
+                listIndxMsgRunning.Sort(delegate(int i1, int i2) { return i1 > i2 ? -1 : 1; });
+
+                //Удалить обработанные сообщения
+                foreach (int indx in listIndxMsgRunning)
+                    m_listQueueMessage.RemoveAt(indx);
             }
         }
 
@@ -465,6 +484,9 @@ namespace HClassLibrary
                 //throw new Exception(@"private Logging::Logging () - ...", e);
                 ProgramBase.Abort ();
             }
+
+            logRotateCheckLast = DateTime.Now;
+            logRotateChekMaxSeconds = 60;
 
             //logIndex = 0;
             //delegateUpdateLogText = updateLogText;
@@ -567,7 +589,14 @@ namespace HClassLibrary
 
         private void addMessage (int id_msg, string msg, bool bSep, bool bDatetime, bool bLock) {
             if (m_listQueueMessage == null) m_listQueueMessage = new List<MESSAGE>(); else ;
-            lock (m_objQueueMessage) { m_listQueueMessage.Add(new MESSAGE((int)id_msg, DateTime.Now, msg, bSep, bDatetime, bLock)); }
+            lock (m_objQueueMessage) {
+                if (m_listQueueMessage.Count > MAXCOUNT_LISTQUEUEMESSAGE)
+                    m_listQueueMessage.RemoveAt (0);
+                else
+                    ;
+
+                m_listQueueMessage.Add(new MESSAGE((int)id_msg, DateTime.Now, msg, bSep, bDatetime, bLock));
+            }
         }
 
         private string getInsertQuery (MESSAGE msg) {
@@ -709,6 +738,8 @@ namespace HClassLibrary
 
         private void LogCheckRotate()
         {
+            logRotateCheckLast = DateTime.Now;
+
             if (!(m_fi == null))
             {
                 if (File.Exists (m_fileName) == true)
