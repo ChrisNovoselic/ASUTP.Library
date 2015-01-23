@@ -259,12 +259,16 @@ namespace HClassLibrary
             tableRes = null;
             err = true;
 
-            if (m_dictListeners.ContainsKey (id) == true)
+            lock (m_objDictListeners)
             {
-                bRes = m_dictDbInterfaces[m_dictListeners[id].idDbInterface].Response(m_dictListeners[id].iListenerId, out err, out tableRes);
+                if (m_dictListeners.ContainsKey (id) == true)
+                    if (m_dictDbInterfaces.ContainsKey(m_dictListeners[id].idDbInterface) == true)
+                        bRes = m_dictDbInterfaces[m_dictListeners[id].idDbInterface].Response(m_dictListeners[id].iListenerId, out err, out tableRes);
+                    else
+                        ;
+                else
+                    ;
             }
-            else
-                ;
 
             return bRes;
         }
@@ -273,13 +277,16 @@ namespace HClassLibrary
             DbConnection res = null;
             err = -1;
 
-            if ((m_dictListeners.ContainsKey (id) == true) && (! (m_dictListeners [id].dbConn == null)))
+            lock (m_objDictListeners)
             {
-                res = m_dictListeners[id].dbConn;
-                err = 0;
+                if ((m_dictListeners.ContainsKey (id) == true) && (! (m_dictListeners [id].dbConn == null)))
+                {
+                    res = m_dictListeners[id].dbConn;
+                    err = 0;
+                }
+                else
+                    ;
             }
-            else
-                ;
 
             return res;
         }

@@ -62,11 +62,13 @@ namespace HClassLibrary
             m_State = 0;
         }
 
-        public abstract void loadParam();
+        public abstract void Update (out int err);
 
-        public abstract void saveParam();
+        protected abstract void loadParam(bool bInit);
+
+        protected abstract void saveParam();
         
-        public void Parameters_FormClosing(object sender, FormClosingEventArgs e)
+        protected void Parameters_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (!mayClose)
                 e.Cancel = true;
@@ -76,7 +78,7 @@ namespace HClassLibrary
 
         //protected abstract void btnOk_Click(object sender, EventArgs e);
 
-        public virtual void buttonCancel_Click(object sender, EventArgs e)
+        protected virtual void buttonCancel_Click(object sender, EventArgs e)
         {
             mayClose = true;
             Close();
