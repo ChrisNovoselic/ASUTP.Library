@@ -190,7 +190,7 @@ namespace HClassLibrary
         {
             int err = -1;
 
-            lock (m_objDictListeners) {
+            //lock (m_objDictListeners) {
                 if (m_dictListeners.ContainsKey (id) == true)
                 {
                     if (m_dictDbInterfaces.ContainsKey(m_dictListeners[id].idDbInterface) == true) {
@@ -229,7 +229,7 @@ namespace HClassLibrary
                 }
                 else
                     ;
-            }
+            //}
         }
 
         /// <summary>
@@ -259,8 +259,7 @@ namespace HClassLibrary
             tableRes = null;
             err = true;
 
-            lock (m_objDictListeners)
-            {
+            //lock (m_objDictListeners) {
                 if (m_dictListeners.ContainsKey (id) == true)
                     if (m_dictDbInterfaces.ContainsKey(m_dictListeners[id].idDbInterface) == true)
                         bRes = m_dictDbInterfaces[m_dictListeners[id].idDbInterface].Response(m_dictListeners[id].iListenerId, out err, out tableRes);
@@ -268,7 +267,7 @@ namespace HClassLibrary
                         ;
                 else
                     ;
-            }
+            //}
 
             return bRes;
         }
@@ -277,8 +276,7 @@ namespace HClassLibrary
             DbConnection res = null;
             err = -1;
 
-            lock (m_objDictListeners)
-            {
+            //lock (m_objDictListeners) {
                 if ((m_dictListeners.ContainsKey (id) == true) && (! (m_dictListeners [id].dbConn == null)))
                 {
                     res = m_dictListeners[id].dbConn;
@@ -286,7 +284,7 @@ namespace HClassLibrary
                 }
                 else
                     ;
-            }
+            //}
 
             return res;
         }
