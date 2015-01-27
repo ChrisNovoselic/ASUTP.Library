@@ -15,6 +15,12 @@ namespace HClassLibrary
 {
     public class DbTSQLInterface : DbInterface
     {
+        public enum Error
+        {
+            NO_ERROR = 0, DBCONN_NOT_OPEN = -1, DBCONN_NULL = -2, DBADAPTER_NULL = -3, PARAMQUERY_NULL = -4, PARAMQUERY_LENGTH = -5, CATCH_DBCONN = -11
+                            , CATCH_CSV_READ = -21, CATCH_CSV_ROWREAD = -22
+                            , ROWS_0 = -31
+        };
         public enum QUERY_TYPE { UPDATE, INSERT, DELETE, COUNT_QUERY_TYPE };
 
         public static string MessageDbOpen = "Соединение с базой установлено";
@@ -207,7 +213,7 @@ namespace HClassLibrary
 
         public override void Disconnect(out int er)
         {
-            er = 0;
+            er = (int)Error.NO_ERROR;
 
             try
             {
@@ -226,7 +232,7 @@ namespace HClassLibrary
             {
                 Logging.Logg().Exception(e, @"DbTSQLInterface::CloseConnection () - ...");
 
-                er = -1;
+                er = (int)Error.CATCH_DBCONN;
             }
         }
 
@@ -357,7 +363,7 @@ namespace HClassLibrary
 
         public DbConnection GetConnection(out int err)
         {
-            err = 0;
+            err = (int)Error.NO_ERROR;
 
             needReconnect = false;
             bool bRes = Connect();
@@ -366,7 +372,7 @@ namespace HClassLibrary
                 return m_dbConnection;
             else
             {
-                err = -1;
+                err = (int)Error.DBCONN_NOT_OPEN;
 
                 return null;
             }
@@ -474,7 +480,7 @@ namespace HClassLibrary
         /// <returns></returns>
         public static DataTable CSVImport(string path, string fields, out int er)
         {
-            er = 0;
+            er = (int)Error.NO_ERROR;
 
             DataTable dataTableRes = new DataTable();
 
@@ -497,7 +503,7 @@ namespace HClassLibrary
                     }
                     catch (Exception e)
                     {
-                        er = -2;
+                        er = (int)Error.CATCH_CSV_ROWREAD;
                         break;
                     }
                 }
@@ -507,7 +513,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                er = -1;
+                er = (int)Error.CATCH_CSV_READ;
             }
 
             return dataTableRes;
@@ -515,7 +521,7 @@ namespace HClassLibrary
 
         public static DataTable Select(string path, string query, out int er)
         {
-            er = 0;
+            er = (int)Error.NO_ERROR;
 
             DataTable dataTableRes = new DataTable();
 
@@ -564,7 +570,7 @@ namespace HClassLibrary
                 {
                     logging_catch_db(connectionOleDB, e);
 
-                    er = -1;
+                    er = (int)Error.CATCH_DBCONN;
                 }
 
                 connectionOleDB.Close();
@@ -598,11 +604,11 @@ namespace HClassLibrary
 
         public static DataTable Select(ref DbConnection conn, string query, DbType[] types, object[] parametrs, out int er)
         {
-            er = 0;
+            er = (int)Error.NO_ERROR;
             DataTable dataTableRes = null;
 
             if (conn == null)
-                er = -1;
+                er = (int)Error.DBCONN_NULL;
             else {
                 dataTableRes = new DataTable();
 
@@ -646,17 +652,17 @@ namespace HClassLibrary
                                 adapter.Fill(dataTableRes);
                             }
                             else
-                                er = -1; //
+                                er = (int)Error.DBCONN_NOT_OPEN;
                         }
                         catch (Exception e)
                         {
                             logging_catch_db(conn, e);
 
-                            er = -1;
+                            er = (int)Error.CATCH_DBCONN;
                         }
                     }
                     else
-                        er = -1;
+                        er = (int)Error.DBADAPTER_NULL;
                 }
                 else
                 {
@@ -702,7 +708,7 @@ namespace HClassLibrary
 
         private static void ParametrsValidate(DbType[] types, object[] parametrs, out int err)
         {
-            err = 0;
+            err = (int)Error.NO_ERROR;
 
             //if ((!(types == null)) || (!(parametrs == null)))
             if ((types == null) || (parametrs == null))
@@ -712,13 +718,13 @@ namespace HClassLibrary
                 {
                     if (!(types.Length == parametrs.Length))
                     {
-                        err = -1;
+                        err = (int)Error.PARAMQUERY_LENGTH;
                     }
                     else
                         ;
                 }
                 else
-                    err = -1;
+                    err = (int)Error.PARAMQUERY_NULL;
 
             if (!(err == 0))
             {
@@ -730,7 +736,7 @@ namespace HClassLibrary
 
         public static void ExecNonQuery(ref DbConnection conn, string query, DbType[] types, object[] parametrs, out int er)
         {
-            er = 0;
+            er = (int)Error.NO_ERROR;
 
             DbCommand cmd = null;
 
@@ -763,17 +769,17 @@ namespace HClassLibrary
                             cmd.ExecuteNonQuery();
                         }
                         else
-                            er = -1; //
+                            er = (int)Error.DBCONN_NOT_OPEN;
                     }
                     catch (Exception e)
                     {
                         logging_catch_db(conn, e);
 
-                        er = -1;
+                        er = (int)Error.CATCH_DBCONN;
                     }
                 }
                 else
-                    er = -1;
+                    er = (int)Error.DBADAPTER_NULL;
             }
             else
                 ;
@@ -835,7 +841,7 @@ namespace HClassLibrary
                 {
                     logging_catch_db(connectionOleDB, e);
 
-                    er = -1;
+                    er = (int)Error.CATCH_DBCONN;
                 }
 
                 connectionOleDB.Close();
@@ -847,7 +853,7 @@ namespace HClassLibrary
         public static Int32 getIdNext(ref DbConnection conn, string nameTable)
         {
             Int32 idRes = -1,
-                err = 0;
+                err = (int)Error.NO_ERROR;
 
             idRes = Convert.ToInt32(Select(ref conn, "SELECT MAX(ID) FROM " + nameTable, null, null, out err).Rows[0][0]);
 
@@ -872,7 +878,7 @@ namespace HClassLibrary
         //Изменение (вставка) в оригинальную таблицу записей измененных (добавленных) в измененную таблицу (обязательно наличие поля: ID)
         public static void RecUpdateInsert(ref DbConnection conn, string nameTable, DataTable origin, DataTable data, out int err)
         {
-            err = 0;
+            err = (int)Error.NO_ERROR;
 
             int j = -1, k = -1;
             bool bUpdate = false;
@@ -937,7 +943,7 @@ namespace HClassLibrary
         //Удаление из оригинальной таблицы записей не существующих в измененной таблице (обязательно наличие поля: ID)
         public static void RecDelete(ref DbConnection conn, string nameTable, DataTable origin, DataTable data, out int err)
         {
-            err = 0;
+            err = (int)Error.NO_ERROR;
 
             int j = -1;
             DataRow[] dataRows;
