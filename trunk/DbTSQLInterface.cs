@@ -17,9 +17,10 @@ namespace HClassLibrary
     {
         public enum Error
         {
-            NO_ERROR = 0, DBCONN_NOT_OPEN = -1, DBCONN_NULL = -2, DBADAPTER_NULL = -3, PARAMQUERY_NULL = -4, PARAMQUERY_LENGTH = -5, CATCH_DBCONN = -11
+            NO_ERROR = 0, DBCONN_NOT_OPEN = -1, DBCONN_NULL = -2, DBADAPTER_NULL = -3, PARAMQUERY_NULL = -4, PARAMQUERY_LENGTH = -5
+                            , CATCH_DBCONN = -11
                             , CATCH_CSV_READ = -21, CATCH_CSV_ROWREAD = -22
-                            , ROWS_0 = -31
+                            , TABLE_NULL = -31, TABLE_ROWS_0 = -32
         };
         public enum QUERY_TYPE { UPDATE, INSERT, DELETE, COUNT_QUERY_TYPE };
 
