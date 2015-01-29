@@ -167,17 +167,22 @@ namespace HClassLibrary
 
         public virtual void Start()
         {
-            threadIsWorking = 0;
-            taskThread = new Thread(new ParameterizedThreadStart(TecView_ThreadFunction));
-            taskThread.Name = "Èםעונפויס ך ÐÄÃ";
-            taskThread.IsBackground = true;
+            if (threadIsWorking < 0)
+            {
+                threadIsWorking = 0;
+                taskThread = new Thread(new ParameterizedThreadStart(TecView_ThreadFunction));
+                taskThread.Name = "Èםעונפויס ך ÐÄÃ";
+                taskThread.IsBackground = true;
 
-            semaState = new Semaphore(1, 1);
+                semaState = new Semaphore(1, 1);
 
-            InitializeSyncState ();
+                InitializeSyncState();
 
-            semaState.WaitOne();
-            taskThread.Start();
+                semaState.WaitOne();
+                taskThread.Start();
+            }
+            else
+                ;
         }
 
         public virtual void ClearStates()
