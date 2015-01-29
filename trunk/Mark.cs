@@ -15,6 +15,11 @@ namespace HClassLibrary
             m_mark = 0;
         }
 
+        public HMark(int val)
+        {
+            m_mark = val;
+        }
+
         public static Int32 Pow2Bit (int bit, int offset = 0) {
             return (Int32)Math.Pow(2, bit + offset);
         }
@@ -39,6 +44,8 @@ namespace HClassLibrary
             //    marked (IsMarked (i), i);
             m_mark = mark.Value;
         }
+
+        public void SetOf(int val) { m_mark = val; }
 
         public void Add(HMark mark)
         {

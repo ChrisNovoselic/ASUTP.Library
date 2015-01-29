@@ -31,6 +31,7 @@ namespace HClassLibrary
         private DbConnection m_dbConnection;
         private DbCommand m_dbCommand;
         private DbDataAdapter m_dbAdapter;
+        private static object lockConn = new object ();
 
         private DB_TSQL_INTERFACE_TYPE m_connectionType;
 
@@ -611,63 +612,66 @@ namespace HClassLibrary
             if (conn == null)
                 er = (int)Error.DBCONN_NULL;
             else {
-                dataTableRes = new DataTable();
-
-                queryValidateOfTypeDB (conn.ConnectionString, ref query);
-
-                ParametrsValidate(types, parametrs, out er);
-
-                if (er == 0)
+                lock (lockConn)
                 {
-                    DbCommand cmd = null;
-                    DbDataAdapter adapter = null;
+                    dataTableRes = new DataTable();
 
-                    if (conn is MySqlConnection)
+                    queryValidateOfTypeDB (conn.ConnectionString, ref query);
+
+                    ParametrsValidate(types, parametrs, out er);
+
+                    if (er == 0)
                     {
-                        cmd = new MySqlCommand();
-                        adapter = new MySqlDataAdapter();
-                    }
-                    else if (conn is SqlConnection) {
-                            cmd = new SqlCommand();
-                            adapter = new SqlDataAdapter();
-                        }
-                        else
-                            ;
+                        DbCommand cmd = null;
+                        DbDataAdapter adapter = null;
 
-                    if ((!(cmd == null)) && (!(adapter == null))) {
-                        cmd.Connection = conn;
-                        cmd.CommandType = CommandType.Text;
-
-                        adapter.SelectCommand = cmd;
-
-                        cmd.CommandText = query;
-                        ParametrsAdd(cmd, types, parametrs);
-
-                        dataTableRes.Reset();
-                        dataTableRes.Locale = System.Globalization.CultureInfo.InvariantCulture;
-
-                        try
+                        if (conn is MySqlConnection)
                         {
-                            if (conn.State == ConnectionState.Open)
-                            {
-                                adapter.Fill(dataTableRes);
+                            cmd = new MySqlCommand();
+                            adapter = new MySqlDataAdapter();
+                        }
+                        else if (conn is SqlConnection) {
+                                cmd = new SqlCommand();
+                                adapter = new SqlDataAdapter();
                             }
                             else
-                                er = (int)Error.DBCONN_NOT_OPEN;
-                        }
-                        catch (Exception e)
-                        {
-                            logging_catch_db(conn, e);
+                                ;
 
-                            er = (int)Error.CATCH_DBCONN;
+                        if ((!(cmd == null)) && (!(adapter == null))) {
+                            cmd.Connection = conn;
+                            cmd.CommandType = CommandType.Text;
+
+                            adapter.SelectCommand = cmd;
+
+                            cmd.CommandText = query;
+                            ParametrsAdd(cmd, types, parametrs);
+
+                            dataTableRes.Reset();
+                            dataTableRes.Locale = System.Globalization.CultureInfo.InvariantCulture;
+
+                            try
+                            {
+                                if (conn.State == ConnectionState.Open)
+                                {
+                                    adapter.Fill(dataTableRes);
+                                }
+                                else
+                                    er = (int)Error.DBCONN_NOT_OPEN;
+                            }
+                            catch (Exception e)
+                            {
+                                logging_catch_db(conn, e);
+
+                                er = (int)Error.CATCH_DBCONN;
+                            }
                         }
+                        else
+                            er = (int)Error.DBADAPTER_NULL;
                     }
                     else
-                        er = (int)Error.DBADAPTER_NULL;
-                }
-                else
-                {
-                    // Логгирование в 'ParametrsValidate'
+                    {
+                        // Логгирование в 'ParametrsValidate'
+                    }
                 }
             }
 
@@ -747,40 +751,43 @@ namespace HClassLibrary
 
             if (er == 0)
             {
-                if (conn is MySqlConnection) {
-                    cmd = new MySqlCommand();
-                }
-                else if (conn is SqlConnection) {
-                    cmd = new SqlCommand();
+                lock (lockConn)
+                {
+                    if (conn is MySqlConnection) {
+                        cmd = new MySqlCommand();
                     }
-                    else
-                        ;
-                
-                if (! (cmd == null)) {
-                    cmd.Connection = conn;
-                    cmd.CommandType = CommandType.Text;
-
-                    cmd.CommandText = query;
-                    ParametrsAdd(cmd, types, parametrs);
-
-                    try
-                    {
-                        if (conn.State == ConnectionState.Open)
-                        {
-                            cmd.ExecuteNonQuery();
+                    else if (conn is SqlConnection) {
+                        cmd = new SqlCommand();
                         }
                         else
-                            er = (int)Error.DBCONN_NOT_OPEN;
-                    }
-                    catch (Exception e)
-                    {
-                        logging_catch_db(conn, e);
+                            ;
+                
+                    if (! (cmd == null)) {
+                        cmd.Connection = conn;
+                        cmd.CommandType = CommandType.Text;
 
-                        er = (int)Error.CATCH_DBCONN;
+                        cmd.CommandText = query;
+                        ParametrsAdd(cmd, types, parametrs);
+
+                        try
+                        {
+                            if (conn.State == ConnectionState.Open)
+                            {
+                                cmd.ExecuteNonQuery();
+                            }
+                            else
+                                er = (int)Error.DBCONN_NOT_OPEN;
+                        }
+                        catch (Exception e)
+                        {
+                            logging_catch_db(conn, e);
+
+                            er = (int)Error.CATCH_DBCONN;
+                        }
                     }
+                    else
+                        er = (int)Error.DBADAPTER_NULL;
                 }
-                else
-                    er = (int)Error.DBADAPTER_NULL;
             }
             else
                 ;
@@ -856,7 +863,10 @@ namespace HClassLibrary
             Int32 idRes = -1,
                 err = (int)Error.NO_ERROR;
 
-            idRes = Convert.ToInt32(Select(ref conn, "SELECT MAX(ID) FROM " + nameTable, null, null, out err).Rows[0][0]);
+            lock (lockConn)
+            {
+                idRes = Convert.ToInt32(Select(ref conn, "SELECT MAX(ID) FROM " + nameTable, null, null, out err).Rows[0][0]);
+            }
 
             return ++idRes;
         }

@@ -115,6 +115,7 @@ namespace HClassLibrary
                             objRes = false;
                         break;
                     case 9: //string
+                    case 10: //int
                         objRes = strVal;
                         break;
                     default:
