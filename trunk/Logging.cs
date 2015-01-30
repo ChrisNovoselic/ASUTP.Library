@@ -17,7 +17,7 @@ namespace HClassLibrary
 
     public class Logging //LoggingFS //: Logging
     {
-        public enum LOG_MODE { ERROR = -1, UNKNOWN, FILE, DB };
+        public enum LOG_MODE { ERROR = -1, UNKNOWN, FILE_EXE, FILE_DESKTOP, DB };
         public enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR, WARNING };
 
         private int MAX_COUNT_MESSAGE_ONETIME = 66;
@@ -148,9 +148,12 @@ namespace HClassLibrary
             if (m_this == null)
             {
                 switch (s_mode) {
-                    case LOG_MODE.FILE:
+                    case LOG_MODE.FILE_EXE:
                         //m_this = new Logging(System.Environment.CurrentDirectory + @"\" + AppName + "_" + Environment.MachineName + "_log.txt", false, null, null);
                         m_this = new Logging(System.Environment.CurrentDirectory + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        break;
+                    case LOG_MODE.FILE_DESKTOP:
+                        m_this = new Logging(System.Environment.GetFolderPath (Environment.SpecialFolder.Desktop) + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
                         break;
                     case LOG_MODE.DB:
                     case LOG_MODE.UNKNOWN:
@@ -204,7 +207,8 @@ namespace HClassLibrary
                 m_evtConnSett.Reset();
             }
             else
-                if ((s_mode == LOG_MODE.FILE) || (s_mode == LOG_MODE.UNKNOWN)) {
+                if (((s_mode == LOG_MODE.FILE_EXE) || (s_mode == LOG_MODE.FILE_DESKTOP))
+                    || (s_mode == LOG_MODE.UNKNOWN)) {
                     if ((!(m_sw == null)) && (! (m_sw.BaseStream == null)) && (m_sw.BaseStream.CanWrite == true))
                     {
                         m_sw.Flush();
@@ -292,7 +296,8 @@ namespace HClassLibrary
                             else
                                 ; //Нет соединения с БД
                             break;
-                        case LOG_MODE.FILE:
+                        case LOG_MODE.FILE_EXE:
+                        case LOG_MODE.FILE_DESKTOP:
                             bool locking = false;
                             if ((!(m_listQueueMessage == null)) && (m_listQueueMessage.Count > 0))
                             {
@@ -506,7 +511,8 @@ namespace HClassLibrary
         public string Suspend()
         {
             switch (s_mode) {
-                case LOG_MODE.FILE:
+                case LOG_MODE.FILE_EXE:
+                case LOG_MODE.FILE_DESKTOP:
                     LogLock();
 
                     Debug("Пауза ведения журнала...", false);
@@ -531,7 +537,8 @@ namespace HClassLibrary
         {
             switch (s_mode)
             {
-                case LOG_MODE.FILE:
+                case LOG_MODE.FILE_EXE:
+                case LOG_MODE.FILE_DESKTOP:
                     m_sw = new LogStreamWriter(m_fi.FullName, true, Encoding.GetEncoding("windows-1251"));
 
                     Debug("Возобновление ведения журнала...", false);
@@ -635,7 +642,8 @@ namespace HClassLibrary
                         } else {
                         }
                         break;
-                    case LOG_MODE.FILE:
+                    case LOG_MODE.FILE_EXE:
+                    case LOG_MODE.FILE_DESKTOP:
                         addMessage ((int)id, message, separator, timeStamp, locking); //3 крайних параметра для БД ничего не значат...
                         //Установить признак возможности для отправки
                         bAddMessage = true;
