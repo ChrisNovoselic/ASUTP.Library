@@ -85,8 +85,7 @@ namespace HClassLibrary
                             dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MSSQL;
                             break;
                         case 3306:
-                            dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MySQL;
-                        
+                            dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MySQL;                        
                             break;
                         default:
                             break;
@@ -255,7 +254,7 @@ namespace HClassLibrary
         public bool Response(int id, out bool err, out DataTable tableRes)
         {
             bool bRes = false;
-            
+
             tableRes = null;
             err = true;
 
