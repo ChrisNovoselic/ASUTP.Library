@@ -22,9 +22,9 @@ namespace HClassLibrary
             UNKNOWN
         }
 
-        public static int MAX_RETRY = 3;
-        public static int MAX_WAIT_COUNT = 39;
-        public static int WAIT_TIME_MS = 106;
+        public static volatile int MAX_RETRY = 3;
+        public static volatile int MAX_WAIT_COUNT = 39;
+        public static volatile int WAIT_TIME_MS = 106;
 
         public static int MAX_WATING {
             get {
