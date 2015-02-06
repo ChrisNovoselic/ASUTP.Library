@@ -50,7 +50,7 @@ namespace HClassLibrary
         void MessageBox(string msg, MessageBoxButtons btn = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.Error)
         {
             //MessageBox.Show(this, msg, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            Logging.Logg().Error(msg);
+            Logging.Logg().Error(msg, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         private void GetPassword(out int er)

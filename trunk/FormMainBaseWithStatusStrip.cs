@@ -180,7 +180,7 @@ namespace HClassLibrary
             {
                 m_statusStripMain.BeginInvoke(delegateEvent);
             } catch (Exception e) {
-                Logging.Logg().Exception(e, @"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.D_001, @"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
             }
             //else
             //    Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
@@ -191,7 +191,7 @@ namespace HClassLibrary
             if (IsHandleCreated/*InvokeRequired*/ == true)
                 m_statusStripMain.BeginInvoke(delegateEvent);
             else
-                Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...");
+                Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...", Logging.INDEX_MESSAGE.D_001);
         }
 
         protected abstract bool UpdateStatusString();

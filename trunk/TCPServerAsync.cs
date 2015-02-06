@@ -75,7 +75,7 @@ namespace HClassLibrary {
                 this.tcpListener.BeginAcceptTcpClient(AcceptTcpClientCallback, null);
             }
             catch (Exception e) {
-                Logging.Logg().Exception(e, @"tcpListener.Start()");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"tcpListener.Start()");
                 iRes = -1;
             }
 
@@ -182,7 +182,7 @@ namespace HClassLibrary {
             catch (Exception e)
             {
                 //Ожидаемое исключение
-                //Logging.Logg().Exception(e, "TCPServerAsync::AcceptTcpClientCallback () - ожидаемое исключение");
+                //Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "TCPServerAsync::AcceptTcpClientCallback () - ожидаемое исключение");
                 Console.WriteLine("TCPServertAsync::AcceptTcpClientCallback () - An error has occured when call this methode...type of exception: " + e.GetType().FullName);
             }
             
@@ -238,7 +238,7 @@ namespace HClassLibrary {
                     {
                         err = -2;
 
-                        Logging.Logg ().Exception (e, @"");
+                        Logging.Logg ().Exception (e, Logging.INDEX_MESSAGE.NOT_SET, @"TcpServerAsync::ReadCallBack () - ...");
                     }
                 }
                 else

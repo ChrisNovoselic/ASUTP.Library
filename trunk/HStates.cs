@@ -100,7 +100,7 @@ namespace HClassLibrary
                     }
             else
                 //Вообще нельзя что-либо инициализировать
-                Logging.Logg().Error(@"HStates::stopDbInterfaces () - m_dictIdListeners == null ...");
+                Logging.Logg().Error(@"HStates::stopDbInterfaces () - m_dictIdListeners == null ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         public void StopDbInterfaces()
@@ -125,7 +125,7 @@ namespace HClassLibrary
         {
             //MessageBox.Show(this, msg, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-            Logging.Logg().Error(msg);
+            Logging.Logg().Error(msg, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         public abstract void ClearValues();
@@ -207,7 +207,7 @@ namespace HClassLibrary
                 try { semaState.Release(1); }
                 catch (Exception e)
                 {
-                    Logging.Logg().Exception(e, "HAdmin::StopThreadSourceData () - semaState.Release(1)");
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::StopThreadSourceData () - semaState.Release(1)");
                 }
 
                 joined = taskThread.Join(666);
@@ -333,7 +333,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             { //System.Threading.SemaphoreFullException
-                Logging.Logg().Exception(e, "HAdmin::TecView_ThreadFunction () - semaState.Release(1)");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::TecView_ThreadFunction () - semaState.Release(1)");
             }
         }
 
@@ -343,7 +343,7 @@ namespace HClassLibrary
         protected void completeHandleStates () {
             try { ((AutoResetEvent)m_waitHandleState[0]).Set (); }
             catch (Exception e) {
-                Logging.Logg().Exception(e, "TecView_ThreadFunction () - m_waitHandleState[0]).Set()");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "TecView_ThreadFunction () - m_waitHandleState[0]).Set()");
             }
         }
 

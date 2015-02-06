@@ -232,7 +232,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, @"DbTSQLInterface::CloseConnection () - ...");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbTSQLInterface::CloseConnection () - ...");
 
                 er = (int)Error.CATCH_DBCONN;
             }
@@ -306,21 +306,21 @@ namespace HClassLibrary
             }
             else
                 ;
-            Logging.Logg().Post(Logging.ID_MESSAGE.EXCEPTION_DB, log, true, true, true);
+            Logging.Logg().ExceptionDB(log);
         }
 
         private static void logging_close_db (DbConnection conn)
         {
             string s = ConnectionStringToLog(conn.ConnectionString);
 
-            Logging.Logg().Debug(MessageDbClose + " (" + s + ")");
+            Logging.Logg().Debug(MessageDbClose + " (" + s + ")", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         private static void logging_open_db (DbConnection conn)
         {            
             string s = ConnectionStringToLog(conn.ConnectionString);
 
-            Logging.Logg().Debug(MessageDbOpen + " (" + s + ")", true);
+            Logging.Logg().Debug(MessageDbOpen + " (" + s + ")", Logging.INDEX_MESSAGE.NOT_SET, true);
         }
 
         public static DbTSQLInterface.DB_TSQL_INTERFACE_TYPE getTypeDB(string strConn)
@@ -733,7 +733,7 @@ namespace HClassLibrary
 
             if (!(err == 0))
             {
-                Logging.Logg().Error("!Ошибка! static DbTSQLInterface::ParametrsValidate () - types OR parametrs не корректны");
+                Logging.Logg().Error("!Ошибка! static DbTSQLInterface::ParametrsValidate () - types OR parametrs не корректны", Logging.INDEX_MESSAGE.NOT_SET);
             }
             else
                 ;

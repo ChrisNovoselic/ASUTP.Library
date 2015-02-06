@@ -133,7 +133,7 @@ namespace HClassLibrary
                 }
             }
             catch (Exception e) {
-                Logging.Logg().Exception(e, @"ConnectionSettings::Validate() - ...");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"ConnectionSettings::Validate() - ...");
             }
 
             if (port > 65535)

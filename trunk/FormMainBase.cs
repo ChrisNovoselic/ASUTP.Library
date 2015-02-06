@@ -29,9 +29,6 @@ namespace HClassLibrary
         protected DelegateFunc delegateHideGraphicsSettings;
         protected DelegateFunc delegateParamsApply;
 
-        public static StringDelegateIntFunc DelegateGetINIParametersOfID;
-        public static StringDelegateStringFunc DelegateGetINIParametersOfKEY;
-
         protected bool show_error_alert = false;
 
         public static int s_iMainSourceData = -1;

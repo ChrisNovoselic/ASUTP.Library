@@ -246,7 +246,8 @@ namespace HClassLibrary
         {
             Logging.Logg().Action(@"HUsers::HUsers () - ... кол-во аргументов ком./строки = " + (Environment.GetCommandLineArgs().Length - 1) +
                 @"; DomainUserName = " + Environment.UserDomainName + @"\" + Environment.UserName +
-                @"; MashineName=" + Environment.MachineName);
+                @"; MashineName=" + Environment.MachineName
+                , Logging.INDEX_MESSAGE.NOT_SET);
 
             try {
                 //ќбрабатываемые слова 'командной строки'
@@ -262,10 +263,10 @@ namespace HClassLibrary
 
                 ClearValues();
             } catch (Exception e) {
-                Logging.Logg().Exception(e, @"HUsers::HUsers ()...");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HUsers::HUsers ()...");
             }
 
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... очистили значени€ ...");
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... очистили значени€ ...", Logging.INDEX_MESSAGE.NOT_SET);
 
             for (int i = 0; i < (int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION; i++)
                 if (i == (int)STATE_REGISTRATION.ENV) f_arRegistration[i](iListenerId); else f_arRegistration[i](null);
@@ -282,7 +283,7 @@ namespace HClassLibrary
 
         private void registrationCmdLine(object par)
         {
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationCmdLine () - в’од ...");
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationCmdLine () - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
             
             //ѕриоритет CMD_LINE
             string[] args = Environment.GetCommandLineArgs();
@@ -321,16 +322,16 @@ namespace HClassLibrary
 
         private void registrationINI(object par)
         {
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - в’од ...");
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - размер массива параметров INI = " + s_REGISTRATION_INI.Length);
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - размер массива параметров INI = " + s_REGISTRATION_INI.Length, Logging.INDEX_MESSAGE.NOT_SET);
 
             //—ледующий приоритет INI
             if (m_bRegistration == false) {
                 bool bValINI = false;
                 for (int i = 1; i < m_DataRegistration.Length; i++)
                 {
-                    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - обработка параметра [" + i + @"]");
+                    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - обработка параметра [" + i + @"]", Logging.INDEX_MESSAGE.NOT_SET);
 
                     try
                     {
@@ -369,7 +370,7 @@ namespace HClassLibrary
                     } 
                     catch (Exception e)
                     {
-                        Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationINI () - параметр не обработан [" + i + @"]");
+                        Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HUsers::HUsers () - ... registrationINI () - параметр не обработан [" + i + @"]");
                     }
                 }
             }
@@ -384,15 +385,15 @@ namespace HClassLibrary
                 //, indxDomainName = ((int[])par)[1]
                 ;
 
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - в’од ... idListener = " + idListener + @"; m_bRegistration = " + m_bRegistration.ToString() + @"; m_StateRegistration = " + m_StateRegistration);
+            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - в’од ... idListener = " + idListener + @"; m_bRegistration = " + m_bRegistration.ToString() + @"; m_StateRegistration = " + m_StateRegistration, Logging.INDEX_MESSAGE.NOT_SET);
 
             //—ледующий приоритет DataBase
             if (m_bRegistration == false) {
-                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME].ToString ());
+                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + m_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME].ToString(), Logging.INDEX_MESSAGE.NOT_SET);
 
                 try {
                     if (m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
-                        Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + Environment.UserDomainName + @"\" + Environment.UserName);
+                        Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + Environment.UserDomainName + @"\" + Environment.UserName, Logging.INDEX_MESSAGE.NOT_SET);
                         //ќпределить из ENV
                         //ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя
                         m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.UserDomainName + @"\" + Environment.UserName;
@@ -401,7 +402,7 @@ namespace HClassLibrary
                     else {
                     }
                 } catch (Exception e) {
-                    Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationEnv () ... ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя ... ");
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HUsers::HUsers () - ... registrationEnv () ... ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя ... ");
                     throw e;                    
                 }
 
@@ -415,7 +416,7 @@ namespace HClassLibrary
                     //ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя
                     GetUsers(ref connDB, @"DOMAIN_NAME=" + @"'" + m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'", string.Empty, out dataUsers, out err);
 
-                    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - найдено пользователей = " + dataUsers.Rows.Count);
+                    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - найдено пользователей = " + dataUsers.Rows.Count, Logging.INDEX_MESSAGE.NOT_SET);
 
                     if ((err == 0) && (dataUsers.Rows.Count > 0))
                     {//Ќайдена хот€ бы одна строка
@@ -466,7 +467,7 @@ namespace HClassLibrary
                 }
             }
             else {
-                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_bRegistration = " + m_bRegistration.ToString());
+                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_bRegistration = " + m_bRegistration.ToString(), Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             try {
@@ -489,7 +490,7 @@ namespace HClassLibrary
 
             strMes += @"; Version=" + Application.ProductVersion.ToString ()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/;
 
-            Logging.Logg().Action(strMes);
+            Logging.Logg().Action(strMes, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         private static string getUsersRequest(string where, string orderby)
@@ -535,7 +536,7 @@ namespace HClassLibrary
             if (! (conn == null))
             {
                 users = new DataTable();
-                Logging.Logg().Debug(@"HUsers::GetUsers () - запрос дл€ поиска пользователей = [" + getUsersRequest(where, orderby) + @"]");
+                Logging.Logg().Debug(@"HUsers::GetUsers () - запрос дл€ поиска пользователей = [" + getUsersRequest(where, orderby) + @"]", Logging.INDEX_MESSAGE.NOT_SET);
                 users = DbTSQLInterface.Select(ref conn, getUsersRequest(where, orderby), null, null, out err);
             } else {
                 err = -1;

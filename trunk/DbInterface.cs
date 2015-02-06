@@ -190,7 +190,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 {
-                    Logging.Logg ().Exception (e, @"DbInterface::Request (int, string)");
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbInterface::Request (int, string)");
                 }
             }
 
@@ -228,7 +228,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, "DbInterface::SetConnectionSettings () - обращение к переменной sem (вызов: sem.Release ())");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "DbInterface::SetConnectionSettings () - обращение к переменной sem (вызов: sem.Release ())");
             }
         }
 
@@ -298,7 +298,7 @@ namespace HClassLibrary
                         }
                         catch (DbException e)
                         {
-                            Logging.Logg().Exception(e, "DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - request = " + request);
+                            Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - request = " + request);
                         
                             result = false;
                         }
@@ -344,7 +344,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, "DbInterface::DbInterface_ThreadFunction () - выход...");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "DbInterface::DbInterface_ThreadFunction () - выход...");
             }
 
             Disconnect();

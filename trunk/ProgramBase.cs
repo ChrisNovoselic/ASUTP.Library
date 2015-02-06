@@ -62,7 +62,7 @@ namespace HClassLibrary
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            Logging.Logg().Post(Logging.ID_MESSAGE.START, MessageWellcome, true, true, true);
+            Logging.Logg().PostStart(MessageWellcome);
         }
 
         //Журналирование завершения приложения
@@ -87,7 +87,7 @@ namespace HClassLibrary
                         f.Close();
             }
 
-            Logging.Logg().Post(Logging.ID_MESSAGE.STOP, MessageExit, true, true, true);
+            Logging.Logg().PostStop(MessageExit);
             Logging.Logg().Stop ();
 
             DbSources.Sources().UnRegister();
@@ -102,7 +102,7 @@ namespace HClassLibrary
             if (s_iMessageShowUnhandledException > 0) MessageBox.Show((IWin32Window)null, e.Exception.Message + Environment.NewLine + MessageAppAbort, strHeader); else ;
 
             // here you can log the exception ...
-            Logging.Logg().Exception(e.Exception, strHeader);
+            Logging.Logg().Exception(e.Exception, Logging.INDEX_MESSAGE.NOT_SET, strHeader);
 
             Exit ();            
         }
@@ -115,7 +115,7 @@ namespace HClassLibrary
             else ;
 
             // here you can log the exception ...
-            Logging.Logg().Exception(e.ExceptionObject as Exception, strHeader);
+            Logging.Logg().Exception(e.ExceptionObject as Exception, Logging.INDEX_MESSAGE.NOT_SET, strHeader);
 
             Exit ();
         }

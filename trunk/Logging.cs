@@ -18,7 +18,16 @@ namespace HClassLibrary
     public class Logging //LoggingFS //: Logging
     {
         public enum LOG_MODE { ERROR = -1, UNKNOWN, FILE_EXE, FILE_DESKTOP, DB };
-        public enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR, WARNING };
+        private enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR, WARNING };
+        public enum INDEX_MESSAGE { NOT_SET = -1
+                                    , A_001, A_002, A_003
+                                    , D_001, D_002, D_003, D_004, D_005, D_006
+                                    , EXCPT_001, EXCPT_002, EXCPT_003, EXCPT_004, EXCPT_005, EXCPT_006
+                                    , EXCPT_DB_001, EXCPT_DB_002, EXCPT_DB_003, EXCPT_DB_004
+                                    , ERR_001, ERR_002, ERR_003, ERR_004, ERR_005, ERR_006
+                                    , W_001, W_002, W_003
+                    , COUNT_INDEX_MESSAGE
+        };
 
         private int MAX_COUNT_MESSAGE_ONETIME = 66;
         private int MAXCOUNT_LISTQUEUEMESSAGE = 666;
@@ -77,6 +86,20 @@ namespace HClassLibrary
         private System.Threading.Timer m_timerConnSett;
         private ManualResetEvent [] m_arEvtThread;
         private ManualResetEvent m_evtConnSett;
+
+        private static int[] s_arDebugLogMessageIds = new int [(int)INDEX_MESSAGE.COUNT_INDEX_MESSAGE];
+        private static HMark s_markDebugLog = new HMark();
+        public static StringDelegateIntFunc DelegateGetINIParametersOfID;
+        public static StringDelegateStringFunc DelegateGetINIParametersOfKEY;
+
+        public static void LinkId (INDEX_MESSAGE indx, int id) {
+            s_arDebugLogMessageIds [(int)indx] = id;
+        }
+
+        public static void UnLink(INDEX_MESSAGE indx)
+        {
+            s_arDebugLogMessageIds[(int)indx] = (int)INDEX_MESSAGE.NOT_SET;
+        }
 
         /// <summary>
         /// Имя приложения без расширения
@@ -168,7 +191,7 @@ namespace HClassLibrary
             return m_this;
         }
 
-        private void start () {
+        protected virtual void start () {
             m_arEvtThread = new ManualResetEvent[] { new ManualResetEvent(false), new ManualResetEvent(false) };            
 
             m_objQueueMessage = new object ();
@@ -184,6 +207,15 @@ namespace HClassLibrary
             }
             else
                 ;
+
+            for (int i = (int)INDEX_MESSAGE.A_001; i < (int)INDEX_MESSAGE.COUNT_INDEX_MESSAGE; i ++)
+                UnLink((INDEX_MESSAGE)i);
+            UpdateMarkDebugLog ();
+        }
+
+        public void PostStop (string message)
+        {
+            post(ID_MESSAGE.STOP, message, true, true, true);
         }
 
         public void Stop () {
@@ -504,6 +536,28 @@ namespace HClassLibrary
             start();
         }
 
+        public static void UpdateMarkDebugLog()
+        {
+            bool bMarked = false;
+            for (int i = 0; i < s_arDebugLogMessageIds.Length; i++)
+            {
+                if (! (s_arDebugLogMessageIds[i] == (int)INDEX_MESSAGE.NOT_SET))
+                {
+                    bMarked = false;
+                    if (!(DelegateGetINIParametersOfKEY == null))
+                        ; //bMarked = bool.Parse(FormMainBase.DelegateGetINIParametersOfKey(...));
+                    else
+                        if (!(DelegateGetINIParametersOfID == null))
+                            bMarked = bool.Parse(DelegateGetINIParametersOfID(s_arDebugLogMessageIds[i]));
+                        else
+                            ;
+                    s_markDebugLog.Set(i, bMarked);
+                }
+                else
+                    ;
+            }
+        }
+
         /// <summary>
         /// Приостановка логгирования
         /// </summary>
@@ -515,12 +569,12 @@ namespace HClassLibrary
                 case LOG_MODE.FILE_DESKTOP:
                     LogLock();
 
-                    Debug("Пауза ведения журнала...", false);
+                    Debug("Пауза ведения журнала...", Logging.INDEX_MESSAGE.NOT_SET, false);
 
                     m_sw.Close();
                     break;
                 case LOG_MODE.DB:
-                    Debug("Пауза ведения журнала...", false);
+                    Debug("Пауза ведения журнала...", Logging.INDEX_MESSAGE.NOT_SET, false);
                     break;
                 case LOG_MODE.UNKNOWN:
                 default:
@@ -541,12 +595,12 @@ namespace HClassLibrary
                 case LOG_MODE.FILE_DESKTOP:
                     m_sw = new LogStreamWriter(m_fi.FullName, true, Encoding.GetEncoding("windows-1251"));
 
-                    Debug("Возобновление ведения журнала...", false);
+                    Debug("Возобновление ведения журнала...", Logging.INDEX_MESSAGE.NOT_SET, false);
 
                     LogUnlock();
                     break;
                 case LOG_MODE.DB:
-                    Debug("Возобновление ведения журнала...", false);
+                    Debug("Возобновление ведения журнала...", Logging.INDEX_MESSAGE.NOT_SET, false);
                     break;
                 case LOG_MODE.UNKNOWN:
                 default:
@@ -624,7 +678,7 @@ namespace HClassLibrary
         /// <param name="separator">признак наличия разделителя</param>
         /// <param name="timeStamp">признак наличия метки времени</param>
         /// <param name="locking">признак блокирования при записи сообщения</param>
-        public void Post(ID_MESSAGE id, string message, bool separator, bool timeStamp, bool locking/* = false*/)
+        private void post(ID_MESSAGE id, string message, bool separator, bool timeStamp, bool locking/* = false*/)
         {
             if (s_mode > LOG_MODE.UNKNOWN)
             {
@@ -800,34 +854,71 @@ namespace HClassLibrary
             }
         }
 
-        public void Action(string message, bool bLock = true)
+        private bool post (INDEX_MESSAGE indx)
         {
-            Post(ID_MESSAGE.ACTION, "!Действие!: " + message, true, true, bLock);
+            bool bRes = indx == INDEX_MESSAGE.NOT_SET;
+            if (bRes == false)
+                bRes = s_markDebugLog.IsMarked ((int)indx);
+            else
+                ;
+
+            return bRes;
         }
 
-        public void Error(string message, bool bLock = true)
-        {
-            Post(ID_MESSAGE.ERROR, "!Ошибка!: " + message, true, true, bLock);
+        public void PostStart (string message) {
+            post(ID_MESSAGE.START, message, true, true, true);
         }
 
-        public void Warning(string message, bool bLock = true)
+        public void Action(string message, INDEX_MESSAGE indx, bool bLock = true)
         {
-            Post(ID_MESSAGE.WARNING, "!Предупреждение!: " + message, true, true, bLock);
+            if (post (indx) == true)
+                post(ID_MESSAGE.ACTION, "!Действие!: " + message, true, true, bLock);
+            else
+                ;
         }
 
-        public void Debug(string message, bool bLock = true)
+        public void Error(string message, INDEX_MESSAGE indx, bool bLock = true)
         {
-            Post(ID_MESSAGE.DEBUG, "!Отладка!: " + message, true, true, bLock);
+            if (post(indx) == true)
+                post(ID_MESSAGE.ERROR, "!Ошибка!: " + message, true, true, bLock);
+            else
+                ;
         }
 
-        public void Exception(Exception e, string message, bool bLock = true)
+        public void Warning(string message, INDEX_MESSAGE indx, bool bLock = true)
         {
-            string msg = string.Empty;
-            msg += "!Исключение! обработка: " + message + Environment.NewLine;
-            msg += "Исключение: " + e.Message + Environment.NewLine;
-            msg += e.ToString();
+            if (post (indx) == true)
+                post(ID_MESSAGE.WARNING, "!Предупреждение!: " + message, true, true, bLock);
+            else
+                ;
+        }
 
-            Post(ID_MESSAGE.EXCEPTION, msg, true, true, bLock);
+        public void Debug(string message, INDEX_MESSAGE indx, bool bLock = true)
+        {
+            if (post(indx) == true)
+                post(ID_MESSAGE.DEBUG, "!Отладка!: " + message, true, true, bLock);
+            else
+                ;
+        }
+
+        public void Exception(Exception e, INDEX_MESSAGE indx, string message, bool bLock = true)
+        {
+            if (post (indx) == true)
+            {
+                string msg = string.Empty;
+                msg += "!Исключение! обработка: " + message + Environment.NewLine;
+                msg += "Исключение: " + e.Message + Environment.NewLine;
+                msg += e.ToString();
+
+                post(ID_MESSAGE.EXCEPTION, msg, true, true, bLock);
+            }
+            else
+                ;
+        }
+
+        public void ExceptionDB(string message)
+        {
+            post(ID_MESSAGE.EXCEPTION_DB, message, true, true, true);
         }
 
         internal class LogStreamWriter : StreamWriter
