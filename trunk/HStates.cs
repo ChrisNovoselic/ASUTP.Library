@@ -22,6 +22,7 @@ namespace HClassLibrary
         protected DelegateFunc delegateEventUpdate;
 
         protected DelegateFunc errorReport;
+        protected DelegateFunc warningReport;
         protected DelegateFunc actionReport;
 
         protected int m_IdListenerCurrent;
@@ -115,9 +116,10 @@ namespace HClassLibrary
             this.delegateEventUpdate = dStatus;
         }
 
-        public void SetDelegateReport(DelegateFunc ferr, DelegateFunc fact)
+        public void SetDelegateReport(DelegateFunc ferr, DelegateFunc fwar, DelegateFunc fact)
         {
             this.errorReport = ferr;
+            this.warningReport = fwar;
             this.actionReport = fact;
         }
 
@@ -147,23 +149,25 @@ namespace HClassLibrary
             DbSources.Sources().Request(m_IdListenerCurrent = idListener, request);
         }
 
-        public virtual bool Response(int idListener, out bool error, out DataTable table/*, bool bIsTec*/)
+        public virtual int Response(int idListener, out bool error, out DataTable table/*, bool bIsTec*/)
         {
             return DbSources.Sources().Response(idListener, out error, out table);
         }
 
-        public virtual bool Response(out bool error, out DataTable table/*, bool bIsTec*/)
+        public virtual int Response(out bool error, out DataTable table/*, bool bIsTec*/)
         {
             return DbSources.Sources().Response(m_IdListenerCurrent, out error, out table);
         }
 
-        protected abstract bool StateRequest(int /*StatesMachine*/ state);
+        protected abstract int StateRequest(int /*StatesMachine*/ state);
 
-        protected abstract bool StateCheckResponse(int /*StatesMachine*/ state, out bool error, out DataTable table);
+        protected abstract int StateCheckResponse(int /*StatesMachine*/ state, out bool error, out DataTable table);
 
-        protected abstract bool StateResponse(int /*StatesMachine*/ state, DataTable table);
+        protected abstract int StateResponse(int /*StatesMachine*/ state, DataTable table);
 
         protected abstract void StateErrors(int /*StatesMachine*/ state, bool response);
+
+        protected abstract void StateWarnings(int /*StatesMachine*/ state, bool response);
 
         public virtual void Start()
         {
@@ -243,16 +247,16 @@ namespace HClassLibrary
 
                 while (true)
                 {
-                    bool requestIsOk = true;
+                    int requestIsOk = 0;
                     bool error = true;
-                    bool dataPresent = false;
+                    int dataPresent = -1;
                     DataTable table = null;
-                    for (int i = 0; i < DbInterface.MAX_RETRY && !dataPresent && !newState; i++)
+                    for (int i = 0; i < DbInterface.MAX_RETRY && (! (dataPresent == 0)) && (newState == false); i++)
                     {
                         if (error)
                         {
                             requestIsOk = StateRequest(currentState);
-                            if (!requestIsOk)
+                            if (! (requestIsOk == 0))
                                 break;
                             else
                                 ;
@@ -261,34 +265,39 @@ namespace HClassLibrary
                             ;
 
                         error = false;
-                        for (int j = 0; j < DbInterface.MAX_WAIT_COUNT && !dataPresent && !error && !newState; j++)
+                        for (int j = 0; j < DbInterface.MAX_WAIT_COUNT && (! (dataPresent == 0)) && (error == false) && (newState == false); j++)
                         {
                             System.Threading.Thread.Sleep(DbInterface.WAIT_TIME_MS);
                             dataPresent = StateCheckResponse(currentState, out error, out table);
                         }
                     }
 
-                    if (requestIsOk)
+                    if (requestIsOk == 0)
                     {
-                        bool responseIsOk = true;
-                        if ((dataPresent == true) && (error == false) && (newState == false))
+                        int responseIsOk = 0;
+                        if ((dataPresent == 0) && (error == false) && (newState == false))
                             responseIsOk = StateResponse(currentState, table);
                         else
                             ;
 
-                        if (((responseIsOk == false) || (dataPresent == false) || (error == true)) && (newState == false))
+                        if (((! (responseIsOk == 0)) || (! (dataPresent == 0)) || (error == true)) && (newState == false))
                         {
-                            StateErrors(currentState, !responseIsOk);
-                            lock (m_lockState)
+                            if (responseIsOk < 0)
                             {
-                                if (newState == false)
+                                StateErrors(currentState, true);
+                                lock (m_lockState)
                                 {
-                                    states.Clear();
-                                    break;
+                                    if (newState == false)
+                                    {
+                                        states.Clear();
+                                        break;
+                                    }
+                                    else
+                                        ;
                                 }
-                                else
-                                    ;
                             }
+                            else
+                                ; //StateWarnings(currentState, true);
                         }
                         else
                             ;
@@ -429,6 +438,17 @@ namespace HClassLibrary
             {
                 FormMainBaseWithStatusStrip.m_report.ErrorReport (msg);
                 errorReport ();
+            }
+            else
+                ;
+        }
+
+        public void WarningReport(string msg)
+        {
+            if (!(warningReport == null))
+            {
+                FormMainBaseWithStatusStrip.m_report.WarningReport(msg);
+                warningReport();
             }
             else
                 ;

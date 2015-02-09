@@ -251,9 +251,9 @@ namespace HClassLibrary
         /// <param name="id">идентификатор</param>
         /// <param name="err">признак4 ошибки</param>
         /// <param name="tableRes">результирующая таблица</param>
-        public bool Response(int id, out bool err, out DataTable tableRes)
+        public int Response(int id, out bool err, out DataTable tableRes)
         {
-            bool bRes = false;
+            int iRes = -1;
 
             tableRes = null;
             err = true;
@@ -261,14 +261,14 @@ namespace HClassLibrary
             //lock (m_objDictListeners) {
                 if (m_dictListeners.ContainsKey (id) == true)
                     if (m_dictDbInterfaces.ContainsKey(m_dictListeners[id].idDbInterface) == true)
-                        bRes = m_dictDbInterfaces[m_dictListeners[id].idDbInterface].Response(m_dictListeners[id].iListenerId, out err, out tableRes);
+                        iRes = m_dictDbInterfaces[m_dictListeners[id].idDbInterface].Response(m_dictListeners[id].iListenerId, out err, out tableRes);
                     else
                         ;
                 else
                     ;
             //}
 
-            return bRes;
+            return iRes;
         }
 
         public DbConnection GetConnection (int id, out int err) {

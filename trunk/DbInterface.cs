@@ -197,7 +197,7 @@ namespace HClassLibrary
             //Logging.Logg().Debug(@"DbInterface::Request (int, string) - " + listenerId + @", " + request);
         }
 
-        public bool Response(int listenerId, out bool error, out DataTable table)
+        public int Response(int listenerId, out bool error, out DataTable table)
         {
             lock (lockListeners)
             {
@@ -206,7 +206,7 @@ namespace HClassLibrary
                     error = true;
                     table = null;
 
-                    return false;
+                    return -1;
                 }
                 else
                     ;
@@ -217,7 +217,7 @@ namespace HClassLibrary
 
             //Logging.Logg().Debug(@"DbInterface::Response (int, out bool , out DataTable) - listenerId = " + listenerId + @", error = " + error.ToString() + @", m_dictListeners[listenerId].dataPresent = " + m_dictListeners[listenerId].dataPresent);
 
-            return m_dictListeners[listenerId].dataPresent;
+            return m_dictListeners[listenerId].dataPresent == true ? 0 : -1;
         }
 
         protected void SetConnectionSettings()
