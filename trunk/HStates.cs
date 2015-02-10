@@ -297,7 +297,7 @@ namespace HClassLibrary
                                 }
                             }
                             else
-                                ; //StateWarnings(currentState, true);
+                                StateWarnings(currentState, true);
                         }
                         else
                             ;
