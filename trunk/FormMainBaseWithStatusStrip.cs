@@ -78,9 +78,14 @@ namespace HClassLibrary
 
         public void WarningReport(string msg)
         {
-            last_warning = msg;
-            last_time_warning = DateTime.Now;
-            warninged_state = true;
+            if (warninged_state == false)
+            {
+                last_warning = msg;
+                last_time_warning = DateTime.Now;
+                warninged_state = true;
+            }
+            else
+                ;
         }
 
         public void ActionReport (string msg) {
@@ -198,6 +203,9 @@ namespace HClassLibrary
         {
             lock (lockEvent)
             {
+                m_lblDescMessage.Invalidate();
+                m_lblDateMessage.Invalidate();
+
                 int type = UpdateStatusString();
                 switch (type)
                 {
@@ -209,11 +217,9 @@ namespace HClassLibrary
                         break;
                     case 0:
                     default:
-                        this.m_lblMainState.ForeColor = System.Drawing.Color.Black;
+                        //this.m_lblMainState.ForeColor = System.Drawing.Color.Black;
                         break;
                 }
-                m_lblDescMessage.Invalidate();
-                m_lblDateMessage.Invalidate();
             }
         }
 

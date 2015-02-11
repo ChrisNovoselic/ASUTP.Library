@@ -278,7 +278,7 @@ namespace HClassLibrary
                         if ((dataPresent == 0) && (error == false) && (newState == false))
                             responseIsOk = StateResponse(currentState, table);
                         else
-                            ;
+                            responseIsOk = -1;
 
                         if (((! (responseIsOk == 0)) || (! (dataPresent == 0)) || (error == true)) && (newState == false))
                         {
