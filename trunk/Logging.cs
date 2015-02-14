@@ -866,6 +866,10 @@ namespace HClassLibrary
         }
 
         public void PostStart (string message) {
+            if (s_mode == Logging.LOG_MODE.UNKNOWN)
+                s_mode = Logging.LOG_MODE.FILE_EXE;
+            else ;
+
             post(ID_MESSAGE.START, message, true, true, true);
         }
 

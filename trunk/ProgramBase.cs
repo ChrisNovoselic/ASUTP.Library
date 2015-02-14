@@ -44,7 +44,9 @@ namespace HClassLibrary
     public static class ProgramBase
     {
         public enum ID_APP { STATISTIC = 1, TRANS_GTP, TRANS_GTP_TO_NE22, TRANS_GTP_FROM_NE22, TRANS_BYISK_GTP_TO_NE22, TRANS_MODES_CENTRE, TRANS_MODES_CENTRE_GUI, TRANS_MODES_CENTRE_CMD, TRANS_MODES_TERMINALE, TRANS_TG }
-        
+
+        public static System.Globalization.CultureInfo ss_MainCultureInfo = new System.Globalization.CultureInfo(@"ru-Ru");
+
         public static string MessageWellcome = "***************Старт приложения...***************"
             , MessageExit = "***************Выход из приложения...***************"
             , MessageAppAbort = @"Приложение будет закрыто...";
@@ -62,6 +64,9 @@ namespace HClassLibrary
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            if (Logging.s_mode == Logging.LOG_MODE.UNKNOWN)
+                Logging.s_mode = Logging.LOG_MODE.FILE_EXE;
+            else ;
             Logging.Logg().PostStart(MessageWellcome);
         }
 

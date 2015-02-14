@@ -171,12 +171,19 @@ namespace HClassLibrary
 
         public virtual void Start()
         {
+            Thread.CurrentThread.CurrentCulture =
+            Thread.CurrentThread.CurrentUICulture =
+                ProgramBase.ss_MainCultureInfo;
+
             if (threadIsWorking < 0)
             {
                 threadIsWorking = 0;
                 taskThread = new Thread(new ParameterizedThreadStart(TecView_ThreadFunction));
                 taskThread.Name = "Èםעונפויס ך ÐÄÃ";
                 taskThread.IsBackground = true;
+                taskThread.CurrentCulture =
+                taskThread.CurrentUICulture =
+                    ProgramBase.ss_MainCultureInfo;
 
                 semaState = new Semaphore(1, 1);
 
