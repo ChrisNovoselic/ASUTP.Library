@@ -94,7 +94,7 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="r">строка таблицы с параметрами соединения</param>
         /// <param name="bLogConnSett">признак предназначения параметров соединения (БД логирования/обычная)</param>
-        public ConnectionSettings(DataRow r, bool bLogConnSett)
+        public ConnectionSettings(DataRow r, bool bLogConnSett) : this ()
         {
             if (bLogConnSett == true)
                 id = ID_LISTENER_LOGGING;
@@ -106,9 +106,24 @@ namespace HClassLibrary
             dbName = r[@"DB_NAME"].ToString();
             userName = r[@"UID"].ToString();
             password = r[@"PASSWORD"].ToString();
-            
 
-            ignore = Int32.Parse(r[@"IGNORE"].ToString ()) == 1;
+            int iVal = -1;
+            bool bVal = false
+                , bRes = int.TryParse(r["IGNORE"].ToString(), out iVal);
+            if (bRes == true)
+            {
+                ignore = iVal == 1; //== "1";
+            }
+            else
+            {
+                bRes = bool.TryParse(r["IGNORE"].ToString(), out bVal);
+                if (bRes == true)
+                {
+                    ignore = bVal;
+                }
+                else
+                    ignore = false;
+            }
         }
 
         public void SetDefault()
