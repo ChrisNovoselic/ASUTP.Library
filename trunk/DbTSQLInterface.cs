@@ -872,22 +872,42 @@ namespace HClassLibrary
         }
 
         //Изменение (вставка), удаление
-        public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, DataTable origin, DataTable data, out int err)
+        public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, string keyFields, DataTable origin, DataTable data, out int err)
         {
             if (!(data.Rows.Count < origin.Rows.Count))
             {
                 //UPDATE, INSERT
-                RecUpdateInsert(ref conn, nameTable, origin, data, out err);
+                RecUpdateInsert(ref conn, nameTable, keyFields, origin, data, out err);
             }
             else
             {
                 //DELETE
-                RecDelete(ref conn, nameTable, origin, data, out err);
+                RecDelete(ref conn, nameTable, keyFields, origin, data, out err);
             }
         }
 
+        private static string getWhereSelect(string fields, DataRow r)
+        {
+            string strRes = string.Empty;
+            
+            string [] arFields = fields.Split(',');
+
+            for (int i = 0; i < arFields.Length; i++)
+            {
+                arFields[i] = arFields[i].Trim();
+                strRes += arFields[i] + @"=" + r[arFields[i]] + @" AND ";
+            }
+
+            if (strRes.Equals(string.Empty) == false)
+                strRes = strRes.Substring(0, strRes.Length - @" AND ".Length);
+            else
+                ;
+
+            return strRes;
+        }
+
         //Изменение (вставка) в оригинальную таблицу записей измененных (добавленных) в измененную таблицу (обязательно наличие поля: ID)
-        public static void RecUpdateInsert(ref DbConnection conn, string nameTable, DataTable origin, DataTable data, out int err)
+        public static void RecUpdateInsert(ref DbConnection conn, string nameTable, string keyFields, DataTable origin, DataTable data, out int err)
         {
             err = (int)Error.NO_ERROR;
 
@@ -895,11 +915,13 @@ namespace HClassLibrary
             bool bUpdate = false;
             DataRow[] dataRows;
             string[] strQuery = new string[(int)DbTSQLInterface.QUERY_TYPE.COUNT_QUERY_TYPE];
-            string valuesForInsert = string.Empty;
+            string valuesForInsert = string.Empty
+                , strWhere = string.Empty;
 
             for (j = 0; j < data.Rows.Count; j++)
             {
-                dataRows = origin.Select("ID=" + data.Rows[j]["ID"]);
+                strWhere = getWhereSelect(keyFields, data.Rows[j]);
+                dataRows = origin.Select(strWhere);
                 if (dataRows.Length == 0)
                 {
                     //INSERT
@@ -938,7 +960,7 @@ namespace HClassLibrary
                         if (bUpdate == true)
                         {//UPDATE
                             strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE].Substring(0, strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE].Length - 1);
-                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = "UPDATE " + nameTable + " SET " + strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] + " WHERE ID=" + data.Rows[j]["ID"];
+                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = "UPDATE " + nameTable + " SET " + strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] + " WHERE " + getWhereSelect (keyFields, data.Rows[j]);
 
                             DbTSQLInterface.ExecNonQuery(ref conn, strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE], null, null, out err);
                         }
@@ -952,22 +974,24 @@ namespace HClassLibrary
         }
 
         //Удаление из оригинальной таблицы записей не существующих в измененной таблице (обязательно наличие поля: ID)
-        public static void RecDelete(ref DbConnection conn, string nameTable, DataTable origin, DataTable data, out int err)
+        public static void RecDelete(ref DbConnection conn, string nameTable, string keyFields, DataTable origin, DataTable data, out int err)
         {
             err = (int)Error.NO_ERROR;
 
             int j = -1;
             DataRow[] dataRows;
             string[] strQuery = new string[(int)DbTSQLInterface.QUERY_TYPE.COUNT_QUERY_TYPE];
+            string strWhere = string.Empty;
 
             for (j = 0; j < origin.Rows.Count; j++)
             {
-                dataRows = data.Select("ID=" + origin.Rows[j]["ID"]);
+                strWhere = getWhereSelect(keyFields, origin.Rows[j]);
+                dataRows = data.Select(strWhere);
                 if (dataRows.Length == 0)
                 {
                     //DELETE
                     strQuery[(int)DbTSQLInterface.QUERY_TYPE.DELETE] = string.Empty;
-                    strQuery[(int)DbTSQLInterface.QUERY_TYPE.DELETE] = "DELETE FROM " + nameTable + " WHERE ID=" + origin.Rows[j]["ID"];
+                    strQuery[(int)DbTSQLInterface.QUERY_TYPE.DELETE] = "DELETE FROM " + nameTable + " WHERE " + getWhereSelect(keyFields, origin.Rows[j]);
                     DbTSQLInterface.ExecNonQuery(ref conn, strQuery[(int)DbTSQLInterface.QUERY_TYPE.DELETE], null, null, out err);
                 }
                 else
