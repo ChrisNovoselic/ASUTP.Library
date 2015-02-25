@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Windows.Forms;
-using System.Data;
+using System.Data; //DataTable
 using System.Threading;
+using System.Data.Common; //DbConnection
 
 namespace HClassLibrary
 {
-    public class LogParse
+    public abstract class LogParse
     {
         public enum TYPE_LOGMESSAGE { START, STOP,
                                     DBOPEN, DBCLOSE, DBEXCEPTION,
@@ -23,7 +24,7 @@ namespace HClassLibrary
                                             "Раздел./сообщ.", "Раздел./дата/время",
                                             "Неопределенный тип" };
 
-        private string[] SIGNATURE_LOGMESSAGE = { ProgramBase.MessageWellcome, ProgramBase.MessageExit,
+        protected string[] SIGNATURE_LOGMESSAGE = { ProgramBase.MessageWellcome, ProgramBase.MessageExit,
                                                     DbTSQLInterface.MessageDbOpen, DbTSQLInterface.MessageDbClose, DbTSQLInterface.MessageDbException,
                                                     "!Ошибка!", "!Отладка!",
                                                     string.Empty,
@@ -31,9 +32,9 @@ namespace HClassLibrary
                                                     string.Empty, "Неопределенный тип" };
 
         private Thread m_thread;
-        private DataTable m_tableLog;
+        protected DataTable m_tableLog;
         Semaphore m_semAllowed;
-        bool m_bAllowed;
+        //bool m_bAllowed;
 
         public DelegateFunc Exit;
 
@@ -50,7 +51,7 @@ namespace HClassLibrary
             m_thread = null;
         }
 
-        public void Start(string text)
+        public void Start(object text)
         {
             m_semAllowed.WaitOne ();
 
@@ -63,12 +64,17 @@ namespace HClassLibrary
 
         public void Stop ()
         {
+            //if (m_bAllowed == false)
+            //    return;
+            //else
+            //    ;
+
             bool joined = false;
             if ((!(m_thread == null)))
             {
                 if (m_thread.IsAlive == true)
                 {
-                    m_bAllowed = false;
+                    //m_bAllowed = false;
                     joined = m_thread.Join (6666);
                     if (joined == false)
                         m_thread.Abort ();
@@ -81,16 +87,61 @@ namespace HClassLibrary
                 try { m_semAllowed.Release(); }
                 catch (Exception e)
                 {
-                    Console.WriteLine("LogParse::Stop () - m_semAllowed.Release() - поток не был запущен");
+                    Console.WriteLine("LogParse::Stop () - m_semAllowed.Release() - поток не был запущен или штатно завршился");
                 }
             }
             else
                 ;
 
-            m_bAllowed = true;
+            //m_bAllowed = true;
         }
 
-        private void Thread_Proc (object data)
+        protected virtual void Thread_Proc (object data)
+        {
+            Console.WriteLine("Окончание обработки лог-файла. Обработано строк: {0}", m_tableLog.Rows.Count);
+
+            Stop ();
+
+            Exit ();
+        }
+
+        public int Select (int type, string beg, string end, ref DataRow []res)
+        {
+            int iRes = -1;
+            string where = string.Empty;
+
+            if (!(beg.Equals (string.Empty) == true))
+            {
+                where = "DATE_TIME>='" + DateTime.Parse (beg).ToString ("yyyyMMdd HH:mm:ss") + "'";
+                if (!(end.Equals (string.Empty) == true))
+                    where += " AND DATE_TIME<'" + DateTime.Parse (end).ToString("yyyyMMdd HH:mm:ss") + "'";
+                else
+                    ;
+            }
+            else
+                ;
+
+            if (!(type < 0))
+            {
+                if (!(where.Equals (string.Empty) == true))
+                    where += " AND ";
+                else
+                    ;
+
+                where += "TYPE=" + type;
+            }
+            else
+                ;
+
+            res = m_tableLog.Select(where, "DATE_TIME");
+
+            return iRes;
+        }
+    }
+
+    public class LogParse_File : LogParse
+    {
+        protected override void Thread_Proc(object text)
         {
             string line;
             TYPE_LOGMESSAGE typeMsg;
@@ -101,11 +152,11 @@ namespace HClassLibrary
 
             typeMsg = TYPE_LOGMESSAGE.UNKNOWN;
 
-            StringReader content = new StringReader(data as string);
+            StringReader content = new StringReader(text as string);
 
             m_tableLog.Clear();
 
-            Console.WriteLine("Начало обработки лог-файла. Размер: {0}", (data as string).Length);
+            Console.WriteLine("Начало обработки лог-файла. Размер: {0}", (text as string).Length);
 
             //Чтение 1-ой строки лог-файла
             line = content.ReadLine();
@@ -226,49 +277,33 @@ namespace HClassLibrary
                     {
                         //Добавление строки в таблицу с собщениями
                         m_tableLog.Rows.Add(new object[] { dtMsg, (int)TYPE_LOGMESSAGE.DETAIL, line });
-                        
+
                         //Чтение строки сообщения
                         line = content.ReadLine();
                     }
                 }
             }
 
-            Console.WriteLine("Окончание обработки лог-файла. Обработано строк: {0}", m_tableLog.Rows.Count);
-
-            Exit ();
+            base.Thread_Proc (text as object);
         }
+    }
 
-        public int Select (int type, string beg, string end, ref DataRow []res)
+    public class LogParse_DB : LogParse
+    {
+        protected override void Thread_Proc(object data)
         {
-            int iRes = -1;
-            string where = string.Empty;
+            int err = -1;
+            DbConnection connLoggingDB = DbSources.Sources().GetConnection(Int32.Parse((data as string).Split(',')[0]), out err);
 
-            if (!(beg.Equals (string.Empty) == true))
-            {
-                where = "DATE_TIME>='" + DateTime.Parse (beg).ToString ("yyyyMMdd HH:mm:ss") + "'";
-                if (!(end.Equals (string.Empty) == true))
-                    where += " AND DATE_TIME<'" + DateTime.Parse (end).ToString("yyyyMMdd HH:mm:ss") + "'";
-                else
-                    ;
-            }
-            else
-                ;
+            string query = @"SELECT DATEPART (DD, [DATETIME_WR]) as DD, DATEPART (MM, [DATETIME_WR]) as MM, DATEPART (YYYY, [DATETIME_WR]) as [YYYY]"
+                    + @" FROM [techsite-2.X.X].[dbo].[logging]"
+                    + @" WHERE [ID_USER] = 52"
+                    + @" GROUP BY DATEPART (DD, [DATETIME_WR]), DATEPART (MM, [DATETIME_WR]), DATEPART (YYYY, [DATETIME_WR])"
+                    + @" ORDER BY [DD]";
 
-            if (!(type < 0))
-            {
-                if (!(where.Equals (string.Empty) == true))
-                    where += " AND ";
-                else
-                    ;
+            DbTSQLInterface.Select(ref connLoggingDB, query, null, null, out err);
 
-                where += "TYPE=" + type;
-            }
-            else
-                ;
-
-            res = m_tableLog.Select(where, "DATE_TIME");
-
-            return iRes;
+            base.Thread_Proc (data);
         }
     }
 }
