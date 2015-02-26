@@ -100,9 +100,12 @@ namespace HClassLibrary
         {
             Console.WriteLine("Окончание обработки лог-файла. Обработано строк: {0}", m_tableLog.Rows.Count);
 
-            Stop ();
-
             Exit ();
+        }
+
+        public void Clear ()
+        {
+            //m_tableLog.Clear();
         }
 
         public int Select (int type, string beg, string end, ref DataRow []res)
@@ -110,10 +113,12 @@ namespace HClassLibrary
             int iRes = -1;
             string where = string.Empty;
 
-            if (!(beg.Equals (string.Empty) == true))
+            //m_tableLog.Clear();
+
+            if (beg.Equals (string.Empty) == false)
             {
                 where = "DATE_TIME>='" + DateTime.Parse (beg).ToString ("yyyyMMdd HH:mm:ss") + "'";
-                if (!(end.Equals (string.Empty) == true))
+                if (end.Equals (string.Empty) == false)
                     where += " AND DATE_TIME<'" + DateTime.Parse (end).ToString("yyyyMMdd HH:mm:ss") + "'";
                 else
                     ;
@@ -123,7 +128,7 @@ namespace HClassLibrary
 
             if (!(type < 0))
             {
-                if (!(where.Equals (string.Empty) == true))
+                if (where.Equals (string.Empty) == false)
                     where += " AND ";
                 else
                     ;
@@ -286,24 +291,5 @@ namespace HClassLibrary
 
             base.Thread_Proc (text as object);
         }
-    }
-
-    public class LogParse_DB : LogParse
-    {
-        protected override void Thread_Proc(object data)
-        {
-            int err = -1;
-            DbConnection connLoggingDB = DbSources.Sources().GetConnection(Int32.Parse((data as string).Split(',')[0]), out err);
-
-            string query = @"SELECT DATEPART (DD, [DATETIME_WR]) as DD, DATEPART (MM, [DATETIME_WR]) as MM, DATEPART (YYYY, [DATETIME_WR]) as [YYYY]"
-                    + @" FROM [techsite-2.X.X].[dbo].[logging]"
-                    + @" WHERE [ID_USER] = 52"
-                    + @" GROUP BY DATEPART (DD, [DATETIME_WR]), DATEPART (MM, [DATETIME_WR]), DATEPART (YYYY, [DATETIME_WR])"
-                    + @" ORDER BY [DD]";
-
-            DbTSQLInterface.Select(ref connLoggingDB, query, null, null, out err);
-
-            base.Thread_Proc (data);
-        }
-    }
+    }    
 }
