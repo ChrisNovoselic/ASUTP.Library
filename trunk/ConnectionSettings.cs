@@ -94,10 +94,10 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="r">строка таблицы с параметрами соединения</param>
         /// <param name="bLogConnSett">признак предназначения параметров соединения (БД логирования/обычная)</param>
-        public ConnectionSettings(DataRow r, bool bLogConnSett) : this ()
+        public ConnectionSettings(DataRow r, int iLogConnSett) : this ()
         {
-            if (bLogConnSett == true)
-                id = ID_LISTENER_LOGGING;
+            if (! (iLogConnSett < 0))
+                id = ID_LISTENER_LOGGING + iLogConnSett;
             else
                 id = Int32.Parse (r[@"ID"].ToString ());
             name = r[@"NAME_SHR"].ToString ();

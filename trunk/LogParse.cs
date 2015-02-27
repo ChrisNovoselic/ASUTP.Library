@@ -98,6 +98,10 @@ namespace HClassLibrary
 
         protected virtual void Thread_Proc (object data)
         {
+            Thread.CurrentThread.CurrentCulture =
+            Thread.CurrentThread.CurrentUICulture =
+                ProgramBase.ss_MainCultureInfo;
+
             Console.WriteLine("Окончание обработки лог-файла. Обработано строк: {0}", m_tableLog.Rows.Count);
 
             Exit ();
