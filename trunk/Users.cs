@@ -5,6 +5,7 @@ using System.Windows.Forms; //Application.ProductVersion
 //using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
+using System.IO; //File
 
 namespace HClassLibrary
 {    
@@ -488,7 +489,8 @@ namespace HClassLibrary
                 strMes += @", ip[" + indxIP + @"]=" + listIP[indxIP].ToString ();
             }
 
-            strMes += @"; Version=" + Application.ProductVersion.ToString ()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/;
+            strMes += @"; Version=" + Application.ProductVersion.ToString ()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/
+                    + @"(" + File.GetLastWriteTime(Application.ExecutablePath).ToString(@"dd.MM.yyyy HH:mm:ss") + @")";
 
             Logging.Logg().Action(strMes, Logging.INDEX_MESSAGE.NOT_SET);
         }

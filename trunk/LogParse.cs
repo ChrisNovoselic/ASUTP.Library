@@ -11,25 +11,7 @@ namespace HClassLibrary
 {
     public abstract class LogParse
     {
-        public enum TYPE_LOGMESSAGE { START, STOP,
-                                    DBOPEN, DBCLOSE, DBEXCEPTION,
-                                    ERROR, DEBUG,
-                                    DETAIL,
-                                    SEPARATOR, SEPARATOR_DATETIME,
-                                    UNKNOWN, COUNT_TYPE_LOGMESSAGE };
-        public static string[] DESC_LOGMESSAGE = { "Запуск", "Выход",
-                                            "БД открыть", "БД закрыть", "БД исключение",
-                                            "Ошибка", "Отладка",
-                                            "Детализация",
-                                            "Раздел./сообщ.", "Раздел./дата/время",
-                                            "Неопределенный тип" };
-
-        protected string[] SIGNATURE_LOGMESSAGE = { ProgramBase.MessageWellcome, ProgramBase.MessageExit,
-                                                    DbTSQLInterface.MessageDbOpen, DbTSQLInterface.MessageDbClose, DbTSQLInterface.MessageDbException,
-                                                    "!Ошибка!", "!Отладка!",
-                                                    string.Empty,
-                                                    Logging.MessageSeparator, Logging.DatetimeStampSeparator,
-                                                    string.Empty, "Неопределенный тип" };
+        public static int[] s_IdTypeMessages;
 
         private Thread m_thread;
         protected DataTable m_tableLog;
@@ -102,7 +84,7 @@ namespace HClassLibrary
             Thread.CurrentThread.CurrentUICulture =
                 ProgramBase.ss_MainCultureInfo;
 
-            Console.WriteLine("Окончание обработки лог-файла. Обработано строк: {0}", m_tableLog.Rows.Count);
+            Console.WriteLine("Окончание обработки лог-файла. Обработано строк: {0}", (int)data);
 
             Exit ();
         }
@@ -112,7 +94,7 @@ namespace HClassLibrary
             //m_tableLog.Clear();
         }
 
-        public int Select (int type, string beg, string end, ref DataRow []res)
+        public int Select (int indxType, string beg, string end, ref DataRow []res)
         {
             int iRes = -1;
             string where = string.Empty;
@@ -130,26 +112,62 @@ namespace HClassLibrary
             else
                 ;
 
-            if (!(type < 0))
+            if (!(indxType < 0))
             {
                 if (where.Equals (string.Empty) == false)
                     where += " AND ";
                 else
                     ;
 
-                where += "TYPE=" + type;
+                where += "TYPE=" + s_IdTypeMessages[indxType];
             }
             else
                 ;
 
             res = m_tableLog.Select(where, "DATE_TIME");
 
-            return iRes;
+            return res.Length > 0 ? res.Length : -1;
         }
     }
 
     public class LogParse_File : LogParse
     {
+        public enum TYPE_LOGMESSAGE
+        {
+            START, STOP,
+            DBOPEN, DBCLOSE, DBEXCEPTION,
+            ERROR, DEBUG,
+            DETAIL,
+            SEPARATOR, SEPARATOR_DATETIME,
+            UNKNOWN, COUNT_TYPE_LOGMESSAGE
+        };
+        public static string[] DESC_LOGMESSAGE = { "Запуск", "Выход",
+                                            "БД открыть", "БД закрыть", "БД исключение",
+                                            "Ошибка", "Отладка",
+                                            "Детализация",
+                                            "Раздел./сообщ.", "Раздел./дата/время",
+                                            "Неопределенный тип" };
+
+        protected string[] SIGNATURE_LOGMESSAGE = { ProgramBase.MessageWellcome, ProgramBase.MessageExit,
+                                                    DbTSQLInterface.MessageDbOpen, DbTSQLInterface.MessageDbClose, DbTSQLInterface.MessageDbException,
+                                                    "!Ошибка!", "!Отладка!",
+                                                    string.Empty,
+                                                    Logging.MessageSeparator, Logging.DatetimeStampSeparator,
+                                                    string.Empty, "Неопределенный тип" };
+
+        public LogParse_File()
+        {
+            s_IdTypeMessages = new int[] {
+                0, 1
+                , 2, 3, 4
+                , 5, 6
+                , 7
+                , 8, 9
+                , 10
+                , 11
+            };
+        }
+
         protected override void Thread_Proc(object text)
         {
             string line;
@@ -293,7 +311,7 @@ namespace HClassLibrary
                 }
             }
 
-            base.Thread_Proc (text as object);
+            base.Thread_Proc(m_tableLog.Rows.Count);
         }
     }    
 }

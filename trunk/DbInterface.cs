@@ -199,6 +199,8 @@ namespace HClassLibrary
 
         public int Response(int listenerId, out bool error, out DataTable table)
         {
+            int iRes = -1;
+
             lock (lockListeners)
             {
                 if ((m_dictListeners.ContainsKey(listenerId) == false) || listenerId < 0)
@@ -213,11 +215,13 @@ namespace HClassLibrary
 
                 error = m_dictListeners[listenerId].dataError;
                 table = m_dictListeners[listenerId].dataTable;
+
+                iRes = m_dictListeners[listenerId].dataPresent == true ? 0 : -1;
             }
 
             //Logging.Logg().Debug(@"DbInterface::Response (int, out bool , out DataTable) - listenerId = " + listenerId + @", error = " + error.ToString() + @", m_dictListeners[listenerId].dataPresent = " + m_dictListeners[listenerId].dataPresent);
 
-            return m_dictListeners[listenerId].dataPresent == true ? 0 : -1;
+            return iRes;
         }
 
         protected void SetConnectionSettings()
