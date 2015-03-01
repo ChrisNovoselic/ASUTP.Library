@@ -41,6 +41,12 @@ namespace HClassLibrary
             m_thread.IsBackground = true;
             m_thread.Name = "Разбор лог-файла";
 
+            m_thread.CurrentCulture =
+            m_thread.CurrentUICulture =
+                ProgramBase.ss_MainCultureInfo;
+
+            m_tableLog.Clear();
+
             m_thread.Start (text);
         }
 
@@ -80,10 +86,6 @@ namespace HClassLibrary
 
         protected virtual void Thread_Proc (object data)
         {
-            Thread.CurrentThread.CurrentCulture =
-            Thread.CurrentThread.CurrentUICulture =
-                ProgramBase.ss_MainCultureInfo;
-
             Console.WriteLine("Окончание обработки лог-файла. Обработано строк: {0}", (int)data);
 
             Exit ();
@@ -180,8 +182,6 @@ namespace HClassLibrary
             typeMsg = TYPE_LOGMESSAGE.UNKNOWN;
 
             StringReader content = new StringReader(text as string);
-
-            m_tableLog.Clear();
 
             Console.WriteLine("Начало обработки лог-файла. Размер: {0}", (text as string).Length);
 
