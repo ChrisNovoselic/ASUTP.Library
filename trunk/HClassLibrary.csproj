@@ -110,7 +110,6 @@
       <DependentUpon>HTabCtrlEx.cs</DependentUpon>
     </Compile>
     <Compile Include="Logging.cs" />
-    <Compile Include="LogParse.cs" />
     <Compile Include="Mark.cs" />
     <Compile Include="Passwords.cs" />
     <Compile Include="ProgramBase.cs" />
