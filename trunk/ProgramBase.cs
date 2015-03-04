@@ -59,6 +59,9 @@ namespace HClassLibrary
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            //Установка разделителя целой и дробной части
+            ss_MainCultureInfo.NumberFormat.NumberDecimalSeparator = @",";
+
             s_iMessageShowUnhandledException = 1;
 
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
