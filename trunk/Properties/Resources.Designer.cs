@@ -83,9 +83,9 @@ namespace HClassLibrary.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Icon, аналогичного (Значок).
         /// </summary>
-        internal static System.Drawing.Icon menuInActive {
+        internal static System.Drawing.Icon floatInActive {
             get {
-                object obj = ResourceManager.GetObject("menuInActive", resourceCulture);
+                object obj = ResourceManager.GetObject("floatInActive", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }
@@ -93,9 +93,9 @@ namespace HClassLibrary.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Icon, аналогичного (Значок).
         /// </summary>
-        internal static System.Drawing.Icon menuNonActive {
+        internal static System.Drawing.Icon floatNonActive {
             get {
-                object obj = ResourceManager.GetObject("menuNonActive", resourceCulture);
+                object obj = ResourceManager.GetObject("floatNonActive", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }
