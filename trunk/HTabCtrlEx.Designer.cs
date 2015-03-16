@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel;
+using System.Collections.Generic;
+using System.Drawing;
 
 namespace HClassLibrary
 {
@@ -39,6 +41,11 @@ namespace HClassLibrary
             //this.tclTecViews.ItemSize = new System.Drawing.Size(230, 24);
 
             this.TabStop = false;
+
+            m_listTypeTabs = new List<TYPE_TAB>();
+
+            m_arBitmap = new Icon[] { HClassLibrary.Properties.Resources.floatNonActive, HClassLibrary.Properties.Resources.floatInActive
+                                    , HClassLibrary.Properties.Resources.closeNonActive, HClassLibrary.Properties.Resources.closeInActive };
         }
 
         #endregion

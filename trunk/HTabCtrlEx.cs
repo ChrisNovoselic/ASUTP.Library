@@ -15,6 +15,14 @@ namespace HClassLibrary
 {
     public partial class HTabCtrlEx : System.Windows.Forms.TabControl
     {
+        public enum TYPE_TAB { FIXED, FLOAT };
+        private List <TYPE_TAB> m_listTypeTabs;
+
+        private static RectangleF s_rectPositionImg = new RectangleF (18, 4, 14, 14);
+
+        private enum INDEX_BITMAP {FLOAT, CLOSE, COUNT_BITMAP };
+        private enum INDEX_STATE_BITMAP { NON_ACTIVE, IN_ACTIVE, COUNT_STATE_BITMAP };
+        private Icon [] m_arBitmap;
         public delegate void DelegateOnCloseTab(object sender, CloseTabEventArgs e);
         public event DelegateOnCloseTab OnClose;
 
@@ -43,31 +51,51 @@ namespace HClassLibrary
             }
         }
 
+        private Bitmap getBitmap (INDEX_BITMAP indx, INDEX_STATE_BITMAP state)
+        {
+            return m_arBitmap[(int)indx * (int)INDEX_STATE_BITMAP.COUNT_STATE_BITMAP + (int)state].ToBitmap ();
+        }
+
         /// <span class="code-SummaryComment"><summary></span>
         /// override to draw the close button
         /// <span class="code-SummaryComment"></summary></span>
         /// <span class="code-SummaryComment"><param name="e"></param></span>
         protected override void OnDrawItem(DrawItemEventArgs e)
         {
-            RectangleF tabTextArea = RectangleF.Empty;
+            RectangleF tabTextAreaText = RectangleF.Empty
+                , tabTextAreaImg = RectangleF.Empty;
             for (int nIndex = 0; nIndex < this.TabCount; nIndex++)
             {
                 Image img;
-                tabTextArea = (RectangleF)this.GetTabRect(nIndex);
+                INDEX_STATE_BITMAP state;
+                tabTextAreaText = (RectangleF)this.GetTabRect(nIndex);
+                tabTextAreaImg = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
                 //if (nIndex > 0) {
                     if (! (nIndex == this.SelectedIndex))
                     {
-                        img = HClassLibrary.Properties.Resources.closeNonActive.ToBitmap();
+                        state = INDEX_STATE_BITMAP.NON_ACTIVE;
                     }
                     else
                     {
-                        img = HClassLibrary.Properties.Resources.closeInActive.ToBitmap();
+                        state = INDEX_STATE_BITMAP.IN_ACTIVE;
                     }
+
+                    img = getBitmap(INDEX_BITMAP.CLOSE, state);
 
                     using (img)
                     {
-                        e.Graphics.DrawImage(img, tabTextArea.X + tabTextArea.Width - 16, 3, 13, 13);
+                        e.Graphics.DrawImage(img, tabTextAreaImg);
+                        //Console.WriteLine (@"OnDrawItem () - " + @"Индекс=" + nIndex + @"; X:" + tabTextArea.X + @"; width:" + tabTextArea.Width);
                     }
+
+                    if (m_listTypeTabs[nIndex] == TYPE_TAB.FLOAT) {
+                        img = getBitmap(INDEX_BITMAP.FLOAT, state);
+
+                        tabTextAreaImg = new RectangleF(tabTextAreaImg.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                        e.Graphics.DrawImage(img, tabTextAreaImg);
+                    }
+                    else
+                        ;
                 //}
                 //else
                 //    ;
@@ -78,7 +106,7 @@ namespace HClassLibrary
                 using (SolidBrush brush = new SolidBrush(this.TabPages[nIndex].ForeColor))
                 {
                     /*Draw the tab header text*/
-                    e.Graphics.DrawString(str, this.Font, brush, tabTextArea, stringFormat);
+                    e.Graphics.DrawString(str, this.Font, brush, tabTextAreaText, stringFormat);
                 }
             }
         }
@@ -101,32 +129,65 @@ namespace HClassLibrary
             if (DesignMode == false)
             {
                 Image img;
+                INDEX_STATE_BITMAP state;
                 Graphics g = CreateGraphics();
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 for (int nIndex = 0; nIndex < this.TabCount; nIndex++)
                 {
-                    RectangleF tabTextArea = (RectangleF)this.GetTabRect(nIndex);
-                    tabTextArea = new RectangleF(tabTextArea.X + tabTextArea.Width - 22, 3, tabTextArea.Height - 3, tabTextArea.Height - 5);
+                    RectangleF tabTextAreaText = (RectangleF)this.GetTabRect(nIndex)
+                        , tabTextAreaClose = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                    //Console.WriteLine(@"OnMouseMove () - " + @"Индекс=" + nIndex + @"; X:" + tabTextArea.X + @"; width:" + tabTextArea.Width);
 
                     Point pt = new Point(e.X, e.Y);
-                    if (tabTextArea.Contains(pt))
+                    if (tabTextAreaClose.Contains(pt))
                     {
-                        img = HClassLibrary.Properties.Resources.closeInActive.ToBitmap();
+                        state = INDEX_STATE_BITMAP.IN_ACTIVE;
                     }
                     else
                     {
-                        if (! (nIndex == SelectedIndex))
+                        if (!(nIndex == this.SelectedIndex))
                         {
-                            img = HClassLibrary.Properties.Resources.closeNonActive.ToBitmap();
+                            state = INDEX_STATE_BITMAP.NON_ACTIVE;
                         }
                         else
-                            img = HClassLibrary.Properties.Resources.closeInActive.ToBitmap();
+                        {
+                            state = INDEX_STATE_BITMAP.IN_ACTIVE;
+                        }
                     }
+
+                    img = getBitmap(INDEX_BITMAP.CLOSE, state);
 
                     using (img)
                     {
-                        g.DrawImage(img, tabTextArea.X + tabTextArea.Width - 9, 3, 13, 13);
+                        g.DrawImage(img, tabTextAreaClose);
                     }
+
+                    if (m_listTypeTabs[nIndex] == TYPE_TAB.FLOAT)
+                    {
+                        RectangleF tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                        
+                        if (tabTextAreaFloat.Contains(pt))
+                        {
+                            state = INDEX_STATE_BITMAP.IN_ACTIVE;
+                        }
+                        else
+                        {
+                            if (!(nIndex == this.SelectedIndex))
+                            {
+                                state = INDEX_STATE_BITMAP.NON_ACTIVE;
+                            }
+                            else
+                            {
+                                state = INDEX_STATE_BITMAP.IN_ACTIVE;
+                            }
+                        }
+
+                        img = getBitmap(INDEX_BITMAP.FLOAT, state);
+
+                        g.DrawImage(img, tabTextAreaFloat);
+                    }
+                    else
+                        ;
                 }
                 g.Dispose();
             }
@@ -138,10 +199,10 @@ namespace HClassLibrary
         {
             if ((DesignMode == false)/* && (SelectedIndex > 0)*/) //Здесь запрет закрыть вкладку с индексом "0"
             {
-                RectangleF tabTextArea = (RectangleF)this.GetTabRect(SelectedIndex);
-                tabTextArea = new RectangleF(tabTextArea.X + tabTextArea.Width - 22, 3, tabTextArea.Height - 3, tabTextArea.Height - 5);
+                RectangleF tabTextAreaText = (RectangleF)this.GetTabRect(SelectedIndex)
+                    , tabTextAreaImg = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
                 Point pt = new Point(e.X, e.Y);
-                if (tabTextArea.Contains(pt) == true)
+                if (tabTextAreaImg.Contains(pt) == true)
                 {
                     if (confirmOnClose == true)
                     {
@@ -164,15 +225,43 @@ namespace HClassLibrary
             }
         }
 
-        public void TabPagesClear()
-        {
-            while (TabPages.Count > 1)
-                TabPages.RemoveAt (TabPages.Count - 1);
+        //public void TabPagesClear()
+        //{
+        //    while (TabPages.Count > 1)
+        //        TabPages.RemoveAt (TabPages.Count - 1);
+
+        //    m_listTypeTabs.Clear ();
+        //}
+
+        public void AddTabPage (string name, TYPE_TAB typeTab) {
+            m_listTypeTabs.Add(typeTab);
+            this.TabPages.Add(name, getNameTab(name, typeTab));
         }
 
-        public void AddTabPage (string name) {
-            string text = GetNameTab (name);
-            this.TabPages.Add(text, text);
+        public void RemoveTabPage (string name) {
+            bool bRes = RemoveTabPage (this.TabPages.IndexOfKey (name.Trim ()));
+
+            if (bRes == false)
+                Console.WriteLine (@"Ошибка удаления вкладки [" + name + "]...");
+            else
+                ;
+        }
+
+        public bool RemoveTabPage(int indx)
+        {
+            bool bRes = true;
+            
+            if ((! (indx < 0))
+                && (indx < this.TabPages.Count)
+                && (indx < m_listTypeTabs.Count))
+            {
+                this.TabPages.RemoveAt(indx);
+                m_listTypeTabs.RemoveAt (indx);
+            }
+            else
+                bRes = false;
+
+            return bRes;
         }
 
         public int IndexOfItemControl (Control ctrl) {
@@ -191,13 +280,24 @@ namespace HClassLibrary
             return iRes;
         }
 
-        public static string GetNameTab (string text) { return new string(' ', 1) + text + new string(' ', 5); }
+        private static string getNameTab (string text, TYPE_TAB type) {
+            int cntSpace = 5;
+
+            if (type == TYPE_TAB.FLOAT)
+                cntSpace += 4;
+            else
+                ;
+
+            return new string(' ', 1) + text + new string(' ', cntSpace);
+        }
     }
 
     public class CloseTabEventArgs : EventArgs
     {
         private int nTabIndex = -1;
         private string strHeaderText = string.Empty;
+        private HTabCtrlEx.TYPE_TAB typeTab;
+
         public CloseTabEventArgs(int nTabIndex, string text)
         {
             this.nTabIndex = nTabIndex;
@@ -206,31 +306,13 @@ namespace HClassLibrary
         /// <summary>
         /// Get/Set the tab index value where the close button is clicked
         /// </summary>
-        public int TabIndex
-        {
-            get
-            {
-                return this.nTabIndex;
-            }
-            set
-            {
-                this.nTabIndex = value;
-            }
-        }
+        public int TabIndex { get { return this.nTabIndex; } set { this.nTabIndex = value; } }
 
         /// <summary>
         /// Get/Set the tab index value where the close button is clicked
         /// </summary>
-        public string TabHeaderText
-        {
-            get
-            {
-                return this.strHeaderText;
-            }
-            set
-            {
-                this.strHeaderText = value;
-            }
-        }
+        public string TabHeaderText { get { return this.strHeaderText; } set { this.strHeaderText = value; } }
+
+        public HTabCtrlEx.TYPE_TAB TabType { get { return this.typeTab; } set { this.typeTab = value; } }
     }
 };

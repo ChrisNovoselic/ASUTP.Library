@@ -148,6 +148,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -160,10 +161,8 @@
     <None Include="Resources\closeNonActive.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\menuInActive.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\menuNonActive.ico" />
+    <Content Include="Resources\floatInActive.ico" />
+    <Content Include="Resources\floatNonActive.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
