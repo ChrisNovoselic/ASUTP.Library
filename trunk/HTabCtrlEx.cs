@@ -23,8 +23,9 @@ namespace HClassLibrary
         private enum INDEX_BITMAP {FLOAT, CLOSE, COUNT_BITMAP };
         private enum INDEX_STATE_BITMAP { NON_ACTIVE, IN_ACTIVE, COUNT_STATE_BITMAP };
         private Icon [] m_arBitmap;
-        public delegate void DelegateOnCloseTab(object sender, CloseTabEventArgs e);
-        public event DelegateOnCloseTab OnClose;
+        public delegate void DelegateOnHTabCtrlEx(object sender, HTabCtrlExEventArgs e);
+        public event DelegateOnHTabCtrlEx OnClose;
+        public event DelegateOnHTabCtrlEx OnFloat;
 
         public HTabCtrlEx()
         {
@@ -89,10 +90,14 @@ namespace HClassLibrary
                     }
 
                     if (m_listTypeTabs[nIndex] == TYPE_TAB.FLOAT) {
+                        tabTextAreaImg = new RectangleF(tabTextAreaImg.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                        
                         img = getBitmap(INDEX_BITMAP.FLOAT, state);
 
-                        tabTextAreaImg = new RectangleF(tabTextAreaImg.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
-                        e.Graphics.DrawImage(img, tabTextAreaImg);
+                        using (img)
+                        {
+                            e.Graphics.DrawImage(img, tabTextAreaImg);
+                        }
                     }
                     else
                         ;
@@ -139,7 +144,7 @@ namespace HClassLibrary
                     //Console.WriteLine(@"OnMouseMove () - " + @"Индекс=" + nIndex + @"; X:" + tabTextArea.X + @"; width:" + tabTextArea.Width);
 
                     Point pt = new Point(e.X, e.Y);
-                    if (tabTextAreaClose.Contains(pt))
+                    if (tabTextAreaClose.Contains(pt) == true)
                     {
                         state = INDEX_STATE_BITMAP.IN_ACTIVE;
                     }
@@ -200,9 +205,9 @@ namespace HClassLibrary
             if ((DesignMode == false)/* && (SelectedIndex > 0)*/) //Здесь запрет закрыть вкладку с индексом "0"
             {
                 RectangleF tabTextAreaText = (RectangleF)this.GetTabRect(SelectedIndex)
-                    , tabTextAreaImg = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                    , tabTextAreaClose = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
                 Point pt = new Point(e.X, e.Y);
-                if (tabTextAreaImg.Contains(pt) == true)
+                if (tabTextAreaClose.Contains(pt) == true)
                 {
                     if (confirmOnClose == true)
                     {
@@ -217,10 +222,29 @@ namespace HClassLibrary
                     //Fire Event to Client
                     if (! (OnClose == null))
                     {
-                        OnClose(this, new CloseTabEventArgs(SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
+                        OnClose(this, new HTabCtrlExEventArgs(SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
                     }
                     else
                         ;
+                }
+                else {
+                    if (m_listTypeTabs[SelectedIndex] == TYPE_TAB.FLOAT)
+                    {
+                        RectangleF tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                        
+                        if (tabTextAreaFloat.Contains(pt) == true)
+                        {
+                            if (!(OnFloat == null))
+                            {
+                                OnFloat(this, new HTabCtrlExEventArgs(SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
+                            }
+                            else
+                                ;
+                        } else {
+                        }
+                    } else {
+                    }
+
                 }
             }
         }
@@ -292,13 +316,13 @@ namespace HClassLibrary
         }
     }
 
-    public class CloseTabEventArgs : EventArgs
+    public class HTabCtrlExEventArgs : EventArgs
     {
         private int nTabIndex = -1;
         private string strHeaderText = string.Empty;
         private HTabCtrlEx.TYPE_TAB typeTab;
 
-        public CloseTabEventArgs(int nTabIndex, string text)
+        public HTabCtrlExEventArgs(int nTabIndex, string text)
         {
             this.nTabIndex = nTabIndex;
             this.strHeaderText = text;

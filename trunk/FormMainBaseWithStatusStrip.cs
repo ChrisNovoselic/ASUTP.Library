@@ -6,99 +6,104 @@ using System.Drawing;
 
 namespace HClassLibrary
 {
-    public class HReports
+    public abstract class FormMainBaseWithStatusStrip : FormMainBase
     {
-        private volatile string m_last_error;
-        private DateTime m_last_time_error;
-        private volatile bool m_errored_state;
-
-        private volatile string m_last_warning;
-        private DateTime m_last_time_warning;
-        private volatile bool m_warninged_state;
-
-        private volatile string m_last_action;
-        private DateTime m_last_time_action;
-        private volatile bool m_actioned_state;
-
-        public string last_error { get { return m_last_error; } set { m_last_error = value; } }
-        public DateTime last_time_error { get { return m_last_time_error; } set { m_last_time_error = value; } }
-        public bool errored_state { get { return m_errored_state; } set { m_errored_state = value; } }
-
-        public string last_warning { get { return m_last_warning; } set { m_last_warning = value; } }
-        public DateTime last_time_warning { get { return m_last_time_warning; } set { m_last_time_warning = value; } }
-        public bool warninged_state { get { return m_warninged_state; } set { m_warninged_state = value; } }
-
-        public string last_action { get { return m_last_action; } set { m_last_action = value; } }
-        public DateTime last_time_action { get { return m_last_time_action; } set { m_last_time_action = value; } }
-        public bool actioned_state { get { return m_actioned_state; } set { m_actioned_state = value; } }
-
-        //private event EventHandler errored_stateChanged;
-        //private event EventHandler warninged_stateChanged;
-        //private event EventHandler actioned_stateChanged;
-
-        public HReports () {
-            ClearStates (true);
-
-            //this.errored_stateChanged += new EventHandler(OnErrored_stateChanged);
-            //this.errored_stateChanged += new EventHandler(OnWarninged_stateChanged);
-            //this.actioned_stateChanged += new EventHandler(OnActioned_stateChanged);            
-        }
-
-        private void OnErrored_stateChanged (object obj, EventArgs ev) {
-        }
-
-        private void OnWarninged_stateChanged(object obj, EventArgs ev)
+        protected class HReports
         {
-        }
+            private volatile string m_last_error;
+            private DateTime m_last_time_error;
+            private volatile bool m_errored_state;
 
-        private void OnActioned_stateChanged(object obj, EventArgs ev)
-        {
-        }
+            private volatile string m_last_warning;
+            private DateTime m_last_time_warning;
+            private volatile bool m_warninged_state;
 
-        public void ClearStates (bool bForce) {
-            if (bForce == true)
-                errored_state = warninged_state = actioned_state = false;
-            else {
-                if (errored_state == false)
-                    if (warninged_state == false)
-                        actioned_state = false;
+            private volatile string m_last_action;
+            private DateTime m_last_time_action;
+            private volatile bool m_actioned_state;
+
+            public string last_error { get { return m_last_error; } set { m_last_error = value; } }
+            public DateTime last_time_error { get { return m_last_time_error; } set { m_last_time_error = value; } }
+            public bool errored_state { get { return m_errored_state; } set { m_errored_state = value; } }
+
+            public string last_warning { get { return m_last_warning; } set { m_last_warning = value; } }
+            public DateTime last_time_warning { get { return m_last_time_warning; } set { m_last_time_warning = value; } }
+            public bool warninged_state { get { return m_warninged_state; } set { m_warninged_state = value; } }
+
+            public string last_action { get { return m_last_action; } set { m_last_action = value; } }
+            public DateTime last_time_action { get { return m_last_time_action; } set { m_last_time_action = value; } }
+            public bool actioned_state { get { return m_actioned_state; } set { m_actioned_state = value; } }
+
+            //private event EventHandler errored_stateChanged;
+            //private event EventHandler warninged_stateChanged;
+            //private event EventHandler actioned_stateChanged;
+
+            public HReports()
+            {
+                ClearStates(true);
+
+                //this.errored_stateChanged += new EventHandler(OnErrored_stateChanged);
+                //this.errored_stateChanged += new EventHandler(OnWarninged_stateChanged);
+                //this.actioned_stateChanged += new EventHandler(OnActioned_stateChanged);            
+            }
+
+            private void OnErrored_stateChanged(object obj, EventArgs ev)
+            {
+            }
+
+            private void OnWarninged_stateChanged(object obj, EventArgs ev)
+            {
+            }
+
+            private void OnActioned_stateChanged(object obj, EventArgs ev)
+            {
+            }
+
+            public void ClearStates(bool bForce)
+            {
+                if (bForce == true)
+                    errored_state = warninged_state = actioned_state = false;
+                else
+                {
+                    if (errored_state == false)
+                        if (warninged_state == false)
+                            actioned_state = false;
+                        else
+                            ;
                     else
                         ;
+                }
+            }
+
+            public void ErrorReport(string msg)
+            {
+                last_error = msg;
+                last_time_error = DateTime.Now;
+                errored_state = true;
+            }
+
+            public void WarningReport(string msg)
+            {
+                if (warninged_state == false)
+                {
+                    last_warning = msg;
+                    last_time_warning = DateTime.Now;
+                    warninged_state = true;
+                }
                 else
                     ;
             }
-        }
 
-        public void ErrorReport(string msg)
-        {
-            last_error = msg;
-            last_time_error = DateTime.Now;
-            errored_state = true;
-        }
-
-        public void WarningReport(string msg)
-        {
-            if (warninged_state == false)
+            public void ActionReport(string msg)
             {
-                last_warning = msg;
-                last_time_warning = DateTime.Now;
-                warninged_state = true;
+                last_action = msg;
+                last_time_action = DateTime.Now;
+                actioned_state = true;
             }
-            else
-                ;
-        }
+        };
 
-        public void ActionReport (string msg) {
-            last_action = msg;
-            last_time_action = DateTime.Now;
-            actioned_state = true;
-        }
-    };
-
-    public abstract class FormMainBaseWithStatusStrip : FormMainBase
-    {
         public static List<FormConnectionSettings> s_listFormConnectionSettings;
-        
+
         public static System.Windows.Forms.StatusStrip m_statusStripMain;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblMainState;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDescMessage;
@@ -106,7 +111,7 @@ namespace HClassLibrary
 
         protected System.Windows.Forms.Timer m_timer;
 
-        public static HReports m_report;
+        protected HReports m_report;
 
         protected FormMainBaseWithStatusStrip()
         {
@@ -123,8 +128,8 @@ namespace HClassLibrary
             //MessageBox.Show((IWin32Window)null, @"FormMain::FormMain () - new HReports ()", @"Отладка!");
 
             // m_statusStripMain
-            FormMainBaseWithStatusStrip.m_statusStripMain.Location = new System.Drawing.Point(0, 762);
-            FormMainBaseWithStatusStrip.m_statusStripMain.Size = new System.Drawing.Size(982, 22);
+            m_statusStripMain.Location = new System.Drawing.Point(0, 762);
+            m_statusStripMain.Size = new System.Drawing.Size(982, 22);
             // m_lblMainState
             this.m_lblMainState.Size = new System.Drawing.Size(150, 17);
             // m_lblDateMessage
@@ -223,8 +228,10 @@ namespace HClassLibrary
             }
         }
 
-        protected virtual void ErrorReport()
+        protected virtual void ErrorReport(string text)
         {
+            m_report.ErrorReport(text);
+            
             //if (IsHandleCreated/*InvokeRequired*/ == true)
             try
             {
@@ -236,8 +243,10 @@ namespace HClassLibrary
             //    Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
         }
 
-        protected virtual void WarningReport()
+        protected virtual void WarningReport(string text)
         {
+            m_report.WarningReport(text);
+
             if (IsHandleCreated/*InvokeRequired*/ == true) {
                 m_statusStripMain.BeginInvoke(delegateEvent);
             }
@@ -245,12 +254,24 @@ namespace HClassLibrary
                 Logging.Logg().Error(@"FormMainBaseWithStatusStrip::WarningReport () - ... BeginInvoke (delegateEvent) - ...", Logging.INDEX_MESSAGE.D_001);
         }
 
-        protected virtual void ActionReport()
+        protected virtual void ActionReport(string text)
         {
-            if (IsHandleCreated/*InvokeRequired*/ == true)
-                m_statusStripMain.BeginInvoke(delegateEvent);
-            else
-                Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...", Logging.INDEX_MESSAGE.D_001);
+            m_report.ActionReport (text);
+
+            try {
+                if (IsHandleCreated/*InvokeRequired*/ == true)
+                    m_statusStripMain.BeginInvoke(delegateEvent);
+                else
+                    Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...", Logging.INDEX_MESSAGE.D_001);
+            }
+            catch (Exception e) {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.D_001, @"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...");
+            }
+        }
+
+        protected virtual void ReportClear (bool bClear)
+        {
+            m_report.ClearStates (bClear);
         }
 
         protected abstract int UpdateStatusString();

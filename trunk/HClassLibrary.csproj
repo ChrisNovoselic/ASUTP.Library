@@ -125,6 +125,9 @@
     <Compile Include="TCPServer.cs" />
     <Compile Include="TCPServerAsync.cs" />
     <Compile Include="Users.cs" />
+    <Compile Include="FormMainFloat.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FormConnectionSettings.resx">

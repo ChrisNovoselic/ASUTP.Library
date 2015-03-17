@@ -21,9 +21,10 @@ namespace HClassLibrary
         protected DelegateFunc delegateStopWait;
         protected DelegateFunc delegateEventUpdate;
 
-        protected DelegateFunc errorReport;
-        protected DelegateFunc warningReport;
-        protected DelegateFunc actionReport;
+        protected DelegateStringFunc errorReport;
+        protected DelegateStringFunc warningReport;
+        protected DelegateStringFunc actionReport;
+        protected DelegateBoolFunc clearReportStates;
 
         protected int m_IdListenerCurrent;
 
@@ -116,11 +117,12 @@ namespace HClassLibrary
             this.delegateEventUpdate = dStatus;
         }
 
-        public void SetDelegateReport(DelegateFunc ferr, DelegateFunc fwar, DelegateFunc fact)
+        public void SetDelegateReport(DelegateStringFunc ferr, DelegateStringFunc fwar, DelegateStringFunc fact, DelegateBoolFunc fclr)
         {
             this.errorReport = ferr;
             this.warningReport = fwar;
             this.actionReport = fact;
+            this.clearReportStates = fclr;
         }
 
         protected void MessageBox(string msg, MessageBoxButtons btn = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.Error)
@@ -202,6 +204,11 @@ namespace HClassLibrary
             //{
                 newState = true;
                 states.Clear ();
+
+                if (!(clearReportStates == null))
+                    clearReportStates (true);
+                else
+                    ;
         }
 
         public virtual void Stop()
@@ -442,10 +449,7 @@ namespace HClassLibrary
 
         public void ErrorReport (string msg) {
             if (!(errorReport == null))
-            {
-                FormMainBaseWithStatusStrip.m_report.ErrorReport (msg);
-                errorReport ();
-            }
+                errorReport (msg);
             else
                 ;
         }
@@ -453,10 +457,7 @@ namespace HClassLibrary
         public void WarningReport(string msg)
         {
             if (!(warningReport == null))
-            {
-                FormMainBaseWithStatusStrip.m_report.WarningReport(msg);
-                warningReport();
-            }
+                warningReport(msg);
             else
                 ;
         }
@@ -464,12 +465,14 @@ namespace HClassLibrary
         public void ActionReport(string msg)
         {
             if (! (actionReport == null))
-            {
-                FormMainBaseWithStatusStrip.m_report.ActionReport(msg);
-                actionReport();
-            }
+                actionReport(msg);
             else
                 ;
+        }
+
+        public void ReportClear (bool bClear)
+        {
+            clearReportStates (bClear);
         }
     }
 }
