@@ -248,8 +248,8 @@ namespace HClassLibrary
 
         //public void TabPagesClear()
         //{
-        //    while (TabPages.Count > 1)
-        //        TabPages.RemoveAt (TabPages.Count - 1);
+        //    while (TabCount > 1)
+        //        TabPages.RemoveAt (TabCount - 1);
 
         //    m_listTypeTabs.Clear ();
         //}
@@ -275,7 +275,7 @@ namespace HClassLibrary
             bool bRes = true;
             
             if ((! (indx < 0))
-                && (indx < this.TabPages.Count)
+                && (indx < this.TabCount)
                 && (indx < m_listTypeTabs.Count))
             {
                 m_listTypeTabs.RemoveAt(indx);
@@ -291,7 +291,7 @@ namespace HClassLibrary
             int iRes = -1
                 , indx = 0;
 
-            while ((indx < TabPages.Count) && (iRes < 0)) {
+            while ((indx < TabCount) && (iRes < 0)) {
                 if (TabPages [indx].Controls.Contains (ctrl) == true)
                     iRes = indx;
                 else

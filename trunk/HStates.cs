@@ -245,10 +245,12 @@ namespace HClassLibrary
         {
             int index;
             int /*StatesMachine*/ currentState;
+            bool bRes = false;
 
             while (! (threadIsWorking < 0))
             {
-                semaState.WaitOne();
+                bRes = false;
+                bRes = semaState.WaitOne();
 
                 index = 0;
 
@@ -354,14 +356,17 @@ namespace HClassLibrary
                 //Закончена обработка всех событий
                 completeHandleStates();
             }
-            try
-            {
-                semaState.Release(1);
-            }
-            catch (Exception e)
-            { //System.Threading.SemaphoreFullException
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::TecView_ThreadFunction () - semaState.Release(1)");
-            }
+            if (bRes == true)
+                try
+                {
+                    semaState.Release(1);
+                }
+                catch (Exception e)
+                { //System.Threading.SemaphoreFullException
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::TecView_ThreadFunction () - semaState.Release(1)");
+                }
+            else
+                ;
         }
 
         /// <summary>
