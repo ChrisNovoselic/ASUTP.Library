@@ -65,18 +65,22 @@ namespace HClassLibrary
             states = new List<int /*StatesMachine*/>();
         }
 
-        public virtual void Activate(bool active)
+        public virtual bool Activate(bool active)
         {
+            bool bRes = true;
+            
             if (active == true) threadIsWorking++; else ;
 
             if (actived == active)
             {
-                return ;
+                bRes = false;
             }
             else
             {
                 actived = active;
             }
+
+            return bRes;
         }
 
         protected void register(int id, ConnectionSettings connSett, string name, int indx)
