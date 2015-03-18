@@ -104,7 +104,7 @@ namespace HClassLibrary
 
         public static List<FormConnectionSettings> s_listFormConnectionSettings;
 
-        public static System.Windows.Forms.StatusStrip m_statusStripMain;
+        public System.Windows.Forms.StatusStrip m_statusStripMain;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblMainState;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDescMessage;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDateMessage;
@@ -116,11 +116,6 @@ namespace HClassLibrary
         protected FormMainBaseWithStatusStrip()
         {
             InitializeComponent();
-
-            // 
-            // timer
-            // 
-           start ();
 
             delegateEvent = new DelegateFunc(EventRaised);
 
@@ -135,7 +130,7 @@ namespace HClassLibrary
             // m_lblDateMessage
             this.m_lblDateMessage.Size = new System.Drawing.Size(150, 17);
             // m_lblDescMessage
-            this.m_lblDescMessage.Size = new System.Drawing.Size(667, 17);
+            this.m_lblDescMessage.Size = new System.Drawing.Size(66, 17);
 
             delegateUpdateActiveGui = new DelegateIntFunc(UpdateActiveGui);
             delegateHideGraphicsSettings = new DelegateFunc(HideGraphicsSettings);
@@ -146,24 +141,24 @@ namespace HClassLibrary
 
         private void InitializeComponent()
         {
-            FormMainBaseWithStatusStrip.m_statusStripMain = new System.Windows.Forms.StatusStrip();
+            this.m_statusStripMain = new System.Windows.Forms.StatusStrip();
             this.m_lblMainState = new System.Windows.Forms.ToolStripStatusLabel();
             this.m_lblDateMessage = new System.Windows.Forms.ToolStripStatusLabel();
             this.m_lblDescMessage = new System.Windows.Forms.ToolStripStatusLabel();
 
-            FormMainBaseWithStatusStrip.m_statusStripMain.SuspendLayout();
+            this.m_statusStripMain.SuspendLayout();
 
             // 
             // m_statusStripMain
             // 
-            FormMainBaseWithStatusStrip.m_statusStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.m_statusStripMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.m_lblMainState,
             this.m_lblDateMessage,
             this.m_lblDescMessage});
             //this.m_statusStripMain.Location = new System.Drawing.Point(0, 762);
-            FormMainBaseWithStatusStrip.m_statusStripMain.Name = "m_statusStripMain";
+            this.m_statusStripMain.Name = "m_statusStripMain";
             //this.m_statusStripMain.Size = new System.Drawing.Size(982, 22);
-            FormMainBaseWithStatusStrip.m_statusStripMain.TabIndex = 4;
+            this.m_statusStripMain.TabIndex = 4;
             // 
             // m_lblMainState
             // 
@@ -198,10 +193,10 @@ namespace HClassLibrary
             //this.m_lblDescMessage.Size = new System.Drawing.Size(667, 17);
             this.m_lblDescMessage.Spring = true;
 
-            this.Controls.Add(FormMainBaseWithStatusStrip.m_statusStripMain);
+            this.Controls.Add(this.m_statusStripMain);
 
-            FormMainBaseWithStatusStrip.m_statusStripMain.ResumeLayout(false);
-            FormMainBaseWithStatusStrip.m_statusStripMain.PerformLayout();
+            this.m_statusStripMain.ResumeLayout(false);
+            this.m_statusStripMain.PerformLayout();
         }
 
         protected void EventRaised()
@@ -318,7 +313,6 @@ namespace HClassLibrary
             m_timer.Interval = ProgramBase.TIMER_START_INTERVAL; //Признак первой итерации
             m_timer.Start();
             m_timer.Tick += new System.EventHandler(this.timer_Tick);
-            start ();
         }
 
         protected virtual void Stop()

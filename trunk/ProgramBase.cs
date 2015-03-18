@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.IO;
 
 using System.Threading;
 using System.Diagnostics; //Process
@@ -139,6 +140,15 @@ namespace HClassLibrary
             get
             {
                 return Logging.AppName + ".exe";
+            }
+        }
+
+        public static string AppProductVersion
+        {
+            get
+            {
+                return Application.ProductVersion.ToString ()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/
+                    + @" (" + File.GetLastWriteTime(Application.ExecutablePath).ToString(@"dd.MM.yyyy HH:mm:ss") + @")";
             }
         }
 

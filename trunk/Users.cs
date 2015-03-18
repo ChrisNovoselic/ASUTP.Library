@@ -489,8 +489,7 @@ namespace HClassLibrary
                 strMes += @", ip[" + indxIP + @"]=" + listIP[indxIP].ToString ();
             }
 
-            strMes += @"; Version=" + Application.ProductVersion.ToString ()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/
-                    + @"(" + File.GetLastWriteTime(Application.ExecutablePath).ToString(@"dd.MM.yyyy HH:mm:ss") + @")";
+            strMes += @"; Version(Дата/время)=" + ProgramBase.AppProductVersion;
 
             Logging.Logg().Action(strMes, Logging.INDEX_MESSAGE.NOT_SET);
         }

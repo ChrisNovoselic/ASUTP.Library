@@ -70,6 +70,7 @@ namespace HClassLibrary
                 Image img;
                 INDEX_STATE_BITMAP state;
                 tabTextAreaText = (RectangleF)this.GetTabRect(nIndex);
+                //e.Graphics.IntersectClip(tabTextAreaText);
                 tabTextAreaImg = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
                 //if (nIndex > 0) {
                     if (! (nIndex == this.SelectedIndex))
@@ -81,9 +82,7 @@ namespace HClassLibrary
                         state = INDEX_STATE_BITMAP.IN_ACTIVE;
                     }
 
-                    img = getBitmap(INDEX_BITMAP.CLOSE, state);
-
-                    using (img)
+                    using (img = getBitmap(INDEX_BITMAP.CLOSE, state))
                     {
                         e.Graphics.DrawImage(img, tabTextAreaImg);
                         //Console.WriteLine (@"OnDrawItem () - " + @"Индекс=" + nIndex + @"; X:" + tabTextArea.X + @"; width:" + tabTextArea.Width);
@@ -91,10 +90,8 @@ namespace HClassLibrary
 
                     if (m_listTypeTabs[nIndex] == TYPE_TAB.FLOAT) {
                         tabTextAreaImg = new RectangleF(tabTextAreaImg.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
-                        
-                        img = getBitmap(INDEX_BITMAP.FLOAT, state);
 
-                        using (img)
+                        using (img = getBitmap(INDEX_BITMAP.FLOAT, state))
                         {
                             e.Graphics.DrawImage(img, tabTextAreaImg);
                         }
@@ -262,13 +259,15 @@ namespace HClassLibrary
             this.TabPages.Add(name, getNameTab(name, typeTab));
         }
 
-        public void RemoveTabPage (string name) {
+        public bool RemoveTabPage (string name) {
             bool bRes = RemoveTabPage (this.TabPages.IndexOfKey (name.Trim ()));
 
             if (bRes == false)
                 Console.WriteLine (@"Ошибка удаления вкладки [" + name + "]...");
             else
                 ;
+
+            return bRes;
         }
 
         public bool RemoveTabPage(int indx)
@@ -279,8 +278,8 @@ namespace HClassLibrary
                 && (indx < this.TabPages.Count)
                 && (indx < m_listTypeTabs.Count))
             {
-                this.TabPages.RemoveAt(indx);
-                m_listTypeTabs.RemoveAt (indx);
+                m_listTypeTabs.RemoveAt(indx);
+                this.TabPages.RemoveAt(indx);              
             }
             else
                 bRes = false;
