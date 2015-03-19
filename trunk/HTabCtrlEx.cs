@@ -320,11 +320,13 @@ namespace HClassLibrary
         private int nTabIndex = -1;
         private string strHeaderText = string.Empty;
         private HTabCtrlEx.TYPE_TAB typeTab;
+        private int nId;
 
-        public HTabCtrlExEventArgs(int nTabIndex, string text)
+        public HTabCtrlExEventArgs(int nId, int nTabIndex, string text)
         {
             this.nTabIndex = nTabIndex;
             this.strHeaderText = text;
+            this.nId = nId;
         }
         /// <summary>
         /// Get/Set the tab index value where the close button is clicked
@@ -337,5 +339,7 @@ namespace HClassLibrary
         public string TabHeaderText { get { return this.strHeaderText; } set { this.strHeaderText = value; } }
 
         public HTabCtrlEx.TYPE_TAB TabType { get { return this.typeTab; } set { this.typeTab = value; } }
+
+        public int Id { get { return this.nId; } set { this.nId = value; } }
     }
 };
