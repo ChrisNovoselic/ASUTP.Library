@@ -9,17 +9,33 @@ namespace HClassLibrary
     {
         public DelegateObjectFunc delegateFormClosing
             , delegateFormLoad;
-        
+        private Panel m_container;
+
         public FormMainFloat(Panel child)
         {
-            this.Width = child.Width; this.Height = child.Height;
-            this.Controls.Add(child);
-            
             InitializeComponent();
+
+            this.Width = child.Width + 1; this.Height = child.Height + 1;
+
+            m_container.Size = new System.Drawing.Size(this.Width, this.Height - (this.m_statusStripMain.Height + 1));
+            m_container.Controls.Add(child);
         }
 
         private void InitializeComponent()
         {
+            m_container = new Panel ();
+
+            this.SuspendLayout ();
+
+            this.Controls.Add(m_container);
+
+            m_container.Location = new Point(0, 0);
+            m_container.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                | System.Windows.Forms.AnchorStyles.Left)
+                | System.Windows.Forms.AnchorStyles.Right)));
+
+            this.ResumeLayout (false);
+
             this.Load += new EventHandler(FormMainFloat_Load);
             this.FormClosing += new FormClosingEventHandler(FormMainFloat_FormClosing);
         }
@@ -112,7 +128,7 @@ namespace HClassLibrary
         {
             Stop ();
 
-            this.Controls.RemoveAt(1); //Дочернмй элемент д.б. ЕДИНственный (0 - индекс для СтатусСтрип)
+            this.Controls.RemoveAt (2); //Дочернмй элемент д.б. ЕДИНственный (0 - индекс для СтатусСтрип)
 
             delegateFormClosing (new object [] { sender, e});
         }

@@ -254,7 +254,7 @@ namespace HClassLibrary
         //    m_listTypeTabs.Clear ();
         //}
 
-        public void AddTabPage (string name, TYPE_TAB typeTab) {
+        public void AddTabPage (string name, int id, TYPE_TAB typeTab) {
             m_listTypeTabs.Add(typeTab);
             this.TabPages.Add(name, getNameTab(name, typeTab));
         }
