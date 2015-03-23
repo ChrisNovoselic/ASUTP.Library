@@ -17,7 +17,11 @@ namespace HClassLibrary
 
             this.Width = child.Width + 1; this.Height = child.Height + 1;
 
-            this.m_container.Size = new System.Drawing.Size(this.Width, this.Height - (this.m_statusStripMain.Height + 1));
+            m_container.Location = new Point(1, 1);
+            this.m_container.Size = new System.Drawing.Size(this.Width - 6, this.Height - this.m_statusStripMain.Height - 26);
+            m_container.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                | System.Windows.Forms.AnchorStyles.Left)
+                | System.Windows.Forms.AnchorStyles.Right)));
             this.m_container.Controls.Add(child);
         }
 
@@ -27,12 +31,7 @@ namespace HClassLibrary
 
             this.SuspendLayout ();
 
-            this.Controls.Add(m_container);
-
-            m_container.Location = new Point(0, 0);
-            m_container.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                | System.Windows.Forms.AnchorStyles.Left)
-                | System.Windows.Forms.AnchorStyles.Right)));
+            this.Controls.Add(m_container);            
 
             this.ResumeLayout (false);
 

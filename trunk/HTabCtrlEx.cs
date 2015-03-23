@@ -205,7 +205,10 @@ namespace HClassLibrary
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            if ((DesignMode == false)/* && (SelectedIndex > 0)*/) //Здесь запрет закрыть вкладку с индексом "0"
+            if ((DesignMode == false)
+                /* && (SelectedIndex > 0)*///Здесь запрет закрыть вкладку с индексом "0"
+                //&& (TabPages.Count > 1)
+                )
             {
                 RectangleF tabTextAreaText = (RectangleF)this.GetTabRect(SelectedIndex)
                     , tabTextAreaClose = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
