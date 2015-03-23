@@ -16,7 +16,13 @@ namespace HClassLibrary
     public partial class HTabCtrlEx : System.Windows.Forms.TabControl
     {
         public enum TYPE_TAB { FIXED, FLOAT };
-        private List <TYPE_TAB> m_listTypeTabs;
+        private struct PropertyTab {
+            public PropertyTab(int id, TYPE_TAB type) { this.id = id; this.type = type; }
+
+            public int id;
+            public TYPE_TAB type;           
+        }       
+        private List<PropertyTab> m_listPropTabs;
 
         private static RectangleF s_rectPositionImg = new RectangleF (18, 4, 14, 14);
 
@@ -88,7 +94,7 @@ namespace HClassLibrary
                         //Console.WriteLine (@"OnDrawItem () - " + @"Индекс=" + nIndex + @"; X:" + tabTextArea.X + @"; width:" + tabTextArea.Width);
                     }
 
-                    if (m_listTypeTabs[nIndex] == TYPE_TAB.FLOAT) {
+                    if (m_listPropTabs[nIndex].type == TYPE_TAB.FLOAT) {
                         tabTextAreaImg = new RectangleF(tabTextAreaImg.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
 
                         using (img = getBitmap(INDEX_BITMAP.FLOAT, state))
@@ -164,7 +170,7 @@ namespace HClassLibrary
                         g.DrawImage(img, tabTextAreaClose);
                     }
 
-                    if (m_listTypeTabs[nIndex] == TYPE_TAB.FLOAT)
+                    if (m_listPropTabs[nIndex].type == TYPE_TAB.FLOAT)
                     {
                         RectangleF tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
                         
@@ -219,13 +225,13 @@ namespace HClassLibrary
                     //Fire Event to Client
                     if (! (OnClose == null))
                     {
-                        OnClose(this, new HTabCtrlExEventArgs(SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
+                        OnClose(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
                     }
                     else
                         ;
                 }
                 else {
-                    if (m_listTypeTabs[SelectedIndex] == TYPE_TAB.FLOAT)
+                    if (m_listPropTabs[SelectedIndex].type == TYPE_TAB.FLOAT)
                     {
                         RectangleF tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
                         
@@ -233,7 +239,7 @@ namespace HClassLibrary
                         {
                             if (!(OnFloat == null))
                             {
-                                OnFloat(this, new HTabCtrlExEventArgs(SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
+                                OnFloat(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
                             }
                             else
                                 ;
@@ -255,7 +261,7 @@ namespace HClassLibrary
         //}
 
         public void AddTabPage (string name, int id, TYPE_TAB typeTab) {
-            m_listTypeTabs.Add(typeTab);
+            m_listPropTabs.Add(new PropertyTab (id, typeTab));
             this.TabPages.Add(name, getNameTab(name, typeTab));
         }
 
@@ -276,9 +282,9 @@ namespace HClassLibrary
             
             if ((! (indx < 0))
                 && (indx < this.TabCount)
-                && (indx < m_listTypeTabs.Count))
+                && (indx < m_listPropTabs.Count))
             {
-                m_listTypeTabs.RemoveAt(indx);
+                m_listPropTabs.RemoveAt(indx);
                 this.TabPages.RemoveAt(indx);              
             }
             else
@@ -287,21 +293,27 @@ namespace HClassLibrary
             return bRes;
         }
 
-        public int IndexOfItemControl (Control ctrl) {
-            int iRes = -1
-                , indx = 0;
+        //public string NameOfItemControl (Control ctrl)
+        //{
+        //    return TabPages[IndexOfItemControl (ctrl)].Text;
+        //}
 
-            while ((indx < TabCount) && (iRes < 0)) {
-                if (TabPages [indx].Controls.Contains (ctrl) == true)
-                    iRes = indx;
-                else
-                    ;
+        //public int IndexOfItemControl (Control ctrl) {
+        //    int iRes = -1
+        //        , indx = 0;
 
-                indx ++;
-            }
+        //    while ((indx < TabCount) && (iRes < 0)) {
+        //        //if (TabPages [indx].Controls.Contains (ctrl) == true)                
+        //        if (TabPages[indx].Controls[0].Equals (ctrl) == true) //??? тоже не работает
+        //            iRes = indx;
+        //        else
+        //            ;
 
-            return iRes;
-        }
+        //        indx ++;
+        //    }
+
+        //    return iRes;
+        //}
 
         private static string getNameTab (string text, TYPE_TAB type) {
             int cntSpace = 5;

@@ -17,8 +17,8 @@ namespace HClassLibrary
 
             this.Width = child.Width + 1; this.Height = child.Height + 1;
 
-            m_container.Size = new System.Drawing.Size(this.Width, this.Height - (this.m_statusStripMain.Height + 1));
-            m_container.Controls.Add(child);
+            this.m_container.Size = new System.Drawing.Size(this.Width, this.Height - (this.m_statusStripMain.Height + 1));
+            this.m_container.Controls.Add(child);
         }
 
         private void InitializeComponent()
@@ -126,11 +126,16 @@ namespace HClassLibrary
 
         private void FormMainFloat_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Stop ();
-
-            this.Controls.RemoveAt (2); //Дочернмй элемент д.б. ЕДИНственный (0 - индекс для СтатусСтрип)
+            Stop ();            
 
             delegateFormClosing (new object [] { sender, e});
+
+            //this.m_container.Controls.RemoveAt(0); //Дочернмй элемент д.б. ЕДИНственный
+        }
+
+        public Panel GetPanel ()
+        {
+            return this.m_container.Controls[0] as Panel;
         }
     }
 }

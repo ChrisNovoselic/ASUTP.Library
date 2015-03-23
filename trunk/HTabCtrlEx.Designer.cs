@@ -42,7 +42,7 @@ namespace HClassLibrary
 
             this.TabStop = false;
 
-            m_listTypeTabs = new List<TYPE_TAB>();
+            m_listPropTabs = new List<PropertyTab>();
 
             m_arBitmap = new Icon[] { HClassLibrary.Properties.Resources.floatNonActive, HClassLibrary.Properties.Resources.floatInActive
                                     , HClassLibrary.Properties.Resources.closeNonActive, HClassLibrary.Properties.Resources.closeInActive };
