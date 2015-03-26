@@ -15,11 +15,12 @@ namespace HClassLibrary
     {
         public enum DB_TSQL_INTERFACE_TYPE
         {
-            MySQL,
-            MSSQL,
-            MSExcel,
-            ModesCentre,
-            UNKNOWN
+            MySQL
+            , MSSQL
+            , MSExcel
+            , ModesCentre
+            , Oracle
+            , UNKNOWN
         }
 
         public static volatile int MAX_RETRY = 3;

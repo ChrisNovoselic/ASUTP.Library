@@ -55,10 +55,15 @@ namespace HClassLibrary
         public const Int32 TIMER_START_INTERVAL = 666;
 
         //Журналирование старта приложения
-        public static void Start()
+        public static void Start(bool bGUI = true)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            if (bGUI == true)
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+            }
+            else
+                ;
 
             //Установка разделителя целой и дробной части
             ss_MainCultureInfo.NumberFormat.NumberDecimalSeparator = @",";

@@ -7,6 +7,7 @@ using System.Data.Common;
 using System.Data.OleDb;
 using System.Data.SqlClient;
 using MySql.Data.MySqlClient;
+using System.Data.OracleClient;
 
 using System.IO; //StreamReader
 
@@ -61,6 +62,15 @@ namespace HClassLibrary
                     m_dbCommand.CommandType = CommandType.Text;
 
                     m_dbAdapter = new SqlDataAdapter();
+                    break;
+                case DB_TSQL_INTERFACE_TYPE.Oracle:
+                    m_dbConnection = new OracleConnection();
+
+                    m_dbCommand = new OracleCommand();
+                    m_dbCommand.Connection = m_dbConnection;
+                    m_dbCommand.CommandType = CommandType.Text;
+
+                    m_dbAdapter = new OracleDataAdapter();
                     break;
                 case DB_TSQL_INTERFACE_TYPE.MSExcel:
                     m_dbConnection = new OleDbConnection();
@@ -136,6 +146,9 @@ namespace HClassLibrary
                     case DB_TSQL_INTERFACE_TYPE.MySQL:
                         //connStr = connectionSettings.GetConnectionStringMySQL();
                         ((MySqlConnection)m_dbConnection).ConnectionString = ((ConnectionSettings)m_connectionSettings).GetConnectionStringMySQL();
+                        break;
+                    case DB_TSQL_INTERFACE_TYPE.Oracle:
+                        ((OracleConnection)m_dbConnection).ConnectionString = ((ConnectionSettings)m_connectionSettings).GetConnectionStringOracle();
                         break;
                     case DB_TSQL_INTERFACE_TYPE.MSExcel:
                         //((OleDbConnection)m_dbConnection).ConnectionString = ConnectionSettings.GetConnectionStringExcel ();
@@ -355,6 +368,9 @@ namespace HClassLibrary
                     break;
                 case 1433:
                     typeDBRes = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MSSQL;
+                    break;
+                case 1521:
+                    typeDBRes = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Oracle;
                     break;
                 default:
                     break;
@@ -598,6 +614,7 @@ namespace HClassLibrary
                     query = query.Replace(']', '`');
                     break;
                 case DB_TSQL_INTERFACE_TYPE.MSSQL:
+                case DB_TSQL_INTERFACE_TYPE.Oracle:
                     break;
                 default:
                     break;
@@ -634,8 +651,12 @@ namespace HClassLibrary
                                 cmd = new SqlCommand();
                                 adapter = new SqlDataAdapter();
                             }
-                            else
-                                ;
+                            else if (conn is OracleConnection) {
+                                    cmd = new OracleCommand();
+                                    adapter = new OracleDataAdapter();
+                                }
+                                else
+                                    ;
 
                         if ((!(cmd == null)) && (!(adapter == null))) {
                             cmd.Connection = conn;

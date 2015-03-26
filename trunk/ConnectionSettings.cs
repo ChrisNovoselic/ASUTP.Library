@@ -5,6 +5,7 @@ using System.Net;
 //using System.Windows.Forms;
 
 using MySql.Data.MySqlClient; //Äëÿ 'IsConnect'
+using System.Data.OracleClient;
 using System.Data;
 
 //namespace HClassLibrary
@@ -87,6 +88,20 @@ namespace HClassLibrary
         public ConnectionSettings()
         {
             SetDefault();
+        }
+
+        public ConnectionSettings(string nameConn, string srv, int port, string dbName, string uid, string pswd, bool bIgnore = false) : this ()
+        {
+            id = UN_ENUMERABLE_ID - 1;
+            
+            this.name = @"";
+            this.server = srv;
+            this.port = port;
+            this.dbName = dbName;
+            this.userName = uid;
+            this.password = pswd;
+
+            this.ignore = bIgnore;
         }
 
         /// <summary>
@@ -276,6 +291,22 @@ namespace HClassLibrary
             ;
 
             return var1;
+        }
+
+        public string GetConnectionStringOracle()
+        {
+            //return @"Provider=OraOLEDB.Oracle"
+            //    + @"; host=" + server + @":" + port
+            //    + @"; Data Source="+ dbName
+            //    + @"; User Id=" + userName
+            //    + @"; Password=" + password
+            //    + @"; OLEDB.NET=True;";
+
+            OracleConnectionStringBuilder csb = new OracleConnectionStringBuilder();
+            csb.DataSource = dbName;
+            csb.UserID = userName;
+            csb.Password = password;
+            return csb.ConnectionString;
         }
     }
 }

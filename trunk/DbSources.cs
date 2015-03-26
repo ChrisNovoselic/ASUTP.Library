@@ -87,6 +87,9 @@ namespace HClassLibrary
                         case 3306:
                             dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MySQL;                        
                             break;
+                        case 1521:
+                            dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Oracle;
+                            break;
                         default:
                             break;
                     }
@@ -99,6 +102,7 @@ namespace HClassLibrary
                             break;
                         case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
                         case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
+                        case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
                             m_dictDbInterfaces.Add(((ConnectionSettings)connSett).id, new DbTSQLInterface(dbType, @"Интерфейс: " + dbNameType + @"-БД" + @"; " + desc));
                             break;
                         default:
