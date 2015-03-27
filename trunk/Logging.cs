@@ -17,7 +17,7 @@ namespace HClassLibrary
 
     public class Logging //LoggingFS //: Logging
     {
-        public enum LOG_MODE { ERROR = -1, UNKNOWN, FILE_EXE, FILE_DESKTOP, DB };
+        public enum LOG_MODE { ERROR = -1, UNKNOWN, FILE_EXE, FILE_DESKTOP, FILE_LOCALDEV, FILE_NETDEV, DB };
         private enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR, WARNING };
         public enum INDEX_MESSAGE { NOT_SET = -1
                                     , A_001, A_002, A_003
@@ -178,6 +178,12 @@ namespace HClassLibrary
                     case LOG_MODE.FILE_DESKTOP:
                         m_this = new Logging(System.Environment.GetFolderPath (Environment.SpecialFolder.Desktop) + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
                         break;
+                    case LOG_MODE.FILE_NETDEV:
+                        m_this = new Logging(@"\\ne1150\D$\My Project's\Work's\C.Net\Temp" + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        break;
+                    case LOG_MODE.FILE_LOCALDEV:
+                        m_this = new Logging(@"D:\My Project's\Work's\C.Net\Temp" + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        break;
                     case LOG_MODE.DB:
                     case LOG_MODE.UNKNOWN:
                     default:
@@ -239,7 +245,7 @@ namespace HClassLibrary
                 m_evtConnSett.Reset();
             }
             else
-                if (((s_mode == LOG_MODE.FILE_EXE) || (s_mode == LOG_MODE.FILE_DESKTOP))
+                if (((s_mode == LOG_MODE.FILE_EXE) || (s_mode == LOG_MODE.FILE_DESKTOP) || (s_mode == LOG_MODE.FILE_LOCALDEV) || (s_mode == LOG_MODE.FILE_NETDEV))
                     || (s_mode == LOG_MODE.UNKNOWN)) {
                     if ((!(m_sw == null)) && (! (m_sw.BaseStream == null)) && (m_sw.BaseStream.CanWrite == true))
                     {
@@ -330,6 +336,8 @@ namespace HClassLibrary
                             break;
                         case LOG_MODE.FILE_EXE:
                         case LOG_MODE.FILE_DESKTOP:
+                        case LOG_MODE.FILE_LOCALDEV:
+                        case LOG_MODE.FILE_NETDEV:
                             bool locking = false;
                             if ((!(m_listQueueMessage == null)) && (m_listQueueMessage.Count > 0))
                             {
@@ -567,6 +575,8 @@ namespace HClassLibrary
             switch (s_mode) {
                 case LOG_MODE.FILE_EXE:
                 case LOG_MODE.FILE_DESKTOP:
+                case LOG_MODE.FILE_LOCALDEV:
+                case LOG_MODE.FILE_NETDEV:
                     LogLock();
 
                     Debug("Пауза ведения журнала...", Logging.INDEX_MESSAGE.NOT_SET, false);
@@ -593,6 +603,8 @@ namespace HClassLibrary
             {
                 case LOG_MODE.FILE_EXE:
                 case LOG_MODE.FILE_DESKTOP:
+                case LOG_MODE.FILE_LOCALDEV:
+                case LOG_MODE.FILE_NETDEV:
                     m_sw = new LogStreamWriter(m_fi.FullName, true, Encoding.GetEncoding("windows-1251"));
 
                     Debug("Возобновление ведения журнала...", Logging.INDEX_MESSAGE.NOT_SET, false);
@@ -698,6 +710,8 @@ namespace HClassLibrary
                         break;
                     case LOG_MODE.FILE_EXE:
                     case LOG_MODE.FILE_DESKTOP:
+                    case LOG_MODE.FILE_LOCALDEV:
+                    case LOG_MODE.FILE_NETDEV:
                         addMessage ((int)id, message, separator, timeStamp, locking); //3 крайних параметра для БД ничего не значат...
                         //Установить признак возможности для отправки
                         bAddMessage = true;

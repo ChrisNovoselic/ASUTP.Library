@@ -55,14 +55,16 @@ namespace HClassLibrary
         public virtual int Register(object connSett, bool active, string desc, bool bReq = false)
         {
             int id = -1,
-                err = -1;
+                err = 0;
 
             lock (m_objDictListeners)
             {
                 if (connSett is ConnectionSettings == true)
                     if ((m_dictDbInterfaces.ContainsKey(((ConnectionSettings)connSett).id) == true) && (bReq == false))
                     {
-                        id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
+                        try {
+                            id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
+                        } catch (Exception e) { err = -1; }
                     }
                     else 
                         ;
@@ -72,52 +74,63 @@ namespace HClassLibrary
                     else
                         ;
 
-                if ((id < 0) && (m_dictDbInterfaces.ContainsKey(((ConnectionSettings)connSett).id) == false))
-                {
-                    string dbNameType = string.Empty;
-                    DbTSQLInterface.DB_TSQL_INTERFACE_TYPE dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN;
-                    switch (((ConnectionSettings)connSett).port)
+                if (err == 0)
+                    if ((id < 0) && (m_dictDbInterfaces.ContainsKey(((ConnectionSettings)connSett).id) == false))
                     {
-                        case -666:
-                            dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.ModesCentre;
-                            break;
-                        case 1433:
-                            dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MSSQL;
-                            break;
-                        case 3306:
-                            dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MySQL;                        
-                            break;
-                        case 1521:
-                            dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Oracle;
-                            break;
-                        default:
-                            break;
+                        string dbNameType = string.Empty;
+                        DbTSQLInterface.DB_TSQL_INTERFACE_TYPE dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN;
+                        switch (((ConnectionSettings)connSett).port)
+                        {
+                            case -666:
+                                dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.ModesCentre;
+                                break;
+                            case 1433:
+                                dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MSSQL;
+                                break;
+                            case 3306:
+                                dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MySQL;                        
+                                break;
+                            case 1521:
+                                dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Oracle;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        dbNameType = dbType.ToString();
+
+                        switch (dbType) {
+                            case DbInterface.DB_TSQL_INTERFACE_TYPE.ModesCentre:
+                                //m_dictDbInterfaces.Add(((ConnectionSettings)connSett).id, new DbMCInterface (dbType, @"Интерфейс: " + dbNameType));
+                                break;
+                            case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
+                            case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
+                            case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
+                                m_dictDbInterfaces.Add(((ConnectionSettings)connSett).id, new DbTSQLInterface(dbType, @"Интерфейс: " + dbNameType + @"-БД" + @"; " + desc));
+                                break;
+                            default:
+                                break;
+                        }
+                        try
+                        {
+                            if (active == true) m_dictDbInterfaces[((ConnectionSettings)connSett).id].Start(); else ;                        
+                        
+                            m_dictDbInterfaces[((ConnectionSettings)connSett).id].SetConnectionSettings(connSett, active);
+
+                            id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
+                        }
+                        catch (Exception e) { err = -1; }
                     }
-
-                    dbNameType = dbType.ToString();
-
-                    switch (dbType) {
-                        case DbInterface.DB_TSQL_INTERFACE_TYPE.ModesCentre:
-                            //m_dictDbInterfaces.Add(((ConnectionSettings)connSett).id, new DbMCInterface (dbType, @"Интерфейс: " + dbNameType));
-                            break;
-                        case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
-                        case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
-                        case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
-                            m_dictDbInterfaces.Add(((ConnectionSettings)connSett).id, new DbTSQLInterface(dbType, @"Интерфейс: " + dbNameType + @"-БД" + @"; " + desc));
-                            break;
-                        default:
-                            break;
-                    }
-                    if (active == true) m_dictDbInterfaces[((ConnectionSettings)connSett).id].Start(); else ;
-                    m_dictDbInterfaces[((ConnectionSettings)connSett).id].SetConnectionSettings(connSett, active);
-
-                    id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
-                }
+                    else
+                        ; // m_dictDbInterfaces[((ConnectionSettings)connSett).id].Name = desc;
                 else
-                    ; // m_dictDbInterfaces[((ConnectionSettings)connSett).id].Name = desc;
+                    ;
             }
 
-            return RegisterListener (((ConnectionSettings)connSett).id, id, active, out err);
+            if (err == 0)
+                return RegisterListener (((ConnectionSettings)connSett).id, id, active, out err);
+            else
+                return err;
         }
 
         public void SetConnectionSettings (int id, ConnectionSettings connSett, bool active) {
@@ -152,6 +165,11 @@ namespace HClassLibrary
                 //    ;
             }
 
+            if (! (err == 0))
+                iRes = -1;
+            else
+                ;
+                
             return iRes;
         }
 
@@ -169,10 +187,15 @@ namespace HClassLibrary
 
                 //Вариант №2
                 err = 0;
-                dbConn = ((DbTSQLInterface)m_dictDbInterfaces[id]).GetConnection(out err);
+                try {
+                    dbConn = ((DbTSQLInterface)m_dictDbInterfaces[id]).GetConnection(out err);
+                } catch (Exception e) { err = -1; }
             }
 
-            m_dictListeners.Add(idReg, new DbSourceListener(id, idListener, dbConn));
+            if (err == 0)
+                m_dictListeners.Add(idReg, new DbSourceListener(id, idListener, dbConn));
+            else
+                ;
         }
 
         public void UnRegister()

@@ -69,6 +69,7 @@ namespace HClassLibrary
             ss_MainCultureInfo.NumberFormat.NumberDecimalSeparator = @",";
 
             s_iMessageShowUnhandledException = 1;
+            s_iMessageShowUnhandledExceptionDetail = 1;
 
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
@@ -123,10 +124,16 @@ namespace HClassLibrary
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            string strHeader = "ProgramBase::CurrentDomain_UnhandledException () - ...";
+            string strHeader = "ProgramBase::CurrentDomain_UnhandledException () - ..."
+                , strBody = string.Empty;
             if (s_iMessageShowUnhandledException > 0)
-                MessageBox.Show((IWin32Window)null, (e.ExceptionObject as Exception).Message + Environment.NewLine + MessageAppAbort, strHeader);
+                if (s_iMessageShowUnhandledExceptionDetail > 0)
+                    strBody = (e.ExceptionObject as Exception).ToString ();
+                else
+                    strBody = (e.ExceptionObject as Exception).Message;
             else ;
+
+            MessageBox.Show((IWin32Window)null, strBody + Environment.NewLine + MessageAppAbort, strHeader);
 
             // here you can log the exception ...
             Logging.Logg().Exception(e.ExceptionObject as Exception, Logging.INDEX_MESSAGE.NOT_SET, strHeader);
@@ -139,6 +146,7 @@ namespace HClassLibrary
 
         public static int s_iAppID = -1;
         public static int s_iMessageShowUnhandledException = -1;
+        public static int s_iMessageShowUnhandledExceptionDetail = -1;
 
         public static string AppName
         {
