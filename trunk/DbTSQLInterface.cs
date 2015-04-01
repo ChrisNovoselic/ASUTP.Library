@@ -879,15 +879,29 @@ namespace HClassLibrary
                 ;
         }
 
-        public static Int32 getIdNext(ref DbConnection conn, string nameTable)
+        public static Int32 GetIdNext(ref DbConnection conn, string nameTable, string nameFieldID = @"ID")
         {
             Int32 idRes = -1,
                 err = (int)Error.NO_ERROR;
 
             lock (lockConn)
             {
-                idRes = Convert.ToInt32(Select(ref conn, "SELECT MAX(ID) FROM " + nameTable, null, null, out err).Rows[0][0]);
+                idRes = Convert.ToInt32(Select(ref conn, "SELECT MAX(" + nameFieldID + @") FROM " + nameTable, null, null, out err).Rows[0][0]);
             }
+
+            return ++idRes;
+        }
+
+        public static Int32 GetIdNext(DataTable table, string nameFieldID = @"ID")
+        {
+            Int32 idRes = -1,
+                err = (int)Error.NO_ERROR;
+
+            if (table.Rows.Count > 0)
+                idRes = Convert.ToInt32(table.Select(string.Empty, nameFieldID /* + @" DESC"*/)[0][nameFieldID]);
+            else
+                //err = (int)Error.TABLE_ROWS_0
+                ;
 
             return ++idRes;
         }
