@@ -898,7 +898,7 @@ namespace HClassLibrary
                 err = (int)Error.NO_ERROR;
 
             if (table.Rows.Count > 0)
-                idRes = Convert.ToInt32(table.Select(string.Empty, nameFieldID /* + @" DESC"*/)[0][nameFieldID]);
+                idRes = Convert.ToInt32(table.Select(string.Empty, nameFieldID + @" DESC")[0][nameFieldID]);
             else
                 //err = (int)Error.TABLE_ROWS_0
                 ;
