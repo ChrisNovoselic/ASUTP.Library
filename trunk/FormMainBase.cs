@@ -57,7 +57,7 @@ namespace HClassLibrary
             throw new Exception(msg);
         }
 
-        protected void Abort(string msg, bool bThrow = false, bool bSupport = true)
+        protected virtual void Abort(string msg, bool bThrow = false, bool bSupport = true)
         {
             this.Activate();
 

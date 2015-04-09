@@ -114,6 +114,8 @@ namespace HClassLibrary
                             objRes = val == 1;
                         else
                             objRes = false;
+
+                        objRes = objRes.ToString();
                         break;
                     case 9: //string
                     case 10: //int
@@ -241,7 +243,7 @@ namespace HClassLibrary
             }
         }
 
-        protected DelegateObjectFunc[] f_arRegistration; // = { registrationCmdLine, registrationINI, registrationEnv };
+        private DelegateObjectFunc[] f_arRegistration; // = { registrationCmdLine, registrationINI, registrationEnv };
 
         public HUsers(int iListenerId)
         {
@@ -435,7 +437,7 @@ namespace HClassLibrary
                             //}
 
                             //œÓ‚ÂÍ‡ »Ãﬂ_œŒÀ‹«Œ¬¿“≈Àﬂ
-                            if (dataUsers.Rows[i][@"DOMAIN_NAME"].ToString().Equals((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase) == true) break; else ;
+                            if (dataUsers.Rows[i][@"DOMAIN_NAME"].ToString().Trim().Equals((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase) == true) break; else ;
                         }
 
                         if (i < dataUsers.Rows.Count)

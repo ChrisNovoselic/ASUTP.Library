@@ -328,6 +328,24 @@ namespace HClassLibrary
 
             return new string(' ', 1) + text + new string(' ', cntSpace);
         }
+
+        public string VisibleIDs
+        {
+            get
+            {
+                string strRes = string.Empty;
+
+                foreach (PropertyTab tab in m_listPropTabs)
+                    strRes += tab.id + @",";
+
+                if (strRes.Length > 1)
+                    strRes = strRes.Substring(0, strRes.Length - 1);
+                else
+                    ;
+
+                return strRes;
+            }
+        }
     }
 
     public class HTabCtrlExEventArgs : EventArgs
