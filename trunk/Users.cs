@@ -594,7 +594,7 @@ namespace HClassLibrary
             }
         }
 
-        public static bool IsAllowed (int id) { return (bool)HProfiles.GetAllowed (id); }
+        public static bool IsAllowed (int id) { return bool.Parse(GetAllowed (id)); }
 
         public static string GetAllowed(int id) { return (string)HProfiles.GetAllowed(id); }
         public static void SetAllowed(int iListenerId, int id, string val) { HProfiles.SetAllowed(iListenerId, id, val); }
