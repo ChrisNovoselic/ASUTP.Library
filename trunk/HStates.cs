@@ -171,9 +171,9 @@ namespace HClassLibrary
 
         protected abstract int StateResponse(int /*StatesMachine*/ state, DataTable table);
 
-        protected abstract void StateErrors(int /*StatesMachine*/ state, bool response);
+        protected abstract void StateErrors(int /*StatesMachine*/ state, int req, int res);
 
-        protected abstract void StateWarnings(int /*StatesMachine*/ state, bool response);
+        protected abstract void StateWarnings(int /*StatesMachine*/ state, int req, int res);
 
         public virtual void Start()
         {
@@ -304,7 +304,7 @@ namespace HClassLibrary
                         {
                             if (responseIsOk < 0)
                             {
-                                StateErrors(currentState, true);
+                                StateErrors(currentState, requestIsOk, responseIsOk);
                                 lock (m_lockState)
                                 {
                                     if (newState == false)
@@ -317,13 +317,16 @@ namespace HClassLibrary
                                 }
                             }
                             else
-                                StateWarnings(currentState, true);
+                                StateWarnings(currentState, requestIsOk, responseIsOk);
                         }
                         else
                             ;
                     }
                     else
                     {
+                        //14.04.2015 ???
+                        //StateErrors(currentState, requestIsOk, -1);
+                        
                         lock (m_lockState)
                         {
                             if (newState == false)

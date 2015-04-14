@@ -209,15 +209,14 @@ namespace HClassLibrary
                     error = true;
                     table = null;
 
-                    return -1;
+                    iRes = -1;
                 }
-                else
-                    ;
+                else {
+                    error = m_dictListeners[listenerId].dataError;
+                    table = m_dictListeners[listenerId].dataTable;
 
-                error = m_dictListeners[listenerId].dataError;
-                table = m_dictListeners[listenerId].dataTable;
-
-                iRes = m_dictListeners[listenerId].dataPresent == true ? 0 : -1;
+                    iRes = m_dictListeners[listenerId].dataPresent == true ? 0 : -1;
+                }
             }
 
             //Logging.Logg().Debug(@"DbInterface::Response (int, out bool , out DataTable) - listenerId = " + listenerId + @", error = " + error.ToString() + @", m_dictListeners[listenerId].dataPresent = " + m_dictListeners[listenerId].dataPresent);
