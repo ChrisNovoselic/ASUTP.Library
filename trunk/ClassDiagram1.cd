@@ -1,0 +1,395 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="HClassLibrary.ConnectionSettings" Collapsed="true">
+    <Position X="8.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAhACAAggAgACAAAAAAAQEAIgAAAAAAgEBGiI=</HashCode>
+      <FileName>ConnectionSettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.ConnectionSettingsSource" Collapsed="true">
+    <Position X="8.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAAAAAQIAAgAAAAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>ConnectionSettingsSource.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.Crypt" Collapsed="true">
+    <Position X="8.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EQAAAAEAAAAAQACQAAAEAABAAAAAAAAAABAAAAAAAAA=</HashCode>
+      <FileName>Crypt.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.DbInterface" Collapsed="true">
+    <Position X="8.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAABRAECBCQAQAQAbIIIAAAEACgAAAIAAAAAAAAAA=</HashCode>
+      <FileName>DbInterface.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.DbSources" Collapsed="true">
+    <Position X="8.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AARAAACAAABCgACAAAAAAAAAAIARgAAAAAAAABAAEAA=</HashCode>
+      <FileName>DbSources.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.DbTSQLInterface" Collapsed="true">
+    <Position X="8.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>JAQgAQAAEAAACABAgEBAAYAACpCABAQAAgCgUBAgAAw=</HashCode>
+      <FileName>DbTSQLInterface.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FIleConnSett" Collapsed="true">
+    <Position X="8.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAMAAAAAAAAAAAAAAAAAAAgAKAAAAAAgAAAAAAAAAAA=</HashCode>
+      <FileName>FileConnSett.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FileINI" Collapsed="true">
+    <Position X="11" Y="5.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgIAAAAAAAAAAEAAAgAQACAAAgDAAwAAAAAAAAAAAAA=</HashCode>
+      <FileName>FileINI.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormConnectionSettings" Collapsed="true">
+    <Position X="2.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAMAELDDkCMCQAEwCACUAFQCJAAIBAAAAIHAAAIAACQ=</HashCode>
+      <FileName>FormConnectionSettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormMainBase" Collapsed="true">
+    <Position X="0.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAIAAAAAECAgECAAgAAAEAgTAAAgACAAIBRAgACBAAA=</HashCode>
+      <FileName>FormMainBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormMainBaseWithStatusStrip" Collapsed="true">
+    <Position X="2.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAABCCKCAAgAAQgAAACACAAAARAMAAAAAFAAgQ=</HashCode>
+      <FileName>FormMainBaseWithStatusStrip.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormMainFloat" Collapsed="true">
+    <Position X="2.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAABAEICAQAAAAAAAACACAAgAQAAAAAQAAgAAA=</HashCode>
+      <FileName>FormMainFloat.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormParametersBase" Collapsed="true">
+    <Position X="2.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAQAAAAAQQABAAEAAAAAgAAAEAQABAAAAgAAAAAAAAA=</HashCode>
+      <FileName>FormParametersBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormPassword" Collapsed="true">
+    <Position X="0.75" Y="4.75" Width="1.5" />
+    <InheritanceLine Type="HClassLibrary.FormPasswordBase" FixedToPoint="true">
+      <Path>
+        <Point X="1.5" Y="4.38" />
+        <Point X="1.5" Y="4.75" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAiAAAAACCAAAAAAACAAUACAAAQAgAIAgAAAAAAAAA=</HashCode>
+      <FileName>FormPassword.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormPasswordBase" Collapsed="true">
+    <Position X="0.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAiAAADACCABAACAACEAEAGAAAABAAIAAEAAAAAAAA=</HashCode>
+      <FileName>FormPasswordBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormSetPassword" Collapsed="true">
+    <Position X="0.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAiEAIAECAAAAAAAACAAAACAAAAAABIQCAAAAAAAAA=</HashCode>
+      <FileName>FormSetPassword.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.FormWait" Collapsed="true">
+    <Position X="2.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAQACABAAAAAQCAAgACAAAAAAAAAAAAIQAAAAA=</HashCode>
+      <FileName>FormWait.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.EventArgsDataHost" Collapsed="true">
+    <Position X="2.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HPlugIn" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="2.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAhAAAAAwAgAIAAAAAAAAAACAAgAAEEBACEAgA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="HClassLibrary.HLabel" Collapsed="true">
+    <Position X="4.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAACAAAAAAAACAAAASAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HLabel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HLabelStyles" Collapsed="true">
+    <Position X="4.75" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAQABACAAAAAAAAAAAEEAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HLabel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HMath" Collapsed="true">
+    <Position X="11" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HMath.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HStates" Collapsed="true">
+    <Position X="11" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>wggCIQEIACBgARFiwATgNAhEYAAAgABEISEAMIAABqE=</HashCode>
+      <FileName>HStates.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HTabCtrlEx" Collapsed="true">
+    <Position X="4.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAACAABAAAAICQAgAKBhAABAAEIAYAiAAAAAA=</HashCode>
+      <FileName>HTabCtrlEx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HTabCtrlExEventArgs" Collapsed="true">
+    <Position X="4.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACQgAAAAAAAIBABIAAAAAAAEAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HTabCtrlEx.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.Logging" Collapsed="true">
+    <Position X="11" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CaQAQA2BQgMRY4DghICIABAUQ4okkqogIgBNAAgFQyw=</HashCode>
+      <FileName>Logging.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HMark" Collapsed="true">
+    <Position X="11" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAICAAAAAAEABAAJAAAAAQACAAAAAAAIAAAgAAAAAAA=</HashCode>
+      <FileName>Mark.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.Passwords" Collapsed="true">
+    <Position X="8.75" Y="5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="HClassLibrary.Passwords.ID_ROLES" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Passwords.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AIAAQAAIAAAAgwgACIARAAAAAAAAAIAAAgAAgAAggAA=</HashCode>
+      <FileName>Passwords.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HException" Collapsed="true">
+    <Position X="11" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.ProgramBase" Collapsed="true">
+    <Position X="0.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACQAAAAAACAAACAAAAoAAAEQAAIABKAQIBABAAQAAAQ=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.TCPClient" Collapsed="true">
+    <Position X="4.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIQAABAAAAAAQAAACAAAAAACAAAAAAAAAAACgAEIAAA=</HashCode>
+      <FileName>TCPClient.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.TcpClientAsync" Collapsed="true">
+    <Position X="4.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIQACREQQEAEAAAIgAAAAJAoAAQAAAAAAACAAAEAAAQ=</HashCode>
+      <FileName>TCPClientAsync.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.TCPServer" Collapsed="true">
+    <Position X="4.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAKAAAAAACQAAAAACAAAQAAAAIAAAAAgAAAA=</HashCode>
+      <FileName>TCPServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.TCPReciever" Collapsed="true">
+    <Position X="4.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAKAAAAAACAAAAAACAAAAAABAIAEAAAgAAAA=</HashCode>
+      <FileName>TCPServer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.TcpServerAsync" Collapsed="true">
+    <Position X="4.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAARAggAAAAAAAIACAFAEAAAQ=</HashCode>
+      <FileName>TCPServerAsync.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.Client" Collapsed="true">
+    <Position X="4.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>TCPServerAsync.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HUsers" Collapsed="true">
+    <Position X="11" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IBoCAQAAECAAAQCAAACAgAAIAAAAQAAAQAACIAAQBAA=</HashCode>
+      <FileName>Users.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.Properties.Resources" Collapsed="true">
+    <Position X="0.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAABAABEAQAAQAAAAAEAAAAAABAAIA=</HashCode>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="HClassLibrary.IPlugIn" Collapsed="true">
+    <Position X="2.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAgAAAAAAAAAAAACAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="HClassLibrary.IPlugInHost" Collapsed="true">
+    <Position X="2.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="HClassLibrary.Errors" Collapsed="true">
+    <Position X="11" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAEAAAAAAgAAAAAAAAIIAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="HClassLibrary.TYPE_DATABASE_CFG" Collapsed="true">
+    <Position X="8.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAABAAAAAIAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Delegate Name="HClassLibrary.DelegateReadConnSettFunc" Collapsed="true">
+    <Position X="6.75" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAAAAAAAAEAAAEAAAAAAAAAAAAAAE=</HashCode>
+      <FileName>FormConnectionSettings.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateSaveConnSettFunc" Collapsed="true">
+    <Position X="6.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAE=</HashCode>
+      <FileName>FormConnectionSettings.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateFunc" Collapsed="true">
+    <Position X="6.75" Y="8.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateIntFunc" Collapsed="true">
+    <Position X="6.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateIntIntFunc" Collapsed="true">
+    <Position X="6.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAACAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateStringFunc" Collapsed="true">
+    <Position X="6.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateBoolFunc" Collapsed="true">
+    <Position X="6.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateObjectFunc" Collapsed="true">
+    <Position X="6.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateRefObjectFunc" Collapsed="true">
+    <Position X="6.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.DelegateDateFunc" Collapsed="true">
+    <Position X="6.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.StringDelegateIntFunc" Collapsed="true">
+    <Position X="6.75" Y="7.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Delegate Name="HClassLibrary.StringDelegateStringFunc" Collapsed="true">
+    <Position X="6.75" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ProgramBase.cs</FileName>
+    </TypeIdentifier>
+  </Delegate>
+  <Font Name="Tahoma" Size="8.25" />
+</ClassDiagram>
