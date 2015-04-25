@@ -175,8 +175,8 @@ namespace HClassLibrary
                         listConnSett[i].port = Convert.ToInt32 (tableSource.Rows[i]["PORT"]);
                         listConnSett[i].dbName = tableSource.Rows[i]["DB_NAME"].ToString();
                         listConnSett[i].userName = tableSource.Rows[i]["UID"].ToString();
-                        //Password
-                        listConnSett[i].ignore = Convert.ToInt32 (tableSource.Rows[i]["IGNORE"].ToString()) == 1;
+                        //Ignore
+                        listConnSett[i].ignore = tableSource.Columns.IndexOf(@"IGNORE") < 0 ? false : Convert.ToInt32(tableSource.Rows[i]["IGNORE"].ToString()) == 1;
 
                         //TYPE_DATABASE_CFG.CFG_200 = ???
                         tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(TYPE_DATABASE_CFG.CFG_200, Convert.ToInt32(tableSource.Rows[i]["ID"]), 501), null, null, out err);
