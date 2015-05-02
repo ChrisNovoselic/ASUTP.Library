@@ -25,7 +25,7 @@ namespace HClassLibrary
             return ownersPass[id_role - 1];
         }
 
-        private volatile Errors passResult;
+        //private volatile Errors passResult;
         private volatile string passReceive;
         private volatile uint m_idRolePass;
         private volatile uint m_idExtPass;
@@ -53,23 +53,29 @@ namespace HClassLibrary
             Logging.Logg().Error(msg, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
-        private void GetPassword(out int er)
+        private Errors GetPassword(out int er)
         {
+            Errors errRes = Errors.NoError;
             DbConnection conn = DbSources.Sources ().GetConnection (m_idListener, out er);
             DataTable passTable = DbTSQLInterface.Select(ref conn, GetPassRequest(), null, null, out er);
             if (er == 0)
                 if (!(passTable.Rows[0][0] is DBNull))
                     passReceive = passTable.Rows[0][0].ToString();
                 else
-                    passResult = Errors.ParseError;
+                    errRes = Errors.ParseError;
             else
-                passResult = Errors.NoAccess;
+                errRes = Errors.NoAccess;
+
+            return errRes;
         }
+
+        public static void Code () {}
+        public static void Decode () {}
 
         public bool SetPassword(string password, uint idExtPass, uint idRolePass)
         {
             int err = -1;
-            passResult = Errors.NoError;
+            Errors passResult = Errors.NoError;
 
             m_idExtPass = idExtPass;
             m_idRolePass = idRolePass;
@@ -81,7 +87,7 @@ namespace HClassLibrary
             for (int i = 0; i < hash.Length; i++)
                 hashedString.Append(hash[i].ToString("x2"));
 
-            GetPassword(out err);
+            passResult = GetPassword(out err);
 
             if (!(passResult == Errors.NoError))
             {
@@ -112,7 +118,7 @@ namespace HClassLibrary
         public Errors ComparePassword(string password, uint id_ext, uint id_role)
         {
             int err = -1;
-            passResult = Errors.NoError;
+            Errors errRes = Errors.NoError;
             passReceive = null;
 
             //if (connSettConfigDB == null)
@@ -143,12 +149,12 @@ namespace HClassLibrary
 
             GetPassword(out err);
 
-            if (!(passResult == Errors.NoError))
+            if (!(errRes == Errors.NoError))
             {
                 //MessageBox.Show(this, "Ошибка получения пароля " + getOwnerPass () + ".", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 MessageBox("Ошибка получения пароля " + getOwnerPass((int)m_idRolePass) + ".");
 
-                return passResult;
+                return errRes;
             }
             else
                 ;

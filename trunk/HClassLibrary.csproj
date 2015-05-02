@@ -52,6 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="HMath.cs" />
     <Compile Include="HStates.cs" />
     <Compile Include="ConnectionSettings.cs" />
@@ -102,9 +105,6 @@
       <DependentUpon>FormWait.cs</DependentUpon>
     </Compile>
     <Compile Include="HInterfacePlugIn.cs" />
-    <Compile Include="HLabel.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="HTabCtrlEx.cs">
       <SubType>Component</SubType>
     </Compile>
