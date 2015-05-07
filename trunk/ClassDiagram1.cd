@@ -161,11 +161,11 @@
       <FileName>HMath.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="HClassLibrary.HStates" Collapsed="true">
+  <Class Name="HClassLibrary.HHandlerDb" Collapsed="true">
     <Position X="11" Y="4.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>wggCIQEIACBgARFiwATgNAhEYAAAgABEISEAMIAABqE=</HashCode>
-      <FileName>HStates.cs</FileName>
+      <FileName>HHandlerDb.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.HTabCtrlEx" Collapsed="true">

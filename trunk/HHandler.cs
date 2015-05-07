@@ -16,20 +16,24 @@ namespace HClassLibrary
         /// </summary>
         protected Object m_lockState;
 
-        protected Thread taskThread;
-        protected Semaphore semaState;
+        private Thread taskThread;
+        private Semaphore semaState;
         public enum INDEX_WAITHANDLE_REASON { SUCCESS, ERROR, BREAK, COUNT_INDEX_WAITHANDLE_REASON }
         protected WaitHandle[] m_waitHandleState;
         //protected AutoResetEvent evStateEnd;
         public volatile int threadIsWorking;
-        protected volatile bool newState;
-        protected volatile List<int /*StatesMachine*/> states;
+        private volatile bool newState;
+        private volatile List<int /*StatesMachine*/> states;
 
         private bool actived;
         public bool m_bIsActive { get { return actived; } }
 
         public HHandler()
         {
+            Thread.CurrentThread.CurrentCulture =
+            Thread.CurrentThread.CurrentUICulture =
+                ProgramBase.ss_MainCultureInfo;
+
             Initialize ();
         }
 
@@ -73,15 +77,11 @@ namespace HClassLibrary
 
         public virtual void Start()
         {
-            Thread.CurrentThread.CurrentCulture =
-            Thread.CurrentThread.CurrentUICulture =
-                ProgramBase.ss_MainCultureInfo;
-
             if (threadIsWorking < 0)
             {
                 threadIsWorking = 0;
                 taskThread = new Thread(new ParameterizedThreadStart(TecView_ThreadFunction));
-                taskThread.Name = "Интерфейс к РДГ";
+                taskThread.Name = "Обработка событий для объекта " + this.GetType ().AssemblyQualifiedName;
                 taskThread.IsBackground = true;
                 taskThread.CurrentCulture =
                 taskThread.CurrentUICulture =
@@ -122,13 +122,33 @@ namespace HClassLibrary
             else ;
         }
 
+        public void Run(string throwMes)
+        {
+            try
+            {
+                semaState.Release(1);
+            }
+            catch (Exception e)
+            {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, throwMes + @" - semaState.Release(1)");
+            }
+        }
+
+        protected bool isLastState (int state)
+        {
+            return states.IndexOf(state) == (states.Count - 1);
+        }
+
+        public void AddState(int state)
+        {
+            states.Add(state);
+        }
+        
         public virtual void ClearStates()
         {
             newState = true;
             states.Clear();
-        }
-        
-        public abstract void ClearValues();
+        }        
 
         protected abstract int StateCheckResponse(int state, out bool error, out object outobj);
 

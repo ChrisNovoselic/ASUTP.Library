@@ -56,8 +56,8 @@
     <Compile Include="HControl.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="HHandlerDb.cs" />
     <Compile Include="HMath.cs" />
-    <Compile Include="HStates.cs" />
     <Compile Include="ConnectionSettings.cs" />
     <Compile Include="ConnectionSettingsSource.cs" />
     <Compile Include="Crypt.cs" />

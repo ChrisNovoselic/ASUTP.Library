@@ -15,7 +15,7 @@ using HClassLibrary;
 
 namespace HClassLibrary
 {
-    public abstract class HStates : HHandler
+    public abstract class HHandlerDb : HHandler
     {
         protected DelegateFunc delegateStartWait;
         protected DelegateFunc delegateStopWait;
@@ -29,7 +29,8 @@ namespace HClassLibrary
         protected int m_IdListenerCurrent;
         protected Dictionary <int, int []> m_dictIdListeners;
 
-        public HStates() : base ()
+        public HHandlerDb()
+            : base()
         {
             m_dictIdListeners = new Dictionary<int,int[]> ();
         }        
@@ -57,7 +58,7 @@ namespace HClassLibrary
                     }
             else
                 //¬ообще нельз€ что-либо инициализировать
-                Logging.Logg().Error(@"HStates::stopDbInterfaces () - m_dictIdListeners == null ...", Logging.INDEX_MESSAGE.NOT_SET);
+                Logging.Logg().Error(@"HHandlerDb::stopDbInterfaces () - m_dictIdListeners == null ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         public void StopDbInterfaces()
@@ -94,18 +95,21 @@ namespace HClassLibrary
             DbSources.Sources().Request(m_IdListenerCurrent = idListener, request);
         }
 
-        public virtual int Response(int idListener, out bool error, out object obj/*, bool bIsTec*/)
+        protected int response(int idListener, out bool error, out object outobj/*, bool bIsTec*/)
         {
-            obj = null;
-            DataTable table = obj as DataTable;
-            return DbSources.Sources().Response(idListener, out error, out table);
+            //return DbSources.Sources().Response(idListener, out error, out table);
+
+            int iRes = -1;
+            DataTable table = null;
+            iRes = DbSources.Sources().Response(idListener, out error, out table);
+            outobj  = table as DataTable;
+
+            return iRes;
         }
 
-        public virtual int Response(out bool error, out object outobj/*, bool bIsTec*/)
+        protected int response(out bool error, out object outobj/*, bool bIsTec*/)
         {
-            outobj = null;
-            DataTable table = outobj as DataTable;
-            return DbSources.Sources().Response(m_IdListenerCurrent, out error, out table);
+            return response(m_IdListenerCurrent, out error, out outobj);
         }
 
         //protected abstract int StateCheckResponse(int /*StatesMachine*/ state, out bool error, out DataTable table);
@@ -121,6 +125,8 @@ namespace HClassLibrary
             else
                 ;
         }
+
+        public abstract void ClearValues();
 
         public override void Stop()
         {
