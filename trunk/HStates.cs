@@ -8,14 +8,14 @@ using System.Data;
 using System.Data.OleDb;
 using System.IO;
 //using MySql.Data.MySqlClient;
-using System.Threading;
+
 using System.Globalization;
 
 using HClassLibrary;
 
 namespace HClassLibrary
 {
-    public abstract class HStates : object
+    public abstract class HStates : HHandler
     {
         protected DelegateFunc delegateStartWait;
         protected DelegateFunc delegateStopWait;
@@ -27,61 +27,12 @@ namespace HClassLibrary
         protected DelegateBoolFunc clearReportStates;
 
         protected int m_IdListenerCurrent;
-
-        /// <summary>
-        /// Объект для синхронизации изменения списка состояний
-        /// </summary>
-        protected Object m_lockState;
-
-        protected Thread taskThread;
-        protected Semaphore semaState;
-        public enum INDEX_WAITHANDLE_REASON { SUCCESS, ERROR, BREAK, COUNT_INDEX_WAITHANDLE_REASON }
-        protected WaitHandle [] m_waitHandleState;
-        //protected AutoResetEvent evStateEnd;
-        public volatile int threadIsWorking;
-        protected volatile bool newState;
-        protected volatile List<int /*StatesMachine*/> states;
-
         protected Dictionary <int, int []> m_dictIdListeners;
 
-        private bool actived;
-        public bool m_bIsActive { get { return actived; } }
-
-        public HStates()
+        public HStates() : base ()
         {
-            m_IdListenerCurrent = -1;
-
             m_dictIdListeners = new Dictionary<int,int[]> ();
-
-            Initialize ();
-        }
-
-        protected virtual void Initialize () {
-            actived = false;
-            threadIsWorking = -1;
-
-            m_lockState = new Object();
-
-            states = new List<int /*StatesMachine*/>();
-        }
-
-        public virtual bool Activate(bool active)
-        {
-            bool bRes = true;
-            
-            if (active == true) threadIsWorking++; else ;
-
-            if (actived == active)
-            {
-                bRes = false;
-            }
-            else
-            {
-                actived = active;
-            }
-
-            return bRes;
-        }
+        }        
 
         protected void register(int id, ConnectionSettings connSett, string name, int indx)
         {
@@ -136,18 +87,6 @@ namespace HClassLibrary
             Logging.Logg().Error(msg, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
-        public abstract void ClearValues();
-
-        protected virtual void InitializeSyncState ()
-        {
-            if (m_waitHandleState == null)
-                m_waitHandleState = new WaitHandle [1];
-            else
-                ;
-
-            m_waitHandleState [(int)INDEX_WAITHANDLE_REASON.SUCCESS] = new AutoResetEvent(true);
-        }
-
         //protected abstract bool InitDbInterfaces ();
 
         public void Request(int idListener, string request)
@@ -155,232 +94,40 @@ namespace HClassLibrary
             DbSources.Sources().Request(m_IdListenerCurrent = idListener, request);
         }
 
-        public virtual int Response(int idListener, out bool error, out DataTable table/*, bool bIsTec*/)
+        public virtual int Response(int idListener, out bool error, out object obj/*, bool bIsTec*/)
         {
+            obj = null;
+            DataTable table = obj as DataTable;
             return DbSources.Sources().Response(idListener, out error, out table);
         }
 
-        public virtual int Response(out bool error, out DataTable table/*, bool bIsTec*/)
+        public virtual int Response(out bool error, out object outobj/*, bool bIsTec*/)
         {
+            outobj = null;
+            DataTable table = outobj as DataTable;
             return DbSources.Sources().Response(m_IdListenerCurrent, out error, out table);
         }
 
-        protected abstract int StateRequest(int /*StatesMachine*/ state);
+        //protected abstract int StateCheckResponse(int /*StatesMachine*/ state, out bool error, out DataTable table);
 
-        protected abstract int StateCheckResponse(int /*StatesMachine*/ state, out bool error, out DataTable table);
+        //protected abstract int StateResponse(int /*StatesMachine*/ state, DataTable table);
 
-        protected abstract int StateResponse(int /*StatesMachine*/ state, DataTable table);
-
-        protected abstract void StateErrors(int /*StatesMachine*/ state, int req, int res);
-
-        protected abstract void StateWarnings(int /*StatesMachine*/ state, int req, int res);
-
-        public virtual void Start()
+        public override void ClearStates()
         {
-            Thread.CurrentThread.CurrentCulture =
-            Thread.CurrentThread.CurrentUICulture =
-                ProgramBase.ss_MainCultureInfo;
+            base.ClearStates ();
 
-            if (threadIsWorking < 0)
-            {
-                threadIsWorking = 0;
-                taskThread = new Thread(new ParameterizedThreadStart(TecView_ThreadFunction));
-                taskThread.Name = "Интерфейс к РДГ";
-                taskThread.IsBackground = true;
-                taskThread.CurrentCulture =
-                taskThread.CurrentUICulture =
-                    ProgramBase.ss_MainCultureInfo;
-
-                semaState = new Semaphore(1, 1);
-
-                InitializeSyncState();
-
-                semaState.WaitOne();
-                taskThread.Start();
-            }
+            if (!(clearReportStates == null))
+                clearReportStates (true);
             else
                 ;
         }
 
-        public virtual void ClearStates()
+        public override void Stop()
         {
-            //lock (m_lockState)
-            //{
-                newState = true;
-                states.Clear ();
-
-                if (!(clearReportStates == null))
-                    clearReportStates (true);
-                else
-                    ;
-        }
-
-        public virtual void Stop()
-        {
-            bool joined;
-            threadIsWorking = -1;
-
             StopDbInterfaces ();
             
-            ClearStates ();
-
-            if ((!(taskThread == null)) && taskThread.IsAlive)
-            {
-                try { semaState.Release(1); }
-                catch (Exception e)
-                {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::StopThreadSourceData () - semaState.Release(1)");
-                }
-
-                joined = taskThread.Join(666);
-                if (joined == false)
-                    taskThread.Abort();
-                else
-                    ;
-            }
-            else ;
-        }
-
-        private void TecView_ThreadFunction(object data)
-        {
-            int index;
-            int /*StatesMachine*/ currentState;
-            bool bRes = false;
-
-            while (! (threadIsWorking < 0))
-            {
-                bRes = false;
-                bRes = semaState.WaitOne();
-
-                index = 0;
-
-                lock (m_lockState)
-                {
-                    if (states.Count == 0)
-                        continue;
-                    else
-                        ;
-
-                    currentState = states[index];
-                    newState = false;
-                }
-
-                while (true)
-                {
-                    int requestIsOk = 0;
-                    bool error = true;
-                    int dataPresent = -1;
-                    DataTable table = null;
-                    for (int i = 0; i < DbInterface.MAX_RETRY && (! (dataPresent == 0)) && (newState == false); i++)
-                    {
-                        if (error)
-                        {
-                            requestIsOk = StateRequest(currentState);
-                            if (! (requestIsOk == 0))
-                                break;
-                            else
-                                ;
-                        }
-                        else
-                            ;
-
-                        error = false;
-                        for (int j = 0; j < DbInterface.MAX_WAIT_COUNT && (! (dataPresent == 0)) && (error == false) && (newState == false); j++)
-                        {
-                            System.Threading.Thread.Sleep(DbInterface.WAIT_TIME_MS);
-                            dataPresent = StateCheckResponse(currentState, out error, out table);
-                        }
-                    }
-
-                    if (requestIsOk == 0)
-                    {
-                        int responseIsOk = 0;
-                        if ((dataPresent == 0) && (error == false) && (newState == false))
-                            responseIsOk = StateResponse(currentState, table);
-                        else
-                            responseIsOk = -1;
-
-                        if (((! (responseIsOk == 0)) || (! (dataPresent == 0)) || (error == true)) && (newState == false))
-                        {
-                            if (responseIsOk < 0)
-                            {
-                                StateErrors(currentState, requestIsOk, responseIsOk);
-                                lock (m_lockState)
-                                {
-                                    if (newState == false)
-                                    {
-                                        states.Clear();
-                                        break;
-                                    }
-                                    else
-                                        ;
-                                }
-                            }
-                            else
-                                StateWarnings(currentState, requestIsOk, responseIsOk);
-                        }
-                        else
-                            ;
-                    }
-                    else
-                    {
-                        //14.04.2015 ???
-                        //StateErrors(currentState, requestIsOk, -1);
-                        
-                        lock (m_lockState)
-                        {
-                            if (newState == false)
-                            {
-                                states.Clear();
-                                break;
-                            }
-                            else
-                                ;
-                        }
-                    }
-
-                    index++;
-
-                    lock (m_lockState)
-                    {
-                        if (index == states.Count)
-                            break;
-                        else
-                            ;
-
-                        if (newState)
-                            break;
-                        else
-                            ;
-                        currentState = states[index];
-                    }
-                }
-
-                //Закончена обработка всех событий
-                completeHandleStates();
-            }
-            if (bRes == true)
-                try
-                {
-                    semaState.Release(1);
-                }
-                catch (Exception e)
-                { //System.Threading.SemaphoreFullException
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::TecView_ThreadFunction () - semaState.Release(1)");
-                }
-            else
-                ;
-        }
-
-        /// <summary>
-        /// Установить признак окончания обработки всех событий
-        /// </summary>
-        protected void completeHandleStates () {
-            try { ((AutoResetEvent)m_waitHandleState[0]).Set (); }
-            catch (Exception e) {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "TecView_ThreadFunction () - m_waitHandleState[0]).Set()");
-            }
-        }
+            base.Stop ();
+        }        
 
         protected void GetCurrentTimeRequest(DbInterface.DB_TSQL_INTERFACE_TYPE typeDB, int idListatener)
         {
@@ -403,16 +150,6 @@ namespace HClassLibrary
 
             if (query.Equals(string.Empty) == false)
                 Request(idListatener, query);
-            else
-                ;
-        }
-
-        protected void abortThreadGetValues(INDEX_WAITHANDLE_REASON reason)
-        {
-            if (m_waitHandleState.Length > (int)reason)
-            {
-                ((ManualResetEvent)m_waitHandleState[(int)reason]).Set();
-            }
             else
                 ;
         }

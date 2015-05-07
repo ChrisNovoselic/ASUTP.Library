@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HHandler.cs" />
     <Compile Include="HControl.cs">
       <SubType>Component</SubType>
     </Compile>
