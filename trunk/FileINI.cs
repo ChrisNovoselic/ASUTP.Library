@@ -14,11 +14,37 @@ namespace HClassLibrary
         [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.I4)]
         public static extern int GetPrivateProfileString(String Section, String Key, String Default, StringBuilder retVal, int Size, String FilePath);
-
+        /// <summary>
+        /// Наименовние файла конфигурации
+        /// </summary>
         public string m_NameFileINI = string.Empty;
-
-        public FileINI(string nameFile)
+        /// <summary>
+        /// Словарь со всеми значениями из файла конфигурации
+        /// </summary>
+        private Dictionary<string, Dictionary<string, string>> m_values;
+        /// <summary>
+        /// Наименование (краткое) главной секции файла конфигурации
+        /// </summary>
+        private string SEC_SHR_MAIN
         {
+            get { return "Main"; }
+        }
+        /// <summary>
+        /// Наименование главной секции файла конфигурации
+        /// </summary>
+        private string SEC_MAIN
+        {
+            get { return SEC_SHR_MAIN + " (" + ProgramBase.AppName + ")"; }
+        }
+        /// <summary>
+        /// Конструктор - основной
+        /// </summary>
+        /// <param name="nameFile">Имя файла конфигурации</param>
+        /// <param name="bReadAuto">Признак автоматического считывания всех параметров при создании</param>
+        public FileINI(string nameFile, bool bReadAuto)
+        {
+            m_values = new Dictionary<string, Dictionary<string, string>>();
+
             m_NameFileINI = System.Environment.CurrentDirectory + "\\" + nameFile;
             if (File.Exists(m_NameFileINI) == false)
             {
@@ -27,53 +53,50 @@ namespace HClassLibrary
             }
             else
                 ;
-
-            m_values = new Dictionary<string,Dictionary<string,string>> ();
+        }        
+        /// <summary>
+        /// Получить значение из главной секции по ключу
+        /// </summary>
+        /// <param name="key">Ключ в главной секции</param>
+        /// <returns>Значение параметра по ключу</returns>
+        public string GetMainValueOfKey(string key) {
+            return GetSecValueOfKey(SEC_SHR_MAIN, key);
         }
-
-        private Dictionary <string, Dictionary<string, string>> m_values;
-
-        private string SEC_MAIN {
-            get { return "Main (" + ProgramBase.AppName + ")"; }
-        }
-
-        public string GetValueOfKey(string key) {
-            return GetValueOfKey (@"Main", key);
-        }
-
-        public string GetValueOfKey(string sec, string key)
+        /// <summary>
+        /// Получить значение из указанной секции по ключу
+        /// </summary>
+        /// <param name="sec">Секция в кторой размещен парметр с ключом</param>
+        /// <param name="key">Ключ для получения значения</param>
+        /// <returns>Значение параметра по ключу</returns>
+        public string GetSecValueOfKey(string sec, string key)
         {
             return m_values[sec + @" (" + ProgramBase.AppName + ")"][key];
         }
-
-        public FileINI(string nameFile, string[] par, string[] val) : this (nameFile)
+        /// <summary>
+        /// Конструктор - дополн. (при создании добавляет в словарь указаныые параметры ключ-значение)
+        /// </summary>
+        /// <param name="nameFile">Наименование файла</param>
+        /// <param name="bReadAuto">Признак автоматического считывания всех параметров при создании</param>
+        /// <param name="par">Массив ключей параметров</param>
+        /// <param name="val">Массив значений параметров</param>
+        public FileINI(string nameFile, bool bReadAuto, string[] par, string[] val) : this (nameFile, bReadAuto)
         {
             string key = string.Empty;
 
             if (par.Length == val.Length) {
-                m_values.Add (SEC_MAIN, new Dictionary<string,string> ());
-                for (int i = 0; i < par.Length; i ++) {
-                    key = par [i];
-                    m_values [SEC_MAIN].Add(key, ReadString(SEC_MAIN, key, string.Empty));
-                    if (m_values[SEC_MAIN][key].Equals(string.Empty) == true)
-                    {
-                        m_values [SEC_MAIN][key] = val [i];
-                        WriteString(SEC_MAIN, key, val[i]);
-                    }
-                    else
-                        ;
-                }
+                for (int i = 0; i < par.Length; i ++)
+                    AddMainPar (par[i], val[i]);
             }
             else
                 throw new Exception (@"FileINI::с параметрами...");
         }
 
-        public void Add(string par, string val)
+        public void AddMainPar(string par, string val)
         {
-            Add (@"Main", par, val);
+            AddSecPar(SEC_SHR_MAIN, par, val);
         }
 
-        public void Add (string sec_shr, string par, string val) {
+        public void AddSecPar (string sec_shr, string par, string val) {
             string sec = sec_shr +  @" (" + ProgramBase.AppName + ")";
 
             if (m_values.ContainsKey (sec) == false)

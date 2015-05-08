@@ -17,31 +17,58 @@ namespace HClassLibrary
 {
     public abstract class HHandlerDb : HHandler
     {
+        /// <summary>
+        /// Делегат функции оповещения о выполняемой операции (выполнение)
+        /// </summary>
         protected DelegateFunc delegateStartWait;
+        /// <summary>
+        /// Делегат функции оповещения о выполняемой операции (завершение)
+        /// </summary>
         protected DelegateFunc delegateStopWait;
+        /// <summary>
+        /// Делегат функции оповещения о выполняемой операции (обновление состояния)
+        /// </summary>
         protected DelegateFunc delegateEventUpdate;
 
         protected DelegateStringFunc errorReport;
         protected DelegateStringFunc warningReport;
         protected DelegateStringFunc actionReport;
         protected DelegateBoolFunc clearReportStates;
-
+        /// <summary>
+        /// Идентификатор (текущий) соединения с источником информации при выполнении запроса
+        /// </summary>
         protected int m_IdListenerCurrent;
+        /// <summary>
+        /// Словарь идентификаторов соединения с источником информации
+        /// </summary>
         protected Dictionary <int, int []> m_dictIdListeners;
-
+        /// <summary>
+        /// Конструктор - основной
+        /// </summary>
         public HHandlerDb()
             : base()
         {
+            //Словарь идентификаторов соединения с источником информации - пустой
             m_dictIdListeners = new Dictionary<int,int[]> ();
         }        
-
-        protected void register(int id, ConnectionSettings connSett, string name, int indx)
+        /// <summary>
+        /// Регистрация источника информации с наименованием по ключю, типу, параметрами соединения
+        /// </summary>
+        /// <param name="id">Ключ группы источников информации</param>
+        /// <param name="indx">Тип источника информации</param>
+        /// <param name="connSett">Параметры соединения с источником информации</param>
+        /// <param name="name">Наименование источника информации</param>
+        protected void register(int id, int indx, ConnectionSettings connSett, string name)
         {
             m_dictIdListeners[id][indx] = DbSources.Sources().Register(connSett, true, @"ТЭЦ=" + name + @", DESC=" + indx.ToString());
         }
-
+        /// <summary>
+        /// Старт обработки запросов
+        /// </summary>
         public abstract void StartDbInterfaces();
-
+        /// <summary>
+        /// Остановить обрабртку запросов
+        /// </summary>
         private void stopDbInterfaces()
         {
             if (!(m_dictIdListeners == null))
@@ -60,19 +87,32 @@ namespace HClassLibrary
                 //Вообще нельзя что-либо инициализировать
                 Logging.Logg().Error(@"HHandlerDb::stopDbInterfaces () - m_dictIdListeners == null ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
-
+        /// <summary>
+        /// Остановить обрабртку запросов
+        /// </summary>
         public void StopDbInterfaces()
         {
             stopDbInterfaces();
         }
-
+        /// <summary>
+        /// Установить делегаты оповещения о выполняемой операции
+        /// </summary>
+        /// <param name="dStart">Делегат (выполнение)</param>
+        /// <param name="dStop"></param>
+        /// <param name="dStatus"></param>
         public void SetDelegateWait(DelegateFunc dStart, DelegateFunc dStop, DelegateFunc dStatus)
         {
             this.delegateStartWait = dStart;
             this.delegateStopWait = dStop;
             this.delegateEventUpdate = dStatus;
         }
-
+        /// <summary>
+        /// Установить делегаты оповещения о результатах выполнения опрерации
+        /// </summary>
+        /// <param name="ferr"></param>
+        /// <param name="fwar"></param>
+        /// <param name="fact"></param>
+        /// <param name="fclr"></param>
         public void SetDelegateReport(DelegateStringFunc ferr, DelegateStringFunc fwar, DelegateStringFunc fact, DelegateBoolFunc fclr)
         {
             this.errorReport = ferr;
@@ -95,7 +135,7 @@ namespace HClassLibrary
             DbSources.Sources().Request(m_IdListenerCurrent = idListener, request);
         }
 
-        protected int response(int idListener, out bool error, out object outobj/*, bool bIsTec*/)
+        protected virtual int response(int idListener, out bool error, out object outobj/*, bool bIsTec*/)
         {
             //return DbSources.Sources().Response(idListener, out error, out table);
 

@@ -12,41 +12,74 @@ namespace HClassLibrary
     public abstract class HHandler : object
     {
         /// <summary>
-        /// Объект для синхронизации изменения списка состояний
+        /// Объект для синхронизации изменения списка событий
         /// </summary>
         protected Object m_lockState;
-
+        /// <summary>
+        /// Объект потока обработки событий очереди
+        /// </summary>
         private Thread taskThread;
+        /// <summary>
+        /// Объект синхронизации, разрешающий начало обработки очереди событий
+        /// </summary>
         private Semaphore semaState;
+        /// <summary>
+        /// Индексы для массива объектов синхронизации
+        /// </summary>
         public enum INDEX_WAITHANDLE_REASON { SUCCESS, ERROR, BREAK, COUNT_INDEX_WAITHANDLE_REASON }
+        /// <summary>
+        /// Массив объектов синхронизации
+        /// </summary>
         protected WaitHandle[] m_waitHandleState;
-        //protected AutoResetEvent evStateEnd;
+        /// <summary>
+        /// Признак состояния потока
+        /// </summary>
         public volatile int threadIsWorking;
+        /// <summary>
+        /// Признак 
+        /// </summary>
         private volatile bool newState;
+        /// <summary>
+        /// Список событий (состояний) для обработки (или очередь)
+        /// </summary>
         private volatile List<int /*StatesMachine*/> states;
-
+        /// <summary>
+        /// Признак активности потока
+        /// </summary>
         private bool actived;
+        /// <summary>
+        /// Свойство - Признак активности потока
+        /// </summary>
         public bool m_bIsActive { get { return actived; } }
-
+        /// <summary>
+        /// Конструктор - основной
+        /// </summary>
         public HHandler()
         {
+            //Установка "культуры" для корректной обработки значений, зависимых от настроек АРМ
             Thread.CurrentThread.CurrentCulture =
             Thread.CurrentThread.CurrentUICulture =
                 ProgramBase.ss_MainCultureInfo;
 
             Initialize ();
         }
-
+        /// <summary>
+        /// Инициализация
+        /// </summary>
         protected virtual void Initialize()
         {
-            actived = false;
-            threadIsWorking = -1;
+            actived = false; //НЕ активен
+            threadIsWorking = -1; //Не активен
 
             m_lockState = new Object();
-
+            //Список событий - пустой
             states = new List<int /*StatesMachine*/>();
         }
-
+        /// <summary>
+        /// Изменение состояния потока
+        /// </summary>
+        /// <param name="active">Значение нового сотояния</param>
+        /// <returns>Признак изменения состояния</returns>
         public virtual bool Activate(bool active)
         {
             bool bRes = true;
@@ -64,7 +97,9 @@ namespace HClassLibrary
 
             return bRes;
         }
-
+        /// <summary>
+        /// Инициализация объектов синхронизации
+        /// </summary>
         protected virtual void InitializeSyncState()
         {
             if (m_waitHandleState == null)
@@ -74,13 +109,15 @@ namespace HClassLibrary
 
             m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS] = new AutoResetEvent(true);
         }
-
+        /// <summary>
+        /// Старт потоковой функции обработки событий
+        /// </summary>
         public virtual void Start()
         {
             if (threadIsWorking < 0)
             {
                 threadIsWorking = 0;
-                taskThread = new Thread(new ParameterizedThreadStart(TecView_ThreadFunction));
+                taskThread = new Thread(new ParameterizedThreadStart(ThreadFunction));
                 taskThread.Name = "Обработка событий для объекта " + this.GetType ().AssemblyQualifiedName;
                 taskThread.IsBackground = true;
                 taskThread.CurrentCulture =
@@ -97,31 +134,39 @@ namespace HClassLibrary
             else
                 ;
         }
-
+        /// <summary>
+        /// Останов потоковой функции обработки событий
+        /// </summary>
         public virtual void Stop()
         {
             bool joined;
             threadIsWorking = -1;
-
+            //Очисить очередь событий
             ClearStates();
-
-            if ((!(taskThread == null)) && taskThread.IsAlive)
+            //Прверить выполнение потоковой функции
+            if ((!(taskThread == null)) && (taskThread.IsAlive == true))
             {
+                //Выход из потоковой функции
                 try { semaState.Release(1); }
                 catch (Exception e)
                 {
                     Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::StopThreadSourceData () - semaState.Release(1)");
                 }
-
+                //Ожидать завершения потоковой функции
                 joined = taskThread.Join(666);
+                //Проверить корректное завершение потоковой функции
                 if (joined == false)
+                    //Завершить аварийно потоковую функцию
                     taskThread.Abort();
                 else
                     ;
             }
             else ;
         }
-
+        /// <summary>
+        /// Начать обработку списка событий
+        /// </summary>
+        /// <param name="throwMes">Сообщение при ошибке</param>
         public void Run(string throwMes)
         {
             try
@@ -133,34 +178,71 @@ namespace HClassLibrary
                 Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, throwMes + @" - semaState.Release(1)");
             }
         }
-
+        /// <summary>
+        /// Проверить 
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
         protected bool isLastState (int state)
         {
             return states.IndexOf(state) == (states.Count - 1);
         }
-
+        /// <summary>
+        /// Добавить состояние в список
+        /// </summary>
+        /// <param name="state">Добавляемое состояние</param>
         public void AddState(int state)
         {
             states.Add(state);
         }
-        
+        /// <summary>
+        /// Очистить список состояний (событий)
+        /// </summary>
         public virtual void ClearStates()
         {
             newState = true;
             states.Clear();
         }        
-
+        /// <summary>
+        /// Получить результат обработки события
+        /// </summary>
+        /// <param name="state">Событие для получения результата</param>
+        /// <param name="error">Признак ошибки при получении результата</param>
+        /// <param name="outobj">Результат запроса</param>
+        /// <returns>Признак получения результата</returns>
         protected abstract int StateCheckResponse(int state, out bool error, out object outobj);
-
+        /// <summary>
+        /// Запросить результат для события
+        /// </summary>
+        /// <param name="state">Событие запроса</param>
+        /// <returns>Признак отправления результата</returns>
         protected abstract int StateRequest(int state);
-
+        /// <summary>
+        /// Обработка УСЕШНО полученного результата
+        /// </summary>
+        /// <param name="state">Состояние для результата</param>
+        /// <param name="obj">Значение результата</param>
+        /// <returns>Признак обработки результата</returns>
         protected abstract int StateResponse(int state, object obj);
-
+        /// <summary>
+        /// Обработка КРИТИЧЕСКОЙ ошибки при получении результата
+        /// </summary>
+        /// <param name="state">Состояние запроса</param>
+        /// <param name="req">Признак получения ответа при запросе</param>
+        /// <param name="res">Признак...</param>
         protected abstract void StateErrors(int state, int req, int res);
-
+        /// <summary>
+        /// Обработка НЕ КРИТИЧной ошибки при получении результата
+        /// </summary>
+        /// <param name="state">Состояние запроса</param>
+        /// <param name="req">Признак получения ответа при запросе</param>
+        /// <param name="res">Признак...</param>
         protected abstract void StateWarnings(int state, int req, int res);
-
-        private void TecView_ThreadFunction(object data)
+        /// <summary>
+        /// Потоковая функция
+        /// </summary>
+        /// <param name="data">Параметр при старте потоковой функции</param>
+        private void ThreadFunction(object data)
         {
             int index;
             int /*StatesMachine*/ currentState;
@@ -285,7 +367,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 { //System.Threading.SemaphoreFullException
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::TecView_ThreadFunction () - semaState.Release(1)");
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadFunction () - semaState.Release(1)");
                 }
             else
                 ;
@@ -299,7 +381,7 @@ namespace HClassLibrary
             try { ((AutoResetEvent)m_waitHandleState[0]).Set(); }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "TecView_ThreadFunction () - m_waitHandleState[0]).Set()");
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadFunction () - m_waitHandleState[0]).Set()");
             }
         }
 
