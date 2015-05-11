@@ -57,6 +57,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="HHandlerDb.cs" />
+    <Compile Include="HHandlerQueue.cs" />
     <Compile Include="HMath.cs" />
     <Compile Include="ConnectionSettings.cs" />
     <Compile Include="ConnectionSettingsSource.cs" />

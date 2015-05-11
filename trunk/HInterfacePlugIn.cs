@@ -30,7 +30,59 @@ namespace HClassLibrary
         Type TypeOfObject { get ; }
     }
 
-    public abstract class HPlugIn : IPlugIn
+    public interface IDataHost
+    {
+        /// <summary>
+        /// Событие запроса данных для плюг'ина из главной формы
+        /// </summary>
+        event DelegateObjectFunc EvtDataAskedHost;
+        /// <summary>
+        /// Отиравить запрос на получение данных
+        /// </summary>
+        /// <param name="par"></param>
+        void DataAskedHost(object par);
+        /// <summary>
+        /// Обработчик события ответа от главной формы
+        /// </summary>
+        /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
+        void OnEvtDataRecievedHost(object res);
+    }
+
+    public abstract class HDataHost : IDataHost
+    {
+        public event DelegateObjectFunc EvtDataAskedHost;
+
+        public virtual void DataAskedHost(object par)
+        {
+            //Вариант №1 - без потока
+            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], new object[] { (par as object[])[1] }), new AsyncCallback(this.dataRecievedHost), new Random());
+
+            ////Вариант №2 - с потоком
+            //Thread thread = new Thread (new ParameterizedThreadStart (dataAskedHost));
+            //thread.Start(par);
+        }
+
+        ////Потоковая функция для вар.№2
+        //private void dataAskedHost (object obj) {
+        //    IAsyncResult res = EvtDataAskedHost.BeginInvoke(obj, new AsyncCallback(this.dataRecievedHost), null);
+        //}
+
+        private void dataRecievedHost(object res)
+        {
+            if ((res as AsyncResult).EndInvokeCalled == false)
+                ; //((DelegateObjectFunc)((AsyncResult)res).AsyncDelegate).EndInvoke(res as AsyncResult);
+            else
+                ;
+        }
+
+        /// <summary>
+        /// Обработчик события ответа от главной формы
+        /// </summary>
+        /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
+        public abstract void OnEvtDataRecievedHost(object obj);
+    }
+
+    public abstract class HPlugIn : HDataHost, IPlugIn
     {
         IPlugInHost _host;
         //protected Type _type;
@@ -131,30 +183,7 @@ namespace HClassLibrary
                 return _object.GetType ();
             }
         }
-
-        protected void DataAskedHost(object par)
-        {
-            //Вариант №1 - без потока
-            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost (_Id, new object [] { par } ), new AsyncCallback(this.dataRecievedHost), new Random ());
-
-            ////Вариант №2 - спотоком
-            //Thread thread = new Thread (new ParameterizedThreadStart (dataAskedHost));
-            //thread.Start(par);
-        }
-
-        ////Потоковая функция для вар.№2
-        //private void dataAskedHost (object obj) {
-        //    IAsyncResult res = EvtDataAskedHost.BeginInvoke(obj, new AsyncCallback(this.dataRecievedHost), null);
-        //}
-
-        private void dataRecievedHost(object res)
-        {
-            if ((res as AsyncResult).EndInvokeCalled == false)
-                ; //((DelegateObjectFunc)((AsyncResult)res).AsyncDelegate).EndInvoke(res as AsyncResult);
-            else
-                ;
-        }
-
+        
         //Int16 IdOwnerMenuItem { get; }
         public abstract string NameOwnerMenuItem { get; }
 
@@ -167,16 +196,16 @@ namespace HClassLibrary
         /// <param name="ev">параметры события</param>
         public abstract void OnClickMenuItem (object obj, EventArgs ev);
 
-        /// <summary>
-        /// Событие запроса данных для плюг'ина из главной формы
-        /// </summary>
-        public event DelegateObjectFunc EvtDataAskedHost;
+        public override void DataAskedHost(object par)
+        {
+            base.DataAskedHost(new object [] {_Id, par});
+        }
         //public event DelegateObjectFunc EvtDataRecievedHost;
         /// <summary>
         /// Обработчик события ответа от главной формы
         /// </summary>
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
-        public virtual void OnEvtDataRecievedHost(object obj) {
+        public override void OnEvtDataRecievedHost(object obj) {
             if (_object is Control)
                 m_evObjectHandleCreated.WaitOne (-1);
             else

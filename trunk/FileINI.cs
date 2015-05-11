@@ -18,11 +18,11 @@ namespace HClassLibrary
         /// <summary>
         /// Перечисление для индексирования символов-разделителей
         /// </summary>
-        private enum INDEX_DELIMETER { SEC_PART, PAIR, VALUE};
+        protected enum INDEX_DELIMETER { SEC_PART_APP, SEC_PART_TARGET, PAIR, VALUES, PAIR_VAL, VALUE };
         /// <summary>
         /// Символы-разделители
         /// </summary>
-        private static char [] s_chSecDelimeters = {' ', '=', ','};
+        protected static char [] s_chSecDelimeters = {' ', '-', '=', ';', ',', ':'};
         /// <summary>
         /// Наименовние файла конфигурации
         /// </summary>
@@ -50,7 +50,7 @@ namespace HClassLibrary
         /// </summary>
         private string SEC_MAIN
         {
-            get { return SEC_SHR_MAIN + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART] + SEC_APP; }
+            get { return SEC_SHR_MAIN + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP; }
         }
         /// <summary>
         /// Проверить наличие главной секции
@@ -66,13 +66,13 @@ namespace HClassLibrary
         /// <returns>Признак наличия секции</returns>
         protected bool isSec (string sec_shr)
         {
-            return m_values.ContainsKey(sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART] + SEC_APP);
+            return m_values.ContainsKey(sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP);
         }
         /// <summary>
         /// Проверка принадлежности секции текущему приложению
         /// </summary>
-        /// <param name="sec"></param>
-        /// <returns></returns>
+        /// <param name="sec">Наименование секции</param>
+        /// <returns>Признак принадлежности</returns>
         private bool isSecApp (string sec)
         {
             bool bRes = false;
@@ -80,7 +80,7 @@ namespace HClassLibrary
 
             try {
                 //Получить часть секции - признак приложения
-                secApp = sec.Split(new char[] { s_chSecDelimeters [(int)INDEX_DELIMETER.SEC_PART] }, StringSplitOptions.None)[1];
+                secApp = sec.Split(new char[] { s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] }, StringSplitOptions.None)[1];
                 //Получить результат при сравнении
                 bRes = secApp.Equals (SEC_APP);
             }
@@ -90,6 +90,25 @@ namespace HClassLibrary
             }
 
             return bRes;
+        }
+        /// <summary>
+        /// Проверка наличия ключа в главной секции
+        /// </summary>
+        /// <param name="key">Ключ для проверки</param>
+        /// <returns>Признак наличия ключа</returns>
+        protected bool isMainSecKey(string key)
+        {
+            return isSecKey(SEC_SHR_MAIN, key);
+        }
+        /// <summary>
+        /// Проверка наличия ключа в секции
+        /// </summary>
+        /// <param name="sec_shr">Часть "смысловая" наименования секции</param>
+        /// <param name="key">Ключ для проверки</param>
+        /// <returns>Признак наличия ключа</returns>
+        protected bool isSecKey(string sec_shr, string key)
+        {
+            return isSec(sec_shr) == true ? m_values[sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP].ContainsKey(key) : false;
         }
         /// <summary>
         /// Конструктор - основной
@@ -205,16 +224,18 @@ namespace HClassLibrary
         /// <summary>
         /// Получить значение из указанной секции по ключу
         /// </summary>
-        /// <param name="sec">Секция в кторой размещен парметр с ключом</param>
+        /// <param name="sec_shr">Секция в кторой размещен парметр с ключом</param>
         /// <param name="key">Ключ для получения значения</param>
         /// <returns>Значение параметра по ключу</returns>
-        public string GetSecValueOfKey(string sec, string key)
+        public string GetSecValueOfKey(string sec_shr, string key)
         {
-            return m_values[sec + @" (" + ProgramBase.AppName + ")"][key];
+            string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
+            return isSec (sec_shr) == true ? m_values[sec].ContainsKey(key) == true ? m_values[sec][key] : string.Empty : string.Empty;
         }
         protected Dictionary<string, string> getSecValues(string sec_shr)
         {
-            return isSec(sec_shr) == true ? m_values[sec_shr + @" (" + ProgramBase.AppName + ")"] : null;
+            string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
+            return isSec(sec_shr) == true ? m_values[sec] : null;
         }
         /// <summary>
         /// Конструктор - дополн. (при создании добавляет в словарь указаныые параметры ключ-значение)

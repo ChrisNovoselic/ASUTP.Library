@@ -32,6 +32,8 @@ namespace HClassLibrary
         private int MAX_COUNT_MESSAGE_ONETIME = 66;
         private int MAXCOUNT_LISTQUEUEMESSAGE = 666;
 
+        private static string s_strDatetimeFrmt = @"yyyyMMdd HH:mm:ss.fff";
+
         private string m_fileNameStart;
         private string m_fileName;
         //private bool externalLog;
@@ -40,7 +42,25 @@ namespace HClassLibrary
         private Semaphore sema;
         private LogStreamWriter m_sw;
         private FileInfo m_fi;
-        public static LOG_MODE s_mode = LOG_MODE.UNKNOWN;
+        private static LOG_MODE _mode = LOG_MODE.UNKNOWN;
+        public static LOG_MODE s_mode
+        {
+            get { return _mode; }
+
+            set {
+                _mode = value;
+
+                switch (_mode)
+                {
+                    case LOG_MODE.DB:
+                        s_strDatetimeFrmt = @"yyyyMMdd HH:mm:ss.fff";
+                        break;
+                    default:
+                        s_strDatetimeFrmt = @"dd.MM.yyyy HH:mm:ss.fff";
+                        break;
+                }
+            }
+        }
         private bool logRotate = true;
         private const int MAX_ARCHIVE = 6;
         private static int logRotateSizeDefault = (int) Math.Floor((double)(1024 * 1024 * 5)); //1024 * 1024 * 5;
@@ -651,7 +671,7 @@ namespace HClassLibrary
             public MESSAGE (int id, DateTime dtReg, string text, bool bSep, bool bDatetime, bool bLock) {
                 m_id = id;
                 m_state = STATE_MESSAGE.QUEUE;
-                m_strDatetimeReg = dtReg.ToString (@"yyyyMMdd HH:mm:ss.fff");
+                m_strDatetimeReg = dtReg.ToString (s_strDatetimeFrmt);
                 m_text = text;
 
                 m_bSeparator= bSep;

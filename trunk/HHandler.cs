@@ -18,7 +18,7 @@ namespace HClassLibrary
         /// <summary>
         /// Объект потока обработки событий очереди
         /// </summary>
-        private Thread taskThread;
+        private Thread taskThreadState;
         /// <summary>
         /// Объект синхронизации, разрешающий начало обработки очереди событий
         /// </summary>
@@ -34,7 +34,7 @@ namespace HClassLibrary
         /// <summary>
         /// Признак состояния потока
         /// </summary>
-        public volatile int threadIsWorking;
+        private volatile int threadStateIsWorking;
         /// <summary>
         /// Признак 
         /// </summary>
@@ -50,7 +50,7 @@ namespace HClassLibrary
         /// <summary>
         /// Свойство - Признак активности потока
         /// </summary>
-        public bool m_bIsActive { get { return actived; } }
+        public bool Actived { get { return actived; } }
         /// <summary>
         /// Конструктор - основной
         /// </summary>
@@ -69,11 +69,22 @@ namespace HClassLibrary
         protected virtual void Initialize()
         {
             actived = false; //НЕ активен
-            threadIsWorking = -1; //Не активен
+            threadStateIsWorking = -1; //Не активен
 
             m_lockState = new Object();
             //Список событий - пустой
             states = new List<int /*StatesMachine*/>();
+        }
+        /// <summary>
+        /// признак 1-ой активации
+        /// </summary>
+        public bool IsFirstActivated
+        {
+            get { return threadStateIsWorking == 1; }
+        }
+        public bool IsStarted
+        {
+            get { return ! (threadStateIsWorking < 0); }
         }
         /// <summary>
         /// Изменение состояния потока
@@ -84,7 +95,7 @@ namespace HClassLibrary
         {
             bool bRes = true;
 
-            if (active == true) threadIsWorking++; else ;
+            if (active == true) threadStateIsWorking++; else ;
 
             if (actived == active)
             {
@@ -107,6 +118,7 @@ namespace HClassLibrary
             else
                 ;
 
+            //??? 11.05.2015 true -> false
             m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS] = new AutoResetEvent(true);
         }
         /// <summary>
@@ -114,14 +126,14 @@ namespace HClassLibrary
         /// </summary>
         public virtual void Start()
         {
-            if (threadIsWorking < 0)
+            if (threadStateIsWorking < 0)
             {
-                threadIsWorking = 0;
-                taskThread = new Thread(new ParameterizedThreadStart(ThreadFunction));
-                taskThread.Name = "Обработка событий для объекта " + this.GetType ().AssemblyQualifiedName;
-                taskThread.IsBackground = true;
-                taskThread.CurrentCulture =
-                taskThread.CurrentUICulture =
+                threadStateIsWorking = 0;
+                taskThreadState = new Thread(new ParameterizedThreadStart(ThreadStates));
+                taskThreadState.Name = "Обработка событий для объекта " + this.GetType().AssemblyQualifiedName;
+                taskThreadState.IsBackground = true;
+                taskThreadState.CurrentCulture =
+                taskThreadState.CurrentUICulture =
                     ProgramBase.ss_MainCultureInfo;
 
                 semaState = new Semaphore(1, 1);
@@ -129,7 +141,7 @@ namespace HClassLibrary
                 InitializeSyncState();
 
                 semaState.WaitOne();
-                taskThread.Start();
+                taskThreadState.Start();
             }
             else
                 ;
@@ -140,24 +152,20 @@ namespace HClassLibrary
         public virtual void Stop()
         {
             bool joined;
-            threadIsWorking = -1;
+            threadStateIsWorking = -1;
             //Очисить очередь событий
             ClearStates();
             //Прверить выполнение потоковой функции
-            if ((!(taskThread == null)) && (taskThread.IsAlive == true))
+            if ((!(taskThreadState == null)) && (taskThreadState.IsAlive == true))
             {
                 //Выход из потоковой функции
-                try { semaState.Release(1); }
-                catch (Exception e)
-                {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HAdmin::StopThreadSourceData () - semaState.Release(1)");
-                }
+                Run(@"HHandler::Stop ()");
                 //Ожидать завершения потоковой функции
-                joined = taskThread.Join(666);
+                joined = taskThreadState.Join(666);
                 //Проверить корректное завершение потоковой функции
                 if (joined == false)
                     //Завершить аварийно потоковую функцию
-                    taskThread.Abort();
+                    taskThreadState.Abort();
                 else
                     ;
             }
@@ -242,13 +250,13 @@ namespace HClassLibrary
         /// Потоковая функция
         /// </summary>
         /// <param name="data">Параметр при старте потоковой функции</param>
-        private void ThreadFunction(object data)
+        private void ThreadStates(object data)
         {
             int index;
             int /*StatesMachine*/ currentState;
             bool bRes = false;
 
-            while (!(threadIsWorking < 0))
+            while (!(threadStateIsWorking < 0))
             {
                 bRes = false;
                 bRes = semaState.WaitOne();
@@ -263,7 +271,7 @@ namespace HClassLibrary
                         ;
 
                     currentState = states[index];
-                    newState = false;
+                    newState = false;                    
                 }
 
                 while (true)
@@ -360,6 +368,7 @@ namespace HClassLibrary
                 //Закончена обработка всех событий
                 completeHandleStates();
             }
+            //Освободить ресурс ядра ОС
             if (bRes == true)
                 try
                 {
@@ -367,7 +376,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 { //System.Threading.SemaphoreFullException
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadFunction () - semaState.Release(1)");
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadStates () - semaState.Release(1)");
                 }
             else
                 ;
@@ -378,7 +387,7 @@ namespace HClassLibrary
         /// </summary>
         protected void completeHandleStates()
         {
-            try { ((AutoResetEvent)m_waitHandleState[0]).Set(); }
+            try { ((AutoResetEvent)m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS]).Set(); }
             catch (Exception e)
             {
                 Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadFunction () - m_waitHandleState[0]).Set()");
