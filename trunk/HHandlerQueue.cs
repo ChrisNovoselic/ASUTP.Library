@@ -13,11 +13,32 @@ namespace HClassLibrary
         {
             public IDataHost m_objRecieved;
             public int[] m_states;
+            public object[] m_pars;
 
-            public HDataHost(IDataHost obj, int []states)
+            public HDataHost(IDataHost obj, object []objPars)
             {
                 m_objRecieved = obj;
-                m_states = new int [states.Length]; states.CopyTo(m_states, 0);
+                object []pars = (objPars as object[])[0] as object[];
+                m_states = new int[pars.Length];
+                object []par;
+                int i = -1
+                    , j = -1;
+
+                for (i = 0; i < pars.Length; i ++)
+                {
+                    par = pars[i] as object [];
+                    //Состояние для обработки
+                    m_states[i] = (int)par[0];
+                    //Параметры состояния при обработке
+                    if (par.Length > 1)
+                    {
+                        m_pars = new object[par.Length - 1];
+                        for (j = 1; j < par.Length; j ++)
+                            m_pars[j - 1] = par[j];
+                    }
+                    else
+                        ;
+                }
             }
         }
 
@@ -134,11 +155,11 @@ namespace HClassLibrary
             base.Stop();
         }
 
-        public void Push(IDataHost obj, int[] states)
+        public void Push(IDataHost obj, object []pars)
         {
             lock (m_lockQueue)
             {
-                m_queue.Enqueue(new HDataHost(obj, states));
+                m_queue.Enqueue(new HDataHost(obj, pars));
 
                 if (m_queue.Count == 1)
                     semaQueue.Release(1);

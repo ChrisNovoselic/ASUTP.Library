@@ -93,8 +93,8 @@ namespace HClassLibrary
         public ConnectionSettings(string nameConn, string srv, int port, string dbName, string uid, string pswd, bool bIgnore = false) : this ()
         {
             id = UN_ENUMERABLE_ID - 1;
-            
-            this.name = @"";
+
+            this.name = nameConn;
             this.server = srv;
             this.port = port;
             this.dbName = dbName;
