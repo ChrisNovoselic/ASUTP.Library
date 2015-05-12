@@ -33,9 +33,19 @@ namespace HClassLibrary
         public event DelegateOnHTabCtrlEx OnClose;
         public event DelegateOnHTabCtrlEx OnFloat;
 
+        private int iPrevSelectedIndex;
+        public int PrevSelectedIndex
+        {
+            get { return iPrevSelectedIndex; }
+            set { if (!(iPrevSelectedIndex == value)) { PrevSelectedIndexChanged(this, EventArgs.Empty); iPrevSelectedIndex = value; } else ; }
+        }
+        public event EventHandler PrevSelectedIndexChanged;
+
         public HTabCtrlEx()
         {
             InitializeComponent();
+
+            iPrevSelectedIndex = -1;
         }
 
         public HTabCtrlEx(IContainer container)
@@ -43,6 +53,8 @@ namespace HClassLibrary
             container.Add(this);
 
             InitializeComponent();
+
+            iPrevSelectedIndex = -1;
         }
 
         private bool confirmOnClose = true;
