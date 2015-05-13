@@ -7,8 +7,189 @@ using System.Text;
 using System.Drawing;
 using System.Windows.Forms;
 
+using System.Runtime.Remoting.Messaging; //AsyncResult...
+
 namespace HClassLibrary
 {
+    public abstract class HPanelCommon : TableLayoutPanel
+    {
+        public HPanelCommon(int iColumnCount/* = 16*/, int iRowCount/* = 16*/)
+        {
+            if (iColumnCount > 0) this.ColumnCount = iColumnCount; else ;
+            if (iRowCount > 0) this.RowCount = iRowCount; else ;
+
+            InitializeComponent();
+
+            iActive = -1;
+        }
+
+        public HPanelCommon(IContainer container, int iColumnCount/* = 16*/, int iRowCount/* = 16*/)
+        {
+            container.Add(this);
+
+            if (iColumnCount > 0) this.ColumnCount = iColumnCount; else ;
+            if (iRowCount > 0) this.RowCount = iRowCount; else ;
+
+            InitializeComponent();
+
+            iActive = -1;
+        }
+
+        //-1 - исходное, 0 - старт, 1 - активная
+        private int iActive;
+
+        public bool Actived { get { return (iActive > 0) && (iActive % 2 == 1); } }
+
+        public bool Started { get { return ! (iActive < 0); } }
+
+        public bool IsFirstActivated { get { return iActive == 1; } }
+
+        public virtual void Start()
+        {
+            iActive = 0;
+        }
+
+        public virtual void Stop()
+        {
+            iActive = -1;
+        }
+
+        public virtual bool Activate(bool active)
+        {
+            bool bRes = false;
+
+            if (Started == false)
+                throw new Exception (@"HPanelCommon::Activate (" + active.ToString () + @") - не выполнен метод 'Старт' ...");
+            else
+                ;
+
+            if (!(Actived == active))
+            {
+                this.iActive++;
+
+                bRes = true;
+            }
+            else
+                ;
+
+            return bRes;
+        }
+
+        protected abstract void initializeLayoutStyle (int cols = -1, int rows = -1);
+
+        protected void initializeLayoutStyleEvenly(int cols = -1, int rows = -1)
+        {
+            if (cols > 0)
+                this.ColumnCount = cols;
+            else
+                ;
+
+            if (rows > 0)
+                this.RowCount = rows;
+            else
+                ;
+
+            float val = (float)100 / this.ColumnCount;
+            //Добавить стили "ширина" столлбцов
+            for (int s = 0; s < this.ColumnCount - 0; s++)
+                this.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, val));
+            //this.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize, val));
+
+            val = (float)100 / this.RowCount;
+            //Добавить стили "высота" строк
+            for (int s = 0; s < this.RowCount - 0; s++)
+                this.RowStyles.Add(new RowStyle(SizeType.Percent, val));
+            //this.RowStyles.Add(new RowStyle(SizeType.AutoSize, val));
+        }
+
+        #region Обязательный код для корректного освобождения памяти
+        private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+        #endregion
+
+        #region Код, автоматически созданный конструктором компонентов
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+
+            this.Dock = DockStyle.Fill;
+            //this.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;            
+
+            //initializeLayoutStyle();
+
+            this.ResumeLayout(false);
+            this.PerformLayout();
+        }
+        #endregion
+    }
+
+    public class PanelCommonDataHost : HPanelCommon, IDataHost
+    {
+        public PanelCommonDataHost(int iColumnCount = 16, int iRowCount = 16)
+            : base(iColumnCount, iRowCount)
+        {
+            this.ColumnCount = iColumnCount; this.RowCount = iRowCount;
+
+            initialize();
+        }
+
+        public PanelCommonDataHost(IContainer container, int iColumnCount = 16, int iRowCount = 16)
+            : base (container, iColumnCount, iRowCount)
+        {
+            container.Add(this);
+
+            this.ColumnCount = iColumnCount; this.RowCount = iRowCount;
+            
+            initialize();
+        }
+
+        private void initialize ()
+        {
+            initializeLayoutStyle ();
+        }
+        
+        public event DelegateObjectFunc EvtDataAskedHost;
+
+        /// <summary>
+        /// Отправить запрос главной форме
+        /// </summary>
+        /// <param name="idOwner">Идентификатор панели, отправляющей запрос</param>
+        /// <param name="par"></param>
+        public void DataAskedHost(object par)
+        {
+            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost(-1, new object[] { par }), new AsyncCallback(this.dataRecievedHost), new Random());
+        }
+
+        /// <summary>
+        /// Обработчик события ответа от главной формы
+        /// </summary>
+        /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
+        public virtual void OnEvtDataRecievedHost(object res)
+        {
+        }
+
+        private void dataRecievedHost(object res)
+        {
+            if ((res as AsyncResult).EndInvokeCalled == false)
+                ; //((DelegateObjectFunc)((AsyncResult)res).AsyncDelegate).EndInvoke(res as AsyncResult);
+            else
+                ;
+        }
+
+        protected override void initializeLayoutStyle(int cols = -1, int rows = -1)
+        {
+            initializeLayoutStyleEvenly (cols, rows);
+        }
+    }
+
     partial class HLabel
     {
         /// <summary>
