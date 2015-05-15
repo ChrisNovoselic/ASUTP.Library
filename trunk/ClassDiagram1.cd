@@ -1,225 +1,284 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="HClassLibrary.ConnectionSettings" Collapsed="true">
-    <Position X="9.75" Y="0.5" Width="1.5" />
+    <Position X="17.25" Y="2.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAhACAAggAgACAAAAAAAQEAIgAAAAAAgEBGiI=</HashCode>
       <FileName>ConnectionSettings.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.ConnectionSettingsSource" Collapsed="true">
-    <Position X="11.5" Y="0.5" Width="1.5" />
+    <Position X="17.25" Y="1.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAIAAAAAAAAAAAAAQIAAgAAAAAAAAAAAAAAAAAEA=</HashCode>
       <FileName>ConnectionSettingsSource.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.Crypt" Collapsed="true">
-    <Position X="13.25" Y="0.5" Width="1.5" />
+    <Position X="17.25" Y="5.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>EQAAAAEAAAAAQACQAAAEAABAAAAAAAAAABAAAAAAAAA=</HashCode>
       <FileName>Crypt.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.DbInterface" Collapsed="true">
-    <Position X="5.5" Y="4.5" Width="1.5" />
+    <Position X="5.25" Y="7" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAQAABRAECBCQAQAQAbIIIAAAEACgAAAIAAAAAAAAAA=</HashCode>
       <FileName>DbInterface.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.DbSources" Collapsed="true">
-    <Position X="15" Y="0.5" Width="1.5" />
-    <NestedTypes>
-      <Class Name="HClassLibrary.DbSources.DbSourceListener" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>DbSources.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Class>
-    </NestedTypes>
+    <Position X="5.25" Y="4.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AARAAACAAABCgACAAAAAAAAAAIARgAAAAAAAABAAEAA=</HashCode>
       <FileName>DbSources.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.DbTSQLInterface" Collapsed="true">
-    <Position X="5.5" Y="5.75" Width="1.5" />
+    <Position X="5.25" Y="6" Width="1.5" />
     <TypeIdentifier>
       <HashCode>JAQgAQAAEAAACABAgEBAAYAACpCABAQAAgCgUBAgAAw=</HashCode>
       <FileName>DbTSQLInterface.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FIleConnSett" Collapsed="true">
-    <Position X="8" Y="1.5" Width="1.5" />
+    <Position X="17.25" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAMAAAAAAAAAAAAAAAAAAAgAKAAAAAAgAAAAAAAAAAA=</HashCode>
       <FileName>FileConnSett.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FileINI" Collapsed="true">
-    <Position X="9.75" Y="1.5" Width="1.5" />
+    <Position X="17.25" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AwAAAAFBAAAAAWAAAkAQACAggoDAAQAAAAABQAAAAAA=</HashCode>
       <FileName>FileINI.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormConnectionSettings" Collapsed="true">
-    <Position X="11.5" Y="1.5" Width="1.5" />
+    <Position X="17.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAMAELDDkCMCQAEwCACUAFQCJAAIBAAAAIHAAAIAACQ=</HashCode>
       <FileName>FormConnectionSettings.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormMainBase" Collapsed="true">
-    <Position X="3.25" Y="0.5" Width="1.5" />
+    <Position X="3" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>IAIAAAAAECAgECAAgAAAEAgTAAAgACAAIBRAgACBAAA=</HashCode>
       <FileName>FormMainBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormMainBaseWithStatusStrip" Collapsed="true">
-    <Position X="5.5" Y="2" Width="1.5" />
+    <Position X="5.25" Y="2" Width="1.5" />
     <TypeIdentifier>
       <HashCode>QAAAAAAABCCKCAAgAAQgAAACACAAAARAMAAAAAFAAgQ=</HashCode>
       <FileName>FormMainBaseWithStatusStrip.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormMainFloat" Collapsed="true">
-    <Position X="5.5" Y="3.25" Width="1.5" />
+    <Position X="5.25" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAQAABAEICAQAAAAAAAACACAAgAQAAAAAQAAgAAA=</HashCode>
       <FileName>FormMainFloat.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormParametersBase" Collapsed="true">
-    <Position X="13.25" Y="1.5" Width="1.5" />
+    <Position X="0.75" Y="2" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAQAAAAAQQABAAEAAAAAgAAAEAQABAAAAgAAAAAAAAA=</HashCode>
       <FileName>FormParametersBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormPassword" Collapsed="true">
-    <Position X="1" Y="3.25" Width="1.5" />
+    <Position X="3" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAiAAAAACCAAAAAAACAAUACAAAQAgAIAgAAAAAAAAA=</HashCode>
       <FileName>FormPassword.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormPasswordBase" Collapsed="true">
-    <Position X="2" Y="2" Width="1.5" />
+    <Position X="3" Y="2" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAiAAADACCABAACAACEAEAGAAAABAAIAAEAAAAAAAA=</HashCode>
       <FileName>FormPasswordBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormSetPassword" Collapsed="true">
-    <Position X="3.25" Y="3.25" Width="1.5" />
+    <Position X="0.75" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAiEAIAECAAAAAAAACAAAACAAAAAABIQCAAAAAAAAA=</HashCode>
       <FileName>FormSetPassword.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.FormWait" Collapsed="true">
-    <Position X="15" Y="1.5" Width="1.5" />
+    <Position X="5.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAACAAAQACABAAAAAQCAAgACAAAAAAAAAAAAIQAAAAA=</HashCode>
       <FileName>FormWait.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="HClassLibrary.EventArgsDataHost" Collapsed="true">
-    <Position X="16.75" Y="0.5" Width="1.5" />
+  <Class Name="HClassLibrary.HPanelCommon" Collapsed="true">
+    <Position X="7.5" Y="6.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgA=</HashCode>
-      <FileName>HInterfacePlugIn.cs</FileName>
+      <HashCode>AAAAAAAAACAAAABBAACAAgQDAAIAAAAAIAAAAAAAAgA=</HashCode>
+      <FileName>HControl.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="HClassLibrary.HPlugIn" Collapsed="true" BaseTypeListCollapsed="true">
-    <Position X="16.75" Y="2.5" Width="1.5" />
+  <Class Name="HClassLibrary.PanelCommonDataHost" Collapsed="true">
+    <Position X="7.5" Y="8" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BAAAAAAhAAAAAwAgAAAAAAAAAAAACAAgAAEEBACEAgA=</HashCode>
-      <FileName>HInterfacePlugIn.cs</FileName>
+      <HashCode>BAAAAAABAAAAAAAAAIEAAAABAAAAAAAAAAAEAAAAAAA=</HashCode>
+      <FileName>HControl.cs</FileName>
     </TypeIdentifier>
-    <Lollipop Position="0.2" Collapsed="true" />
+    <Lollipop Position="0.2" />
   </Class>
   <Class Name="HClassLibrary.HLabel" Collapsed="true">
-    <Position X="9.75" Y="2.5" Width="1.5" />
+    <Position X="9.5" Y="5.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAIAAAACAAAAAAAACAAAASAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>HControl.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.HLabelStyles" Collapsed="true">
-    <Position X="11.5" Y="2.5" Width="1.5" />
+    <Position X="9.5" Y="7.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAQABACAAAAAAAAAAAEEAAAAAAAAAAAAAA=</HashCode>
       <FileName>HControl.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="HClassLibrary.HMath" Collapsed="true">
-    <Position X="15" Y="2.5" Width="1.5" />
+  <Class Name="HClassLibrary.CalendarColumn" Collapsed="true">
+    <Position X="9.5" Y="3.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>HMath.cs</FileName>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>HControl.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.CalendarCell" Collapsed="true">
+    <Position X="9.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAQAAABAAAAAAAACAAAAAAEAEAEAAAAAAIEAA=</HashCode>
+      <FileName>HControl.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.CalendarEditingControl" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="9.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAACAIAAIAAAEAAgAAAQAAAAAAAQAMAAUAAAAAIAAA=</HashCode>
+      <FileName>HControl.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="HClassLibrary.DataGridViewPasswordTextBoxCell" Collapsed="true">
+    <Position X="9.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAQAAABgAAAAAAAAAAAEAAEAAAAAAAAAAIEAA=</HashCode>
+      <FileName>HControl.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HHandler" Collapsed="true">
+    <Position X="1.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ggAEEAEAACAAAQFDAAAgFgAAAABAAAAEICAAEgAACKM=</HashCode>
+      <FileName>HHandler.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.HHandlerDb" Collapsed="true">
-    <Position X="8" Y="2.5" Width="1.5" />
+    <Position X="0.5" Y="5.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>wAACIUAIAAAgAAAgwASAIAhEYAAAgABAIQEAIIAABiA=</HashCode>
       <FileName>HHandlerDb.cs</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="HClassLibrary.HHandlerQueue" Collapsed="true">
+    <Position X="2.75" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAACAEIQBAAAAAAAAAAAAAAAAAIAABABAACEA=</HashCode>
+      <FileName>HHandlerQueue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.EventArgsDataHost" Collapsed="true">
+    <Position X="7.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HClassLibrary.HDataHost" Collapsed="true">
+    <Position X="7.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAABAAAAAAAAAIAAAAAAAAAAAAAAAAAEAAAAAAA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="HClassLibrary.HPlugIn" Collapsed="true">
+    <Position X="7.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAhAAAAAwAgAAAAAAAAAAAACAAgAAEEBACEAgA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="HClassLibrary.HMath" Collapsed="true">
+    <Position X="13.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HMath.cs</FileName>
+    </TypeIdentifier>
+  </Class>
   <Class Name="HClassLibrary.HTabCtrlEx" Collapsed="true">
-    <Position X="8" Y="3.5" Width="1.5" />
+    <Position X="9.5" Y="4.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>gAAAAAAAACAABAAAAICQQgAKBhAAhAAEIAYAiAAAAAA=</HashCode>
       <FileName>HTabCtrlEx.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.HTabCtrlExEventArgs" Collapsed="true">
-    <Position X="9.75" Y="3.5" Width="1.5" />
+    <Position X="9.5" Y="6.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAACQgAAAAAAAIBABIAAAAAAAEAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>HTabCtrlEx.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.Logging" Collapsed="true">
-    <Position X="13.25" Y="3.5" Width="1.5" />
+    <Position X="15.25" Y="1.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CaQAQA2BQgMRY4DghoCIABAUQ4okkqogIgBNAAgFQyw=</HashCode>
       <FileName>Logging.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.HMark" Collapsed="true">
-    <Position X="13.25" Y="2.5" Width="1.5" />
+    <Position X="13.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAICAAAAAAEABAAJAAAAAQACAAAAAAAIAAAgAAAAAAA=</HashCode>
       <FileName>Mark.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.Passwords" Collapsed="true">
-    <Position X="15" Y="3.5" Width="1.5" />
+    <Position X="17.25" Y="6.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AIAAQAAIAAAAgwgACIAwAAAAAAAAAIAAAgAAwAAggAA=</HashCode>
       <FileName>Passwords.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.HException" Collapsed="true">
-    <Position X="16.75" Y="1.5" Width="1.5" />
+    <Position X="13.25" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.ProgramBase" Collapsed="true">
-    <Position X="18.5" Y="2.5" Width="1.5" />
+    <Position X="0.75" Y="1.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>ACQAAAAAACAAACAAAAoAAAEQAAIABKAQIBABAAQAAAQ=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.TCPClient" Collapsed="true">
-    <Position X="9.75" Y="4.5" Width="1.5" />
+    <Position X="11.5" Y="3.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AIQAABAAAAAAQAAACAAAAAACAAAAAAAAAAACgAEIAAA=</HashCode>
       <FileName>TCPClient.cs</FileName>
@@ -227,202 +286,166 @@
   </Class>
   <Class Name="HClassLibrary.TcpClientAsync" Collapsed="true">
     <Position X="11.5" Y="4.5" Width="1.5" />
-    <Compartments>
-      <Compartment Name="Nested Types" Collapsed="false" />
-    </Compartments>
-    <NestedTypes>
-      <Delegate Name="HClassLibrary.TcpClientAsync.DelegateTcpAsyncFunc" Collapsed="true">
-        <TypeIdentifier>
-          <NewMemberFileName>TCPClientAsync.cs</NewMemberFileName>
-        </TypeIdentifier>
-      </Delegate>
-    </NestedTypes>
     <TypeIdentifier>
       <HashCode>AIQACREQQEAEAAAIgAAAAJAoAAQAAAAAAACAAAEAAAQ=</HashCode>
       <FileName>TCPClientAsync.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.TCPServer" Collapsed="true">
-    <Position X="15" Y="4.5" Width="1.5" />
+    <Position X="11.5" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AIAAAAAAAKAAAAAACQAAAAACAAAQAAAAIAAAAAgAAAA=</HashCode>
       <FileName>TCPServer.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.TCPReciever" Collapsed="true">
-    <Position X="13.25" Y="4.5" Width="1.5" />
+    <Position X="11.5" Y="5.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAKAAAAAACAAAAAACAAAAAABAIAEAAAgAAAA=</HashCode>
       <FileName>TCPServer.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.TcpServerAsync" Collapsed="true">
-    <Position X="15" Y="5.25" Width="1.5" />
+    <Position X="11.5" Y="1.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAACAAAAAAAAAAARAggAAAAAAAIACAFAEAAAQ=</HashCode>
       <FileName>TCPServerAsync.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.Client" Collapsed="true">
-    <Position X="8" Y="0.5" Width="1.5" />
+    <Position X="11.5" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAIAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAQAA=</HashCode>
       <FileName>TCPServerAsync.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.HUsers" Collapsed="true">
-    <Position X="11.5" Y="3.5" Width="1.5" />
+    <Position X="15.25" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>IBoCAQAAECAAAQCAAACAgAAIAAAAQAAAQAACIAAQBAA=</HashCode>
       <FileName>Users.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="HClassLibrary.Properties.Resources" Collapsed="true">
-    <Position X="8" Y="4.5" Width="1.5" />
+    <Position X="0.75" Y="0.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAABAABEAQAAQAAAAAEAAAAAABAAIA=</HashCode>
     </TypeIdentifier>
   </Class>
-  <Class Name="HClassLibrary.HHandler" Collapsed="true">
-    <Position X="0.5" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>ggAEEAEAACAAAQFDAAAgFgAAAABAAAAEICAAEgAACKM=</HashCode>
-      <FileName>HHandler.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="HClassLibrary.HHandlerQueue" Collapsed="true">
-    <Position X="0.75" Y="0.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>QAAAAAAAACAEIQBAAAAAAAAAAAAAAAAAIAABABAACEA=</HashCode>
-      <FileName>HHandlerQueue.cs</FileName>
-    </TypeIdentifier>
-  </Class>
-  <Class Name="HClassLibrary.HDataHost" Collapsed="true">
-    <Position X="1" Y="0.5" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>BAAAAAABAAAAAAAAAIAAAAAAAAAAAAAAAAAEAAAAAAA=</HashCode>
-      <FileName>HInterfacePlugIn.cs</FileName>
-    </TypeIdentifier>
-    <Lollipop Position="0.2" />
-  </Class>
-  <Class Name="System.Object" Collapsed="true">
-    <Position X="21" Y="1.25" Width="1.5" />
-    <TypeIdentifier />
-  </Class>
   <Interface Name="HClassLibrary.IPlugIn" Collapsed="true">
-    <Position X="8" Y="5.75" Width="1.5" />
+    <Position X="7.5" Y="4.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAABAAAAAAAgAAAAAAAAAAAACAAAAAAAAAAAAAA=</HashCode>
       <FileName>HInterfacePlugIn.cs</FileName>
     </TypeIdentifier>
   </Interface>
-  <Interface Name="HClassLibrary.IPlugInHost" Collapsed="true">
-    <Position X="9.75" Y="5.75" Width="1.5" />
-    <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>HInterfacePlugIn.cs</FileName>
-    </TypeIdentifier>
-  </Interface>
   <Interface Name="HClassLibrary.IDataHost" Collapsed="true">
-    <Position X="3.5" Y="0.5" Width="1.5" />
+    <Position X="7.5" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>BAAAAAABAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>HInterfacePlugIn.cs</FileName>
     </TypeIdentifier>
   </Interface>
+  <Interface Name="HClassLibrary.IPlugInHost" Collapsed="true">
+    <Position X="7.5" Y="5.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>HInterfacePlugIn.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
   <Enum Name="HClassLibrary.Errors" Collapsed="true">
-    <Position X="8" Y="6.75" Width="1.5" />
+    <Position X="13.25" Y="3.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>CAAAEAAAAAAgAAAAAAAAIIAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Enum Name="HClassLibrary.TYPE_DATABASE_CFG" Collapsed="true">
-    <Position X="9.75" Y="6.75" Width="1.5" />
+    <Position X="5.25" Y="5.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAABAAAAAIAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Enum>
   <Delegate Name="HClassLibrary.DelegateReadConnSettFunc" Collapsed="true">
-    <Position X="8" Y="8.5" Width="1.5" />
+    <Position X="0.5" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAABAAAAAAAAAAAAAAAEAAAEAAAAAAAAAAAAAAE=</HashCode>
       <FileName>FormConnectionSettings.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateSaveConnSettFunc" Collapsed="true">
-    <Position X="11.5" Y="8.5" Width="1.5" />
+    <Position X="4" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAABAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAE=</HashCode>
       <FileName>FormConnectionSettings.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateFunc" Collapsed="true">
-    <Position X="11.5" Y="7.75" Width="1.5" />
+    <Position X="4" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateIntFunc" Collapsed="true">
-    <Position X="13.25" Y="7.75" Width="1.5" />
+    <Position X="5.75" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateIntIntFunc" Collapsed="true">
-    <Position X="15" Y="7.75" Width="1.5" />
+    <Position X="7.5" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAACAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateStringFunc" Collapsed="true">
-    <Position X="13.25" Y="8.5" Width="1.5" />
+    <Position X="5.75" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateBoolFunc" Collapsed="true">
-    <Position X="8" Y="7.75" Width="1.5" />
+    <Position X="0.5" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateObjectFunc" Collapsed="true">
-    <Position X="16.75" Y="7.75" Width="1.5" />
+    <Position X="9.25" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateRefObjectFunc" Collapsed="true">
-    <Position X="9.75" Y="8.5" Width="1.5" />
+    <Position X="2.25" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.DelegateDateFunc" Collapsed="true">
-    <Position X="9.75" Y="7.75" Width="1.5" />
+    <Position X="2.25" Y="9" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.StringDelegateIntFunc" Collapsed="true">
-    <Position X="15" Y="8.5" Width="1.5" />
+    <Position X="7.5" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
     </TypeIdentifier>
   </Delegate>
   <Delegate Name="HClassLibrary.StringDelegateStringFunc" Collapsed="true">
-    <Position X="16.75" Y="8.5" Width="1.5" />
+    <Position X="9.25" Y="9.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>ProgramBase.cs</FileName>
