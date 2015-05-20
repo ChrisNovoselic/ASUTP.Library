@@ -82,7 +82,22 @@ namespace HClassLibrary
         public abstract void OnEvtDataRecievedHost(object obj);
     }
 
-    public abstract class HPlugIn : HDataHost, IPlugIn
+    public abstract class HPlugIn : HHPlugIn
+    {
+        //Int16 IdOwnerMenuItem { get; }
+        public abstract string NameOwnerMenuItem { get; }
+
+        public abstract string NameMenuItem { get; }
+
+        /// <summary>
+        /// Обработчик выбора пункта меню для плюг'ина
+        /// </summary>
+        /// <param name="obj">объект-инициатор события</param>
+        /// <param name="ev">параметры события</param>
+        public abstract void OnClickMenuItem(object obj, EventArgs ev);
+    }
+
+    public abstract class HHPlugIn : HDataHost, IPlugIn
     {
         IPlugInHost _host;
         //protected Type _type;
@@ -101,7 +116,9 @@ namespace HClassLibrary
             }
         }
 
-        public HPlugIn () : base () {
+        public HHPlugIn()
+            : base()
+        {
             m_markDataHost = new HMark ();
             m_evObjectHandleCreated = new ManualResetEvent (false);
             //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);
@@ -183,18 +200,6 @@ namespace HClassLibrary
                 return _object.GetType ();
             }
         }
-        
-        //Int16 IdOwnerMenuItem { get; }
-        public abstract string NameOwnerMenuItem { get; }
-
-        public abstract string NameMenuItem { get; }
-
-        /// <summary>
-        /// Обработчик выбора пункта меню для плюг'ина
-        /// </summary>
-        /// <param name="obj">объект-инициатор события</param>
-        /// <param name="ev">параметры события</param>
-        public abstract void OnClickMenuItem (object obj, EventArgs ev);
 
         public override void DataAskedHost(object par)
         {
