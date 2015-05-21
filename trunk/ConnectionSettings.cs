@@ -90,6 +90,25 @@ namespace HClassLibrary
             SetDefault();
         }
 
+        public ConnectionSettings(ConnectionSettings connSett)
+        {
+            if (connSett == null)
+                SetDefault();
+            else
+            {
+                id = connSett.id;
+
+                this.name = connSett.name;
+                this.server = connSett.server;
+                this.port = connSett.port;
+                this.dbName = connSett.dbName;
+                this.userName = connSett.userName;
+                this.password = connSett.password;
+
+                this.ignore = connSett.ignore;
+            }
+        }
+
         public ConnectionSettings(string nameConn, string srv, int port, string dbName, string uid, string pswd, bool bIgnore = false) : this ()
         {
             id = UN_ENUMERABLE_ID - 1;

@@ -21,6 +21,12 @@ namespace HClassLibrary
         }
     }
 
+    public enum ID_DATA_ASKED_HOST {
+        INIT
+        , START, STOP, ACTIVATE
+        ,
+    }
+
     public interface IPlugIn
     {
         IPlugInHost Host { get; set; }
