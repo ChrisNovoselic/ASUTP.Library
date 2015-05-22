@@ -7,6 +7,8 @@ using System.Text;
 using System.Drawing;
 using System.Windows.Forms;
 
+using System.Windows.Forms.VisualStyles; //PushButtonState
+
 using System.Runtime.Remoting.Messaging; //AsyncResult...
 
 namespace HClassLibrary
@@ -229,7 +231,7 @@ namespace HClassLibrary
         public enum TYPE_HLABEL { UNKNOWN = -1, TG, TOTAL, TOTAL_ZOOM, COUNT_TYPE_HLABEL };
         public TYPE_HLABEL m_type;
 
-        public HLabel(Point pt, Size sz, Color foreColor, Color backColor, Single szFont, ContentAlignment align)
+        public HLabel(Point pt, Size sz, Color foreColor, Color backColor, Single szFont, System.Drawing.ContentAlignment align)
         {
             InitializeComponent();
 
@@ -261,7 +263,7 @@ namespace HClassLibrary
         {
         }
 
-        public HLabel(IContainer container, Point pt, Size sz, Color foreColor, Color backColor, Single szFont, ContentAlignment align)
+        public HLabel(IContainer container, Point pt, Size sz, Color foreColor, Color backColor, Single szFont, System.Drawing.ContentAlignment align)
             : this(pt, sz, foreColor, backColor, szFont, align)
         {
             container.Add(this);
@@ -302,17 +304,17 @@ namespace HClassLibrary
     {
         public Color m_foreColor,
                     m_backColor;
-        public ContentAlignment m_align;
+        public System.Drawing.ContentAlignment m_align;
         public Single m_szFont;
         public Point m_pt;
         public Size m_sz;
 
-        public HLabelStyles(Color foreColor, Color backColor, Single szFont, ContentAlignment align)
+        public HLabelStyles(Color foreColor, Color backColor, Single szFont, System.Drawing.ContentAlignment align)
             : this(new Point(-1, -1), new Size(-1, -1), foreColor, backColor, szFont, align)
         {
         }
 
-        public HLabelStyles(Point pt, Size sz, Color foreColor, Color backColor, Single szFont, ContentAlignment align)
+        public HLabelStyles(Point pt, Size sz, Color foreColor, Color backColor, Single szFont, System.Drawing.ContentAlignment align)
         {
             m_pt = pt;
             m_sz = sz;
@@ -634,6 +636,109 @@ namespace HClassLibrary
         public void SetValue()
         {
             _textBox.Text = Value.ToString();
+        }
+    }
+
+    public class DataGridViewDisableButtonCell : DataGridViewButtonCell
+    {
+        private bool enabledValue;
+
+        public bool Enabled
+        {
+            get { return enabledValue; }
+
+            set { enabledValue = value; }
+        }
+
+        // Override the Clone method so that the Enabled property is copied.
+        public override object Clone()
+        {
+            DataGridViewDisableButtonCell cell = (DataGridViewDisableButtonCell)base.Clone();
+
+            cell.Enabled = this.Enabled;
+
+            return cell;
+        }
+
+        // By default, enable the button cell.
+        public DataGridViewDisableButtonCell()
+        {
+            this.enabledValue = true;
+        }
+
+        protected override void Paint(Graphics graphics,
+                                    Rectangle clipBounds, Rectangle cellBounds, int rowIndex,
+                                    DataGridViewElementStates elementState, object value,
+                                    object formattedValue, string errorText,
+                                    DataGridViewCellStyle cellStyle,
+                                    DataGridViewAdvancedBorderStyle advancedBorderStyle,
+                                    DataGridViewPaintParts paintParts)
+        {
+            // The button cell is disabled, so paint the border,  
+            // background, and disabled button for the cell.
+            if (!this.enabledValue)
+            {
+                // Draw the cell background, if specified.
+                if ((paintParts & DataGridViewPaintParts.Background) == DataGridViewPaintParts.Background)
+                {
+                    SolidBrush cellBackground = new SolidBrush(cellStyle.BackColor);
+
+                    graphics.FillRectangle(cellBackground, cellBounds);
+
+                    cellBackground.Dispose();
+                }
+
+                // Draw the cell borders, if specified.
+                if ((paintParts & DataGridViewPaintParts.Border) == DataGridViewPaintParts.Border)
+                {
+                    PaintBorder(graphics, clipBounds, cellBounds, cellStyle, advancedBorderStyle);
+                }
+                else
+                    ;
+
+                // Calculate the area in which to draw the button.
+                Rectangle buttonArea = cellBounds;
+                Rectangle buttonAdjustment = this.BorderWidths(advancedBorderStyle);
+
+                buttonArea.X += buttonAdjustment.X;
+                buttonArea.Y += buttonAdjustment.Y;
+
+                buttonArea.Height -= buttonAdjustment.Height;
+                buttonArea.Width -= buttonAdjustment.Width;
+
+                // Draw the disabled button.                
+                ButtonRenderer.DrawButton(graphics, buttonArea, PushButtonState.Disabled);
+
+                // Draw the disabled button text. 
+                if (this.FormattedValue is String)
+                {
+                    TextRenderer.DrawText(graphics, (string)this.FormattedValue, this.DataGridView.Font, buttonArea, SystemColors.GrayText);
+                }
+                else
+                    ;
+            }
+            else
+            {
+                // The button cell is enabled, so let the base class 
+                // handle the painting.
+                base.Paint(graphics, clipBounds, cellBounds, rowIndex, elementState, value, formattedValue, errorText, cellStyle, advancedBorderStyle, paintParts);
+            }
+        }
+
+        //protected override void OnClick(DataGridViewCellEventArgs e)
+        //{
+        //    if (Enabled == true)
+        //        base.OnClick(e);
+        //    else
+        //        ;
+        //}
+    }
+
+    public class DataGridViewDisableButtonColumn : DataGridViewButtonColumn
+    {
+        public DataGridViewDisableButtonColumn()
+        {
+            this.CellTemplate = new DataGridViewDisableButtonCell();
         }
     }
 }

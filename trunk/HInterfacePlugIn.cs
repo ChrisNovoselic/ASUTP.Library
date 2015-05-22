@@ -22,7 +22,7 @@ namespace HClassLibrary
     }
 
     public enum ID_DATA_ASKED_HOST {
-        INIT
+        INIT_CONN_SETT, INIT_SIGNALS_OF_GROUP
         , START, STOP, ACTIVATE
         ,
     }
