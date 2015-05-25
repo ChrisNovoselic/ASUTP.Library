@@ -42,7 +42,7 @@ namespace HClassLibrary
         /// <summary>
         /// Список событий (состояний) для обработки (или очередь)
         /// </summary>
-        private volatile List<int /*StatesMachine*/> states;
+        protected volatile List<int /*StatesMachine*/> states;
         /// <summary>
         /// Признак активности потока
         /// </summary>

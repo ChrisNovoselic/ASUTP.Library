@@ -58,9 +58,9 @@ namespace HClassLibrary
         /// <param name="indx">Тип источника информации</param>
         /// <param name="connSett">Параметры соединения с источником информации</param>
         /// <param name="name">Наименование источника информации</param>
-        protected void register(int id, int indx, ConnectionSettings connSett, string name)
+        protected virtual void register(int id, int indx, ConnectionSettings connSett, string nameTEC)
         {
-            m_dictIdListeners[id][indx] = DbSources.Sources().Register(connSett, true, @"ТЭЦ=" + name + @", DESC=" + indx.ToString());
+            m_dictIdListeners[id][indx] = DbSources.Sources().Register(connSett, true, @"ТЭЦ=" + nameTEC + @", DESC=" + indx.ToString());
         }
         /// <summary>
         /// Старт обработки запросов

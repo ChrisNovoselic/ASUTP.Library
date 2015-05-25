@@ -12,14 +12,16 @@ namespace HClassLibrary
         public class HDataHost
         {
             public IDataHost m_objRecieved;
-            public int[] m_states;
-            public object[] m_pars;
+            public List<int> m_states;
+            private object[] m_pars;
+            public object [] Pars (int state) { return (m_pars as object [])[m_states.IndexOf (state)] as object []; }
 
             public HDataHost(IDataHost obj, object []objPars)
             {
                 m_objRecieved = obj;
                 object []pars = (objPars as object[])[0] as object[];
-                m_states = new int[pars.Length];
+                m_states = new List <int>();
+                m_pars = new object[pars.Length];
                 object []par;
                 int i = -1
                     , j = -1;
@@ -28,13 +30,13 @@ namespace HClassLibrary
                 {
                     par = pars[i] as object [];
                     //Состояние для обработки
-                    m_states[i] = (int)par[0];
+                    m_states.Add ((int)par[0]);
                     //Параметры состояния при обработке
                     if (par.Length > 1)
                     {
-                        m_pars = new object[par.Length - 1];
+                        m_pars[i] = new object[par.Length - 1];
                         for (j = 1; j < par.Length; j ++)
-                            m_pars[j - 1] = par[j];
+                            (m_pars[i] as object [])[j - 1] = par[j];
                     }
                     else
                         ;
@@ -154,22 +156,45 @@ namespace HClassLibrary
             
             base.Stop();
         }
-
+        /// <summary>
+        /// Добавить объект в очередь обработки событий
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="pars"></param>
         public void Push(IDataHost obj, object []pars)
         {
             lock (m_lockQueue)
             {
                 m_queue.Enqueue(new HDataHost(obj, pars));
-
+                //Если этот объект единственный - начать обработку
                 if (m_queue.Count == 1)
                     semaQueue.Release(1);
                 else
-                    ;
+                    ; //Если нет - обработка уже производится...
             }
         }
+        /// <summary>
+        /// Добавить все состояния объекта очереди событий
+        /// </summary>
+        /// <param name="dataHost">Объект очереди событий</param>
+        /// <returns>Результат выполнения функции</returns>
+        private int addStates(HDataHost dataHost)
+        {
+            int iRes = 0;
+            
+            foreach (int state in dataHost.m_states)
+                AddState(state);
 
+            return iRes;
+        }
+        /// <summary>
+        /// Возвратить объект очереди событий не удаляя его
+        /// </summary>
         public HDataHost Peek { get { return m_queue.Peek (); } }
-
+        /// <summary>
+        /// Потоковая функция очереди обработки объектов с событиями
+        /// </summary>
+        /// <param name="par"></param>
         private void ThreadQueue(object par)
         {
             bool bRes = false;
@@ -178,6 +203,7 @@ namespace HClassLibrary
             while (!(threadQueueIsWorking < 0))
             {
                 bRes = false;
+                //Ожидать когда появятся объекты для обработки
                 bRes = semaQueue.WaitOne();
 
                 while (true)
@@ -185,19 +211,20 @@ namespace HClassLibrary
                     lock (m_lockQueue)
                     {
                         if (m_queue.Count == 0)
+                            //Прерват, если обработаны все объекты
                             break;
                         else
                             ;
                     }
-
-                    dataHost = m_queue.Peek ();
+                    //Получить объект очереди событий
+                    dataHost = Peek;
 
                     lock (m_lockState)
                     {
+                        //Очистить все состояния
                         ClearStates ();
                         //Добавить все состояния
-                        foreach (int state in dataHost.m_states)
-                            AddState (state);
+                        addStates (dataHost);
                     }
 
                     //Обработать все состояния
@@ -208,6 +235,7 @@ namespace HClassLibrary
 
                     lock (m_lockQueue)
                     {
+                        //Удалить объект очереди событий (обработанный)
                         m_queue.Dequeue();
                     }
                 }

@@ -22,9 +22,11 @@ namespace HClassLibrary
     }
 
     public enum ID_DATA_ASKED_HOST {
-        INIT_CONN_SETT, INIT_SIGNALS_OF_GROUP
+        UNKNOWN = -1
+        , INIT_CONN_SETT, INIT_SIGNALS_OF_GROUP
         , START, STOP, ACTIVATE
-        ,
+        , TABLE_RES
+        , ERROR
     }
 
     public interface IPlugIn
@@ -108,7 +110,7 @@ namespace HClassLibrary
         IPlugInHost _host;
         //protected Type _type;
         protected object _object;
-        public Int16 _Id;
+        public int _Id;
         protected HMark m_markDataHost;
         private ManualResetEvent m_evObjectHandleCreated;
 
