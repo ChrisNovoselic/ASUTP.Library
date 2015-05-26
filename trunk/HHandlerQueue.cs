@@ -111,9 +111,6 @@ namespace HClassLibrary
                 taskThreadQueue = new Thread(new ParameterizedThreadStart(ThreadQueue));
                 taskThreadQueue.Name = "Обработка очереди для объекта " + this.GetType().AssemblyQualifiedName;
                 taskThreadQueue.IsBackground = true;
-                taskThreadQueue.CurrentCulture =
-                taskThreadQueue.CurrentUICulture =
-                    ProgramBase.ss_MainCultureInfo;
 
                 semaQueue = new Semaphore(1, 1);
 

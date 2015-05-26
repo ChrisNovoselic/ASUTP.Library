@@ -68,6 +68,10 @@ namespace HClassLibrary
             //Установка разделителя целой и дробной части
             ss_MainCultureInfo.NumberFormat.NumberDecimalSeparator = @",";
 
+            Thread.CurrentThread.CurrentCulture =
+            Thread.CurrentThread.CurrentUICulture =
+                ProgramBase.ss_MainCultureInfo;
+
             s_iMessageShowUnhandledException = 1;
             s_iMessageShowUnhandledExceptionDetail = 1;
 

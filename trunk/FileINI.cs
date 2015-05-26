@@ -132,8 +132,9 @@ namespace HClassLibrary
                     string sec = string.Empty
                         , sec_shr = string.Empty;
 
-                    //Прочитать все строки
-                    string [] lines = System.IO.File.ReadAllLines(m_NameFileINI);
+                    //Прочитать все строки ??? ProgramBase.ss_MainCultureInfo
+                    //EncodingInfo[]arEncInfo = Encoding.GetEncodings();
+                    string[] lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
 
                     //Разобрать по-строчно
                     foreach (string line in lines)
