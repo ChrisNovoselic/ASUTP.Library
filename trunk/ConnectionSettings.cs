@@ -123,6 +123,12 @@ namespace HClassLibrary
             this.ignore = bIgnore;
         }
 
+        public ConnectionSettings(int id, string nameConn, string srv, int port, string dbName, string uid, string pswd, bool bIgnore = false)
+            : this(nameConn, srv, port, dbName, uid, pswd, bIgnore)
+        {
+            this.id = id;
+        }
+
         /// <summary>
         /// Конструктор для параметров соединения с БД
         /// </summary>

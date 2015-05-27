@@ -26,6 +26,7 @@ namespace HClassLibrary
         , INIT_CONN_SETT, INIT_SIGNALS_OF_GROUP
         , START, STOP, ACTIVATE
         , TABLE_RES
+        , TO_INSERT
         , ERROR
     }
 
@@ -62,12 +63,22 @@ namespace HClassLibrary
 
         public virtual void DataAskedHost(object par)
         {
-            //Вариант №1 - без потока
-            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], new object[] { (par as object[])[1] }), new AsyncCallback(this.dataRecievedHost), new Random());
+            try
+            {
+                //Вариант №1 - без потока
+                //EvtDataAskedHost.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], new object[] { (par as object[])[1] }), new AsyncCallback(this.dataRecievedHost), new Random());
+                var arHandlers = EvtDataAskedHost.GetInvocationList();
+                foreach (var handler in arHandlers.OfType<DelegateObjectFunc>())
+                    handler.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], new object[] { (par as object[])[1] }), new AsyncCallback(this.dataRecievedHost), new Random());
 
-            ////Вариант №2 - с потоком
-            //Thread thread = new Thread (new ParameterizedThreadStart (dataAskedHost));
-            //thread.Start(par);
+                ////Вариант №2 - с потоком
+                //Thread thread = new Thread (new ParameterizedThreadStart (dataAskedHost));
+                //thread.Start(par);
+            }
+            catch (Exception e)
+            {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HDataHost::DataAskedHost () - ...");
+            }
         }
 
         ////Потоковая функция для вар.№2

@@ -174,7 +174,11 @@ namespace HClassLibrary
             
             base.Stop ();
         }        
-
+        /// <summary>
+        /// Отправляет запрос на получение текущего времени сервера ~ типа СУБД
+        /// </summary>
+        /// <param name="typeDB">Тип СУБД</param>
+        /// <param name="idListatener">Активный идентификатор соединения с БД</param>
         protected void GetCurrentTimeRequest(DbInterface.DB_TSQL_INTERFACE_TYPE typeDB, int idListatener)
         {
             string query = string.Empty;

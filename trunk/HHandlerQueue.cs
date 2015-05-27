@@ -9,14 +9,30 @@ namespace HClassLibrary
 {
     public abstract class HHandlerQueue : HHandler
     {
-        public class HDataHost
+        protected class ItemQueue
         {
-            public IDataHost m_objRecieved;
-            public List<int> m_states;
-            private object[] m_pars;
-            public object [] Pars (int state) { return (m_pars as object [])[m_states.IndexOf (state)] as object []; }
+            private HHandler _owner;
 
-            public HDataHost(IDataHost obj, object []objPars)
+            public IDataHost m_objRecieved;
+            public List<int> m_states; //??? Дублирование _owner.states
+            private object[] m_pars;
+            //public object [] Pars (int state)
+            //{
+            //    return (m_pars as object [])[m_states.IndexOf (state)] as object [];
+            //}
+
+            public object[] Pars
+            {
+                get { return (m_pars as object[])[_owner.IndexCurState] as object[]; }
+            }
+
+            public ItemQueue(HHandler owner, IDataHost obj, object[] objPars)
+                : this(obj, objPars)
+            {
+                _owner = owner;
+            }
+
+            public ItemQueue(IDataHost obj, object[] objPars)
             {
                 m_objRecieved = obj;
                 object []pars = (objPars as object[])[0] as object[];
@@ -61,12 +77,12 @@ namespace HClassLibrary
         /// </summary>
         private Semaphore semaQueue;
 
-        private Queue<HDataHost> m_queue;
+        private Queue<ItemQueue> m_queue;
 
         public HHandlerQueue()
             : base ()
         {
-            m_queue = new Queue<HDataHost>();
+            m_queue = new Queue<ItemQueue>();
         }
 
         /// <summary>
@@ -162,7 +178,7 @@ namespace HClassLibrary
         {
             lock (m_lockQueue)
             {
-                m_queue.Enqueue(new HDataHost(obj, pars));
+                m_queue.Enqueue(new ItemQueue(this as HHandler, obj, pars));
                 //Если этот объект единственный - начать обработку
                 if (m_queue.Count == 1)
                     semaQueue.Release(1);
@@ -175,7 +191,7 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="dataHost">Объект очереди событий</param>
         /// <returns>Результат выполнения функции</returns>
-        private int addStates(HDataHost dataHost)
+        private int addStates(ItemQueue dataHost)
         {
             int iRes = 0;
             
@@ -187,7 +203,7 @@ namespace HClassLibrary
         /// <summary>
         /// Возвратить объект очереди событий не удаляя его
         /// </summary>
-        public HDataHost Peek { get { return m_queue.Peek (); } }
+        protected ItemQueue Peek { get { return m_queue.Peek (); } }
         /// <summary>
         /// Потоковая функция очереди обработки объектов с событиями
         /// </summary>
@@ -195,7 +211,7 @@ namespace HClassLibrary
         private void ThreadQueue(object par)
         {
             bool bRes = false;
-            HDataHost dataHost = null;
+            ItemQueue dataHost = null;
 
             while (!(threadQueueIsWorking < 0))
             {
@@ -220,7 +236,7 @@ namespace HClassLibrary
                     {
                         //Очистить все состояния
                         ClearStates ();
-                        //Добавить все состояния
+                        //Добавить все состояния в родительский класс
                         addStates (dataHost);
                     }
 

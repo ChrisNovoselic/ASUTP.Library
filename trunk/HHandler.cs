@@ -36,7 +36,16 @@ namespace HClassLibrary
         /// </summary>
         private volatile int threadStateIsWorking;
         /// <summary>
-        /// Признак 
+        /// Текущий индекс массива обрабатываемых состояний
+        ///  используется только в "потоковой" функции
+        /// </summary>
+        private volatile int _indexCurState;
+        /// <summary>
+        /// Текущий индекс массива обрабатываемых состояний
+        /// </summary>
+        public int IndexCurState { get { return _indexCurState; } }
+        /// <summary>
+        /// Признак прерывания текущего цикла обработки состояний
         /// </summary>
         private volatile bool newState;
         /// <summary>
@@ -252,7 +261,6 @@ namespace HClassLibrary
         /// <param name="data">Параметр при старте потоковой функции</param>
         private void ThreadStates(object data)
         {
-            int index;
             int /*StatesMachine*/ currentState;
             bool bRes = false;
 
@@ -261,7 +269,7 @@ namespace HClassLibrary
                 bRes = false;
                 bRes = semaState.WaitOne();
 
-                index = 0;
+                _indexCurState = 0;
 
                 lock (m_lockState)
                 {
@@ -270,7 +278,7 @@ namespace HClassLibrary
                     else
                         ;
 
-                    currentState = states[index];
+                    currentState = states[_indexCurState];
                     newState = false;                    
                 }
 
@@ -348,11 +356,11 @@ namespace HClassLibrary
                         }
                     }
 
-                    index++;
+                    _indexCurState++;
 
                     lock (m_lockState)
                     {
-                        if (index == states.Count)
+                        if (_indexCurState == states.Count)
                             break;
                         else
                             ;
@@ -361,12 +369,14 @@ namespace HClassLibrary
                             break;
                         else
                             ;
-                        currentState = states[index];
+                        currentState = states[_indexCurState];
                     }
                 }
 
                 //Закончена обработка всех событий
                 completeHandleStates();
+                //Текущий индекс вне дипазона
+                _indexCurState = -1;
             }
             //Освободить ресурс ядра ОС
             if (bRes == true)
