@@ -101,7 +101,7 @@ namespace HClassLibrary
         public abstract void OnEvtDataRecievedHost(object obj);
     }
 
-    public abstract class HPlugIn : HHPlugIn
+    public abstract class PlugInMenuItem : PlugInBase
     {
         //Int16 IdOwnerMenuItem { get; }
         public abstract string NameOwnerMenuItem { get; }
@@ -116,7 +116,7 @@ namespace HClassLibrary
         public abstract void OnClickMenuItem(object obj, EventArgs ev);
     }
 
-    public abstract class HHPlugIn : HDataHost, IPlugIn
+    public abstract class PlugInBase : HDataHost, IPlugIn
     {
         IPlugInHost _host;
         //protected Type _type;
@@ -135,7 +135,7 @@ namespace HClassLibrary
             }
         }
 
-        public HHPlugIn()
+        public PlugInBase()
             : base()
         {
             m_markDataHost = new HMark ();
@@ -201,11 +201,17 @@ namespace HClassLibrary
 
             return bRes;
         }
-
+        /// <summary>
+        /// Обработчик события "завершено создание элемента управления"
+        /// </summary>
+        /// <param name="obj">Элемент управления</param>
+        /// <param name="ev">Аргумент для сопровождения события</param>
         private void plugInObject_HandleCreated (object obj, EventArgs ev) {
             m_evObjectHandleCreated.Set ();
         }
-
+        /// <summary>
+        /// Возвратить объект 'плюгина'
+        /// </summary>
         public object Object
         {
             get
@@ -213,13 +219,18 @@ namespace HClassLibrary
                 return _object;
             }
         }
-
+        /// <summary>
+        /// Возвратить тип объекта 'плюгина'
+        /// </summary>
         public Type TypeOfObject {
             get {
                 return _object.GetType ();
             }
         }
-
+        /// <summary>
+        /// Отправить данные получателю (подписчику)
+        /// </summary>
+        /// <param name="par">Объект с передаваемыми данными (может быть массивом объектов)</param>
         public override void DataAskedHost(object par)
         {
             base.DataAskedHost(new object [] {_Id, par});
@@ -238,9 +249,16 @@ namespace HClassLibrary
             m_markDataHost.Marked(((EventArgsDataHost)obj).id);
         }
     }
-
+    /// <summary>
+    /// Интерфейс для контейнера 'плюгинов'
+    /// </summary>
     public interface IPlugInHost
     {
+        /// <summary>
+        /// Регистрировать 'плюгин'
+        /// </summary>
+        /// <param name="plug">Регистрируемый 'плюгин'</param>
+        /// <returns>Результат регистрации</returns>
         bool Register(IPlugIn plug);
     }
 }
