@@ -66,6 +66,8 @@ namespace HClassLibrary
         /// <returns>Признак наличия секции</returns>
         protected bool isSec (string sec_shr)
         {
+            //Logging.Logg().Debug(@"FileINI::isSec (sec_shr=" + sec_shr + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            //Logging.Logg().Debug(@"FileINI::isSec () - SEC_APP = " + SEC_APP + @"...", Logging.INDEX_MESSAGE.NOT_SET);
             return m_values.ContainsKey(sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP);
         }
         /// <summary>
@@ -144,6 +146,8 @@ namespace HClassLibrary
                             continue;
                         else
                             ;
+
+                        //Logging.Logg().Debug(@"FileINI::ctor () - строка: " + line, Logging.INDEX_MESSAGE.NOT_SET);
 
                         bool bSec = line[0] == '[';
                         //Не обрабатывать строки, начинающиеся не с "буквы"
@@ -231,6 +235,8 @@ namespace HClassLibrary
         public string GetSecValueOfKey(string sec_shr, string key)
         {
             string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
+            //Logging.Logg().Debug(@"FileINI::GetSecValueOfKey (sec_shr=" + sec_shr + @", key=" + key + @") - sec=" + sec + @"...", Logging.INDEX_MESSAGE.NOT_SET);
+            //Logging.Logg().Debug(@"FileINI::GetSecValueOfKey () - isSec (sec_shr)=" + isSec(sec_shr).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
             return isSec (sec_shr) == true ? m_values[sec].ContainsKey(key) == true ? m_values[sec][key] : string.Empty : string.Empty;
         }
         protected Dictionary<string, string> getSecValues(string sec_shr)
