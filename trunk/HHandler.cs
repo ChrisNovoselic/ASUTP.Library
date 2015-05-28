@@ -269,114 +269,121 @@ namespace HClassLibrary
                 bRes = false;
                 bRes = semaState.WaitOne();
 
-                _indexCurState = 0;
-
-                lock (m_lockState)
+                try
                 {
-                    if (states.Count == 0)
-                        continue;
-                    else
-                        ;
-
-                    currentState = states[_indexCurState];
-                    newState = false;                    
-                }
-
-                while (true)
-                {
-                    int requestIsOk = 0;
-                    bool error = true;
-                    int dataPresent = -1;
-                    object objRes = null;
-                    for (int i = 0; i < DbInterface.MAX_RETRY && (!(dataPresent == 0)) && (newState == false); i++)
-                    {
-                        if (error)
-                        {
-                            requestIsOk = StateRequest(currentState);
-                            if (!(requestIsOk == 0))
-                                break;
-                            else
-                                ;
-                        }
-                        else
-                            ;
-
-                        error = false;
-                        for (int j = 0; j < DbInterface.MAX_WAIT_COUNT && (!(dataPresent == 0)) && (error == false) && (newState == false); j++)
-                        {
-                            System.Threading.Thread.Sleep(DbInterface.WAIT_TIME_MS);
-                            dataPresent = StateCheckResponse(currentState, out error, out objRes);
-                        }
-                    }
-
-                    if (requestIsOk == 0)
-                    {
-                        int responseIsOk = 0;
-                        if ((dataPresent == 0) && (error == false) && (newState == false))
-                            responseIsOk = StateResponse(currentState, objRes);
-                        else
-                            responseIsOk = -1;
-
-                        if (((!(responseIsOk == 0)) || (!(dataPresent == 0)) || (error == true)) && (newState == false))
-                        {
-                            if (responseIsOk < 0)
-                            {
-                                StateErrors(currentState, requestIsOk, responseIsOk);
-                                lock (m_lockState)
-                                {
-                                    if (newState == false)
-                                    {
-                                        states.Clear();
-                                        break;
-                                    }
-                                    else
-                                        ;
-                                }
-                            }
-                            else
-                                StateWarnings(currentState, requestIsOk, responseIsOk);
-                        }
-                        else
-                            ;
-                    }
-                    else
-                    {
-                        //14.04.2015 ???
-                        //StateErrors(currentState, requestIsOk, -1);
-
-                        lock (m_lockState)
-                        {
-                            if (newState == false)
-                            {
-                                states.Clear();
-                                break;
-                            }
-                            else
-                                ;
-                        }
-                    }
-
-                    _indexCurState++;
+                    _indexCurState = 0;
 
                     lock (m_lockState)
                     {
-                        if (_indexCurState == states.Count)
-                            break;
+                        if (states.Count == 0)
+                            continue;
                         else
                             ;
 
-                        if (newState)
-                            break;
-                        else
-                            ;
                         currentState = states[_indexCurState];
+                        newState = false;                    
                     }
-                }
 
-                //Закончена обработка всех событий
-                completeHandleStates();
-                //Текущий индекс вне дипазона
-                _indexCurState = -1;
+                    while (true)
+                    {
+                        int requestIsOk = 0;
+                        bool error = true;
+                        int dataPresent = -1;
+                        object objRes = null;
+                        for (int i = 0; i < DbInterface.MAX_RETRY && (!(dataPresent == 0)) && (newState == false); i++)
+                        {
+                            if (error)
+                            {
+                                requestIsOk = StateRequest(currentState);
+                                if (!(requestIsOk == 0))
+                                    break;
+                                else
+                                    ;
+                            }
+                            else
+                                ;
+
+                            error = false;
+                            for (int j = 0; j < DbInterface.MAX_WAIT_COUNT && (!(dataPresent == 0)) && (error == false) && (newState == false); j++)
+                            {
+                                System.Threading.Thread.Sleep(DbInterface.WAIT_TIME_MS);
+                                dataPresent = StateCheckResponse(currentState, out error, out objRes);
+                            }
+                        }
+
+                        if (requestIsOk == 0)
+                        {
+                            int responseIsOk = 0;
+                            if ((dataPresent == 0) && (error == false) && (newState == false))
+                                responseIsOk = StateResponse(currentState, objRes);
+                            else
+                                responseIsOk = -1;
+
+                            if (((!(responseIsOk == 0)) || (!(dataPresent == 0)) || (error == true)) && (newState == false))
+                            {
+                                if (responseIsOk < 0)
+                                {
+                                    StateErrors(currentState, requestIsOk, responseIsOk);
+                                    lock (m_lockState)
+                                    {
+                                        if (newState == false)
+                                        {
+                                            states.Clear();
+                                            break;
+                                        }
+                                        else
+                                            ;
+                                    }
+                                }
+                                else
+                                    StateWarnings(currentState, requestIsOk, responseIsOk);
+                            }
+                            else
+                                ;
+                        }
+                        else
+                        {
+                            //14.04.2015 ???
+                            //StateErrors(currentState, requestIsOk, -1);
+
+                            lock (m_lockState)
+                            {
+                                if (newState == false)
+                                {
+                                    states.Clear();
+                                    break;
+                                }
+                                else
+                                    ;
+                            }
+                        }
+
+                        _indexCurState++;
+
+                        lock (m_lockState)
+                        {
+                            if (_indexCurState == states.Count)
+                                break;
+                            else
+                                ;
+
+                            if (newState)
+                                break;
+                            else
+                                ;
+                            currentState = states[_indexCurState];
+                        }
+                    }
+
+                    //Закончена обработка всех событий
+                    completeHandleStates();
+                    //Текущий индекс вне дипазона
+                    _indexCurState = -1;
+                }
+                catch (Exception e)
+                {
+                    Logging.Logg().Exception (e, Logging.INDEX_MESSAGE.NOT_SET, @"HHandler::ThreadStates () - ...");
+                }
             }
             //Освободить ресурс ядра ОС
             if (bRes == true)

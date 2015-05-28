@@ -23,7 +23,21 @@ namespace HClassLibrary
 
             public object[] Pars
             {
-                get { return (m_pars as object[])[_owner.IndexCurState] as object[]; }
+                get
+                { 
+                    object [] arObjRes = null;
+                    
+                    try
+                    {
+                        arObjRes = (m_pars as object[])[_owner.IndexCurState] as object[];
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HHandlerQueue.ItemQueue::Pars - ...");
+                    }
+
+                    return arObjRes;
+                }
             }
 
             public ItemQueue(HHandler owner, IDataHost obj, object[] objPars)
