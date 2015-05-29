@@ -205,11 +205,11 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="dataHost">Объект очереди событий</param>
         /// <returns>Результат выполнения функции</returns>
-        private int addStates(ItemQueue dataHost)
+        private int addStates(ItemQueue itemQueue)
         {
             int iRes = 0;
-            
-            foreach (int state in dataHost.m_states)
+
+            foreach (int state in itemQueue.m_states)
                 AddState(state);
 
             return iRes;
@@ -225,7 +225,7 @@ namespace HClassLibrary
         private void ThreadQueue(object par)
         {
             bool bRes = false;
-            ItemQueue dataHost = null;
+            ItemQueue itemQueue = null;
 
             while (!(threadQueueIsWorking < 0))
             {
@@ -244,14 +244,14 @@ namespace HClassLibrary
                             ;
                     }
                     //Получить объект очереди событий
-                    dataHost = Peek;
+                    itemQueue = Peek;
 
                     lock (m_lockState)
                     {
                         //Очистить все состояния
                         ClearStates ();
                         //Добавить все состояния в родительский класс
-                        addStates (dataHost);
+                        addStates(itemQueue);
                     }
 
                     //Обработать все состояния
