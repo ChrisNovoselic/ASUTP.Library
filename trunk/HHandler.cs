@@ -91,7 +91,7 @@ namespace HClassLibrary
         {
             get { return threadStateIsWorking == 1; }
         }
-        public bool IsStarted
+        public virtual bool IsStarted
         {
             get { return ! (threadStateIsWorking < 0); }
         }
