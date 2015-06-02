@@ -563,7 +563,10 @@ namespace HClassLibrary
         private Logging () {
             start();
         }
-
+        /// <summary>
+        /// Обновляет параметры журналирования "присоединенных" типов сообщений
+        /// , присоединение/отсоединение ('Link'/'UnLink')
+        /// </summary>
         public static void UpdateMarkDebugLog()
         {
             bool bMarked = false;
