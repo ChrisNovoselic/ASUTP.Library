@@ -29,17 +29,17 @@ namespace HClassLibrary
         private enum INDEX_BITMAP {FLOAT, CLOSE, COUNT_BITMAP };
         private enum INDEX_STATE_BITMAP { NON_ACTIVE, IN_ACTIVE, COUNT_STATE_BITMAP };
         private Icon [] m_arBitmap;
-        public delegate void DelegateOnHTabCtrlEx(object sender, HTabCtrlExEventArgs e);
-        public event DelegateOnHTabCtrlEx OnClose;
-        public event DelegateOnHTabCtrlEx OnFloat;
+        public delegate void DelegateHTabCtrlEx(object sender, HTabCtrlExEventArgs e);
+        public event DelegateHTabCtrlEx EventHTabCtrlExClose;
+        public event DelegateHTabCtrlEx EventHTabCtrlExFloat;
 
         private int iPrevSelectedIndex;
         public int PrevSelectedIndex
         {
             get { return iPrevSelectedIndex; }
-            set { if (!(iPrevSelectedIndex == value)) { PrevSelectedIndexChanged(this, EventArgs.Empty); iPrevSelectedIndex = value; } else ; }
+            set { if (!(iPrevSelectedIndex == value)) { EventPrevSelectedIndexChanged(this, EventArgs.Empty); iPrevSelectedIndex = value; } else ; }
         }
-        public event EventHandler PrevSelectedIndexChanged;
+        public event EventHandler EventPrevSelectedIndexChanged;
 
         public HTabCtrlEx()
         {
@@ -238,9 +238,9 @@ namespace HClassLibrary
                         ;
 
                     //Fire Event to Client
-                    if (! (OnClose == null))
+                    if (! (EventHTabCtrlExClose == null))
                     {
-                        OnClose(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
+                        EventHTabCtrlExClose(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
                     }
                     else
                         ;
@@ -252,9 +252,9 @@ namespace HClassLibrary
                         
                         if (tabTextAreaFloat.Contains(pt) == true)
                         {
-                            if (!(OnFloat == null))
+                            if (!(EventHTabCtrlExFloat == null))
                             {
-                                OnFloat(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
+                                EventHTabCtrlExFloat(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
                             }
                             else
                                 ;

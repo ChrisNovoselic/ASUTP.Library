@@ -60,7 +60,8 @@ namespace HClassLibrary
         {
             bool bRes = false;
 
-            if (Started == false)
+            if ((Started == false)
+                && (active == true))
                 throw new Exception (@"HPanelCommon::Activate (" + active.ToString () + @") - не выполнен метод 'Старт' ...");
             else
                 ;

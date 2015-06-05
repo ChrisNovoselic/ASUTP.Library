@@ -18,6 +18,7 @@ namespace HClassLibrary
     public delegate void DelegateDateFunc(DateTime date);
 
     public delegate int IntDelegateFunc();
+    public delegate int IntDelegateIntFunc(int param);
     
     public delegate string StringDelegateIntFunc (int param);
     public delegate string StringDelegateStringFunc(string keyParam);
