@@ -285,6 +285,11 @@ namespace HClassLibrary
                 logging_catch_db(m_dbConnection, e);
             }
 
+            if (needReconnect == true)
+                Logging.Logg().Error(@"DbTSQLInterface::GetData () - query=" + query, Logging.INDEX_MESSAGE.NOT_SET);
+            else
+                ;
+
             return result;
         }
 
