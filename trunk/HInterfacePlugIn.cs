@@ -23,7 +23,7 @@ namespace HClassLibrary
 
     public enum ID_DATA_ASKED_HOST {
         UNKNOWN = -1
-        , INIT_CONN_SETT, INIT_SIGNALS_OF_GROUP
+        , INIT_SOURCE, INIT_SIGNALS
         , START, STOP, ACTIVATE
         , TABLE_RES
         , TO_INSERT

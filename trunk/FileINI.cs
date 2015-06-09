@@ -18,11 +18,11 @@ namespace HClassLibrary
         /// <summary>
         /// Перечисление для индексирования символов-разделителей
         /// </summary>
-        protected enum INDEX_DELIMETER { SEC_PART_APP, SEC_PART_TARGET, PAIR, VALUES, PAIR_VAL, VALUE };
+        public enum INDEX_DELIMETER { SEC_PART_APP, SEC_PART_TARGET, PAIR, VALUES, PAIR_VAL, VALUE };
         /// <summary>
         /// Символы-разделители
         /// </summary>
-        protected static char [] s_chSecDelimeters = {' ', '-', '=', ';', ',', ':'};
+        public static char [] s_chSecDelimeters = {' ', '-', '=', ';', ',', ':'};
         /// <summary>
         /// Наименовние файла конфигурации
         /// </summary>
