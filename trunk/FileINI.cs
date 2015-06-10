@@ -138,81 +138,88 @@ namespace HClassLibrary
                     //EncodingInfo[]arEncInfo = Encoding.GetEncodings();
                     string[] lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
 
-                    //Разобрать по-строчно
-                    foreach (string line in lines)
+                    try
                     {
-                        //Не обрабатывать "пустые" строки
-                        if (line.Length == 0)
-                            continue;
-                        else
-                            ;
-
-                        //Logging.Logg().Debug(@"FileINI::ctor () - строка: " + line, Logging.INDEX_MESSAGE.NOT_SET);
-
-                        bool bSec = line[0] == '[';
-                        //Не обрабатывать строки, начинающиеся не с "буквы"
-                        if (Char.IsLetter(line[0]) == false)
-                            //Строки, начинающиеся с '[' - обрабатывать
-                            if (bSec == false)
+                        //Разобрать по-строчно
+                        foreach (string line in lines)
+                        {
+                            //Не обрабатывать "пустые" строки
+                            if (line.Length == 0)
                                 continue;
                             else
                                 ;
-                        else
-                            ;
 
-                        //Проверить признак секции
-                        if (bSec == true)
-                        {
-                            //Получить наименование секции
-                            sec = line.Substring (1, line.Length - 2);
-                            //Проверить принадлежность к текущему приложению
-                            if (isSecApp (sec) == true)
+                            //Logging.Logg().Debug(@"FileINI::ctor () - строка: " + line, Logging.INDEX_MESSAGE.NOT_SET);
+
+                            bool bSec = line[0] == '[';
+                            //Не обрабатывать строки, начинающиеся не с "буквы"
+                            if (Char.IsLetter(line[0]) == false)
+                                //Строки, начинающиеся с '[' - обрабатывать
+                                if (bSec == false)
+                                    continue;
+                                else
+                                    ;
+                            else
+                                ;
+
+                            //Проверить признак секции
+                            if (bSec == true)
                             {
-                                //sec_shr = sec.Split(new char[] { s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART] }, StringSplitOptions.None)[0];
-                                //Проверить наличие секции в словаре
-                                //if (m_values.ContainsKey (sec_shr) == false)
-                                if (m_values.ContainsKey(sec) == false)
+                                //Получить наименование секции
+                                sec = line.Substring (1, line.Length - 2);
+                                //Проверить принадлежность к текущему приложению
+                                if (isSecApp (sec) == true)
                                 {
-                                    //Добавить секцию
-                                    //m_values.Add (sec_shr, new Dictionary<string,string> ());
-                                    m_values.Add(sec, new Dictionary<string, string>());
+                                    //sec_shr = sec.Split(new char[] { s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART] }, StringSplitOptions.None)[0];
+                                    //Проверить наличие секции в словаре
+                                    //if (m_values.ContainsKey (sec_shr) == false)
+                                    if (m_values.ContainsKey(sec) == false)
+                                    {
+                                        //Добавить секцию
+                                        //m_values.Add (sec_shr, new Dictionary<string,string> ());
+                                        m_values.Add(sec, new Dictionary<string, string>());
+                                    }
+                                    else
+                                        ;
+                                }
+                                else
+                                {
+                                    //Очистить секцию для предотвращения обработки параметров (внутри секции)
+                                    sec =
+                                    sec_shr =
+                                        string.Empty;
+                                }
+                            }
+                            else
+                            {//Обработка параметра (ключ=значение)
+                                //Проверить наличие секции
+                                if ((sec.Equals (string.Empty) == false)
+                                    || (sec_shr.Equals (string.Empty) == false)
+                                )
+                                {
+                                    //Проверить наличие секции в словаре
+                                    //if (m_values.ContainsKey (sec_shr) == true)
+                                    if (m_values.ContainsKey(sec) == true)
+                                    {
+                                        string[] pair = line.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
+                                        if (pair.Length == 2)
+                                            //Добавить параметр для секции
+                                            //m_values[sec_shr].Add (pair[0], pair[1]);
+                                            m_values[sec].Add(pair[0], pair[1]);
+                                        else
+                                            throw new Exception(@"FileINI::ctor () - ...");
+                                    }
+                                    else
+                                        throw new Exception (@"FileINI::ctor () - ...");
                                 }
                                 else
                                     ;
                             }
-                            else
-                            {
-                                //Очистить секцию для предотвращения обработки параметров (внутри секции)
-                                sec =
-                                sec_shr =
-                                    string.Empty;
-                            }
                         }
-                        else
-                        {//Обработка параметра (ключ=значение)
-                            //Проверить наличие секции
-                            if ((sec.Equals (string.Empty) == false)
-                                || (sec_shr.Equals (string.Empty) == false)
-                            )
-                            {
-                                //Проверить наличие секции в словаре
-                                //if (m_values.ContainsKey (sec_shr) == true)
-                                if (m_values.ContainsKey(sec) == true)
-                                {
-                                    string[] pair = line.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
-                                    if (pair.Length == 2)
-                                        //Добавить параметр для секции
-                                        //m_values[sec_shr].Add (pair[0], pair[1]);
-                                        m_values[sec].Add(pair[0], pair[1]);
-                                    else
-                                        throw new Exception(@"FileINI::ctor () - ...");
-                                }
-                                else
-                                    throw new Exception (@"FileINI::ctor () - ...");
-                            }
-                            else
-                                ;
-                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.Logg ().Exception (e, Logging.INDEX_MESSAGE.NOT_SET, @"FileINI::ctor () - ...");
                     }
                 }
                 else
@@ -226,6 +233,13 @@ namespace HClassLibrary
         public string GetMainValueOfKey(string key) {
             return GetSecValueOfKey(SEC_SHR_MAIN, key);
         }
+
+        public void SetSecValueOfKey(string sec_shr, string key, string val)
+        {
+            string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
+            WriteString (sec, key, val);
+        }
+
         /// <summary>
         /// Получить значение из указанной секции по ключу
         /// </summary>
