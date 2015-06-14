@@ -237,6 +237,7 @@ namespace HClassLibrary
         public void SetSecValueOfKey(string sec_shr, string key, string val)
         {
             string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
+
             WriteString (sec, key, val);
         }
 
@@ -327,7 +328,9 @@ namespace HClassLibrary
 
         public void WriteString(String Section, String Key, String Value)
         {
-            WritePrivateProfileString(Section, Key, Value, m_NameFileINI);
+            bool bRes = WritePrivateProfileString(Section, Key, Value, m_NameFileINI);
+
+            Logging.Logg().Debug(@"FileINI::WriteString (sec=" + Section + @", key=" + Key + @") - val=" + Value + @", в файл=" + m_NameFileINI + @" [res=" + bRes.ToString () + @"] - ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         public void WriteInt(String Section, String Key, int Value)
