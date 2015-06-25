@@ -15,7 +15,23 @@ using HClassLibrary;
 
 namespace HClassLibrary
 {
-    public abstract class HHandlerDb : HHandler
+    interface IHHandlerDb
+    {
+        void ActionReport(string msg);
+        void ClearStates();
+        void ClearValues();
+        void ErrorReport(string msg);
+        void ReportClear(bool bClear);
+        void Request(int idListener, string request);
+        void SetDelegateReport(DelegateStringFunc ferr, DelegateStringFunc fwar, DelegateStringFunc fact, DelegateBoolFunc fclr);
+        void SetDelegateWait(DelegateFunc dStart, DelegateFunc dStop, DelegateFunc dStatus);
+        void StartDbInterfaces();
+        void Stop();
+        void StopDbInterfaces();
+        void WarningReport(string msg);
+    }
+
+    public abstract class HHandlerDb : HHandler, HClassLibrary.IHHandlerDb
     {
         /// <summary>
         /// Делегат функции оповещения о выполняемой операции (выполнение)
@@ -203,8 +219,15 @@ namespace HClassLibrary
             else
                 ;
         }
-
+        /// <summary>
+        /// Наименование в ОС для зоны "Москва - стандартное время РФ"
+        /// </summary>
         private static string s_Name_Moscow_TimeZone = @"Russian Standard Time";
+        /// <summary>
+        /// Привести дату/время к зоне "Москва - стандартное время РФ"
+        /// </summary>
+        /// <param name="dt">Дата/время для приведения</param>
+        /// <returns></returns>
         public static DateTime ToMoscowTimeZone(DateTime dt)
         //public static DateTime ToCurrentTimeZone(DateTime dt, int offset_msc)
         {
@@ -230,7 +253,10 @@ namespace HClassLibrary
         //{
         //    return DateTime.Now - HAdmin.ToCurrentTimeZone(TimeZone.CurrentTimeZone.ToUniversalTime(DateTime.Now));
         //}
-
+        /// <summary>
+        /// Возвратить смещение зоны "Москва - стандартное время РФ" от UTC
+        /// </summary>
+        /// <returns></returns>
         public static TimeSpan GetUTCOffsetOfMoscowTimeZone()
         {
             ////Перечисление всех зо ОС
@@ -248,30 +274,45 @@ namespace HClassLibrary
             //Вариант №4
             return TimeSpan.FromHours (3);
         }
-
+        /// <summary>
+        /// Передать строку сообщения с ошибкой для отображения
+        /// </summary>
+        /// <param name="msg">Строка-содержание ошибки</param>
         public void ErrorReport (string msg) {
             if (!(errorReport == null))
+                //Передать строку-ошибку для отображения
                 errorReport (msg);
             else
                 ;
         }
-
+        /// <summary>
+        /// Передать строку сообщения с предупреждением для отображения
+        /// </summary>
+        /// <param name="msg"></param>
         public void WarningReport(string msg)
         {
             if (!(warningReport == null))
+                //Передать строку-предупреждение для отображения
                 warningReport(msg);
             else
                 ;
         }
-
+        /// <summary>
+        /// Передать строку сообщения с описанием действия для отображения
+        /// </summary>
+        /// <param name="msg"></param>
         public void ActionReport(string msg)
         {
             if (! (actionReport == null))
+                //Передать строку-действие для отображения
                 actionReport(msg);
             else
                 ;
         }
-
+        /// <summary>
+        /// Очистить все переданные ранее сообщения для отображения
+        /// </summary>
+        /// <param name="bClear"></param>
         public void ReportClear (bool bClear)
         {
             clearReportStates (bClear);
