@@ -1,7 +1,7 @@
 using System;
-using System.Windows.Forms;
-using System.Threading;
 using System.Drawing;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace HClassLibrary
 {
@@ -84,7 +84,8 @@ namespace HClassLibrary
                 if (waitCounter == 0)
                 {
                     //this.Opacity = 0.75;
-                    if (m_threadFormWait != null && m_threadFormWait.IsAlive)
+                    if ((! (m_threadFormWait == null))
+                        && (m_threadFormWait.IsAlive == true))
                         m_threadFormWait.Join();
                     else
                         ;
@@ -111,8 +112,15 @@ namespace HClassLibrary
 
                 if (waitCounter == 0)
                 {
+                    //Прозрачность
                     //this.Opacity = 1.0;
-                    while (!formWait.IsHandleCreated) ;
+                    //Ожидать закрытия десккриптора окна
+                    ////Вариант №1
+                    //while (formWait.IsHandleCreated == false)
+                    //    ;
+                    //Вариант №2
+                    formWait.m_semaHandleCreated.WaitOne ();
+
                     formWait.Invoke(delegateStopWaitForm);
                 }
                 else
@@ -124,11 +132,10 @@ namespace HClassLibrary
         {
             ToolStripMenuItem itemRes = null;
 
-            if (miParent.Text == text) {
+            if (miParent.Text == text)
                 itemRes = miParent;
-            } else
+            else
                 foreach (ToolStripItem mi in miParent.DropDownItems)
-                {
                     if (mi is ToolStripMenuItem)
                         if (mi.Text == text)
                         {
@@ -136,18 +143,12 @@ namespace HClassLibrary
                             break;
                         }
                         else
-                        {
                             if (((ToolStripMenuItem)mi).DropDownItems.Count > 0)
-                            {
                                 findMainMenuItemOfText(mi as ToolStripMenuItem, text);
-                            }
                             else
-                            {
-                            }
-                        }
+                                ;
                     else
                         ;
-                }
 
             return itemRes;
         }
