@@ -213,7 +213,7 @@
     </TypeIdentifier>
     <Lollipop Position="0.2" />
   </Class>
-  <Class Name="HClassLibrary.HPlugIn" Collapsed="true">
+  <Class Name="HClassLibrary.PlugInBase" Collapsed="true">
     <Position X="7.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>BAAAAAAhAAAAAwAgAAAAAAAAAAAACAAgAAEEBACEAgA=</HashCode>
