@@ -146,7 +146,7 @@ namespace HClassLibrary
 
                 //InitializeSyncState();
                 //Установить в "несигнальное" состояние
-                m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS].WaitOne(System.Threading.Timeout.Infinite);
+                m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS].WaitOne(System.Threading.Timeout.Infinite, true);
 
                 semaQueue.WaitOne();
                 taskThreadQueue.Start();
@@ -258,7 +258,7 @@ namespace HClassLibrary
                     Run (@"HHandler::ThreadQueue ()");
 
                     //Ожидать обработки всех состояний
-                    m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS].WaitOne (System.Threading.Timeout.Infinite);
+                    m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS].WaitOne (System.Threading.Timeout.Infinite, true);
 
                     lock (m_lockQueue)
                     {

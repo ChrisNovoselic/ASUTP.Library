@@ -242,7 +242,7 @@ namespace HClassLibrary
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public override void OnEvtDataRecievedHost(object obj) {
             if (_object is Control)
-                m_evObjectHandleCreated.WaitOne (-1);
+                m_evObjectHandleCreated.WaitOne (System.Threading.Timeout.Infinite, true);
             else
                 ;
 

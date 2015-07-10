@@ -70,7 +70,7 @@ namespace HClassLibrary
 
             Console.WriteLine("The Server has started on port " + m_port);
 
-            while (m_evClose.WaitOne (66) == true)
+            while (m_evClose.WaitOne (66, true) == true)
             {
                 if (tcpListener.Pending() == true) {
                     m_listThreadClient.Add (new TCPReciever(tcpListener.AcceptTcpClient()));
@@ -127,7 +127,7 @@ namespace HClassLibrary
                     streamWriter = new StreamWriter(networkStream);
                     streamReader = new StreamReader(networkStream);
 
-                    while (m_evClose.WaitOne(66) == true)
+                    while (m_evClose.WaitOne(66, true) == true)
                     {
                         Console.WriteLine(((IPEndPoint)m_socketReciever.LocalEndPoint).Address + ": " + msgOfClient);
 

@@ -304,7 +304,7 @@ namespace HClassLibrary
                 {
                     switch (s_mode) {
                         case LOG_MODE.DB:
-                            if (m_evtConnSett.WaitOne (0) == true)
+                            if (m_evtConnSett.WaitOne (0, true) == true)
                             {                                
                                 lock (m_objQueueMessage)
                                 {
@@ -513,7 +513,7 @@ namespace HClassLibrary
         }
 
         private void TimerConnSett_Tick (object par) {
-            if (m_evtConnSett.WaitOne (0) == false)
+            if (m_evtConnSett.WaitOne (0, true) == false)
                 if (connect() == 0)
                     m_evtConnSett.Set();
                 else {
@@ -725,7 +725,7 @@ namespace HClassLibrary
                         //...запомнить очередное сообщение...
                         addMessage((int)id, message, true, true, true); //3 крайних параметра для БД ничего не значат...
 
-                        if (m_evtConnSett.WaitOne (0) == true) {
+                        if (m_evtConnSett.WaitOne (0, true) == true) {
                             //Установить признак возможности для отправки
                             bAddMessage = true;
                         } else {
@@ -744,7 +744,7 @@ namespace HClassLibrary
                 }
 
                 if (bAddMessage == true)
-                    if (m_arEvtThread[(int)INDEX_SEMATHREAD.MSG].WaitOne(0) == false)
+                    if (m_arEvtThread[(int)INDEX_SEMATHREAD.MSG].WaitOne(0, true) == false)
                         //Не установлен - отправить сообщения...
                         m_arEvtThread[(int)INDEX_SEMATHREAD.MSG].Set();
                     else
