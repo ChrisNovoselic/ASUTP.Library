@@ -193,7 +193,7 @@ namespace HClassLibrary
                 switch (s_mode) {
                     case LOG_MODE.FILE_EXE:
                         //m_this = new Logging(System.Environment.CurrentDirectory + @"\" + AppName + "_" + Environment.MachineName + "_log.txt", false, null, null);
-                        m_this = new Logging(System.Environment.CurrentDirectory + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        m_this = new Logging(System.Environment.CurrentDirectory + @"\logs\" + AppName + "_" + Environment.MachineName + "_log.txt");
                         break;
                     case LOG_MODE.FILE_DESKTOP:
                         m_this = new Logging(System.Environment.GetFolderPath (Environment.SpecialFolder.Desktop) + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");

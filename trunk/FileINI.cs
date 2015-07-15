@@ -137,6 +137,12 @@ namespace HClassLibrary
                     //Прочитать все строки ??? ProgramBase.ss_MainCultureInfo
                     //EncodingInfo[]arEncInfo = Encoding.GetEncodings();
                     string[] lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
+                    //Ппризнак - строка начало секции
+                    bool bSec = false
+                    //Признак - следующая строка - продолжение текущей
+                        , bNewLine = true;
+                    //Пара ключ-значение
+                    string[] pair = null;
 
                     try
                     {
@@ -151,7 +157,7 @@ namespace HClassLibrary
 
                             //Logging.Logg().Debug(@"FileINI::ctor () - строка: " + line, Logging.INDEX_MESSAGE.NOT_SET);
 
-                            bool bSec = line[0] == '[';
+                            bSec = line[0] == '[';
                             //Не обрабатывать строки, начинающиеся не с "буквы"
                             if (Char.IsLetter(line[0]) == false)
                                 //Строки, начинающиеся с '[' - обрабатывать
@@ -201,13 +207,39 @@ namespace HClassLibrary
                                     //if (m_values.ContainsKey (sec_shr) == true)
                                     if (m_values.ContainsKey(sec) == true)
                                     {
-                                        string[] pair = line.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
-                                        if (pair.Length == 2)
-                                            //Добавить параметр для секции
-                                            //m_values[sec_shr].Add (pair[0], pair[1]);
-                                            m_values[sec].Add(pair[0], pair[1]);
+                                        if (bNewLine == true)
+                                        {
+                                            ////Вариант №1
+                                            //pair = line.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
+                                            //Вариант №2
+                                            pair = new string [2];
+                                            int indxPair = line.IndexOf(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
+                                            pair[0] = line.Substring (0, indxPair);
+                                            pair[1] = line.Substring (indxPair + 1, line.Length - indxPair - 1);
+
+                                            if (! (pair[1].IndexOf(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]) < 0))
+                                                Logging.Logg ().Warning (@"FileINI::ctor () - в строке [" + line + @"] используются зарезервированные символы: '" + s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR] + @"'", Logging.INDEX_MESSAGE.NOT_SET);
+                                            else
+                                                ;
+
+                                            if (pair.Length == 2)
+                                                //Добавить параметр для секции
+                                                //m_values[sec_shr].Add (pair[0], pair[1]);
+                                                m_values[sec].Add(pair[0], pair[1]);
+                                            else
+                                                throw new Exception(@"FileINI::ctor () - ...");
+                                        }
                                         else
-                                            throw new Exception(@"FileINI::ctor () - ...");
+                                        {
+                                            pair[1] += line;
+                                        }
+
+                                        bNewLine = !line[line.Length - 1].Equals('_');
+
+                                        if (bNewLine == false)
+                                            m_values[sec][pair[0]] = m_values[sec][pair[0]].Substring(0, m_values[sec][pair[0]].LastIndexOf(' '));
+                                        else
+                                            ;
                                     }
                                     else
                                         throw new Exception (@"FileINI::ctor () - ...");

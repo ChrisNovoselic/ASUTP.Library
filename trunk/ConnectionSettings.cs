@@ -11,19 +11,46 @@ using System.Data;
 //namespace HClassLibrary
 namespace HClassLibrary
 {
+    /// <summary>
+    /// Класс для описания параметров соединения с источником данных (БД)
+    /// </summary>
     public class ConnectionSettings
     {
         public static int UN_ENUMERABLE_ID = -666666;
         public static int ID_LISTENER_LOGGING = UN_ENUMERABLE_ID + 1;
-
+        //Параметры (не обязательные) соединения
+        /// <summary>
+        /// Идентификатор источника данных
+        /// </summary>
         public volatile int id;
+        /// <summary>
+        /// Наименование источника данных
+        /// </summary>
         public volatile string name;
-
+        //Параметры (обязательные) соединения
+        /// <summary>
+        /// Сервер-источник данных (может быть указан как доменное имя, IP-адрес)
+        /// </summary>
         public volatile string server;
+        /// <summary>
+        /// Нименование БД
+        /// </summary>
         public volatile string dbName;
+        /// <summary>
+        /// Имя пользователя при подключении к источнику данных
+        /// </summary>
         public volatile string userName;
+        /// <summary>
+        /// Пароль пользователя при подключении к источнику данных
+        /// </summary>
         public volatile string password;
+        /// <summary>
+        /// Номер порта при подключении к источнику данных
+        /// </summary>
         public volatile int port;
+        /// <summary>
+        /// Признак игнорирования (не использования) источника данных
+        /// </summary>
         public volatile bool ignore;
 
         override public bool Equals(object obj) {
