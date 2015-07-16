@@ -8,10 +8,10 @@ namespace HClassLibrary
 {
     public class FileINI
     {
-        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool WritePrivateProfileString(String Section, String Key, String Value, String FilePath);
-        [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.I4)]
         public static extern int GetPrivateProfileString(String Section, String Key, String Default, StringBuilder retVal, int Size, String FilePath);
 
@@ -122,8 +122,10 @@ namespace HClassLibrary
             m_values = new Dictionary<string, Dictionary<string, string>>();
 
             m_NameFileINI = System.Environment.CurrentDirectory + "\\" + nameFile;
+            //FileAttributes fa = File.GetAttributes (m_NameFileINI);
             if (File.Exists(m_NameFileINI) == false)
             {
+                //File.Create(m_NameFileINI, 4096, FileOptions.Asynchronous | FileOptions.RandomAccess, new System.Security.AccessControl.FileSecurity (m_NameFileINI, System.Security.AccessControl.AccessControlSections.));
                 File.Create(m_NameFileINI);
                 //throw new Exception ("Не удалось найти файл инициализации (полный путь: " + m_NameFileINI + ")");
             }
@@ -266,6 +268,11 @@ namespace HClassLibrary
             return GetSecValueOfKey(SEC_SHR_MAIN, key);
         }
 
+        public void SetMainValueOfKey(string key, string val)
+        {
+            WriteString(SEC_MAIN, key, val);
+        }
+
         public void SetSecValueOfKey(string sec_shr, string key, string val)
         {
             string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
@@ -360,7 +367,14 @@ namespace HClassLibrary
 
         public void WriteString(String Section, String Key, String Value)
         {
-            bool bRes = WritePrivateProfileString(Section, Key, Value, m_NameFileINI);
+            bool bRes = false;
+
+            string strVal =
+                //Value
+                Encoding.UTF8.GetString(Encoding.Convert(Encoding.ASCII, Encoding.UTF8, Encoding.ASCII.GetBytes(Value), 0, Value.Length), 0, Value.Length)
+                ;
+
+            bRes = WritePrivateProfileString(Section, Key, strVal, m_NameFileINI);
 
             Logging.Logg().Debug(@"FileINI::WriteString (sec=" + Section + @", key=" + Key + @") - val=" + Value + @", в файл=" + m_NameFileINI + @" [res=" + bRes.ToString () + @"] - ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
