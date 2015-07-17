@@ -119,7 +119,14 @@ namespace HClassLibrary
         /// <returns>Объект - книга MS Excel</returns>
         private object getWorkBook(int indx = 1)
         {
-            return WorkBooks.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkBooks, new object[] { indx });
+            object objRes = null;
+
+            if (Count > 0)
+                objRes = WorkBooks.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkBooks, new object[] { indx });
+            else
+                ;
+
+            return objRes;
         }
 
         /// <summary>
@@ -334,12 +341,23 @@ namespace HClassLibrary
                 //Вызвать метод 'Close' для текущей книги 'WorkBook' с параметром 'true'
                 WorkBook.GetType().InvokeMember("Close", BindingFlags.InvokeMethod, null, WorkBook, new object[] { true });
             }
-            catch
+            catch (Exception e)
             {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::CloseExcelDoc () - ...");
+
                 bRes = false;
             }
 
             return bRes;
+        }
+
+        private int Count
+        {
+            get
+            {
+                //Вызвать метод 'Close' для текущей книги 'WorkBook' с параметром 'true'
+                return (int)WorkBooks.GetType().InvokeMember("Count", BindingFlags.GetProperty, null, WorkBooks, null);
+            }
         }
 
         /// <summary>
@@ -352,15 +370,16 @@ namespace HClassLibrary
 
             try
             {
-                while (!(WorkBook == null))
+                while ((Count > 0) && (! (WorkBook == null)))
                 {
-                    //Вызвать метод 'Close' для текущей книги 'WorkBook' с параметром 'true'
-                    WorkBook.GetType().InvokeMember("Close", BindingFlags.InvokeMethod, null, WorkBook, new object[] { true });
+                    CloseExcelDoc();
                     WorkBook = getWorkBook();
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::CloseExcelAllDocs () - ...");
+
                 bRes = false;
             }
 
@@ -390,8 +409,10 @@ namespace HClassLibrary
                     WorkBook.GetType().InvokeMember("SaveAs", BindingFlags.InvokeMethod, null, WorkBook, new object[] { name });
                 }
             }
-            catch
+            catch (Exception e)
             {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::SaveExcel () - ...");
+
                 bRes = false;
             }
 
@@ -442,9 +463,10 @@ namespace HClassLibrary
             {
                 setValue(col, row, value);
             }
-
-            catch
+            catch (Exception e)
             {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+
                 bRes = false;
             }
 
@@ -467,9 +489,10 @@ namespace HClassLibrary
             {
                 setValue(sheetName, col, row, value);
             }
-
-            catch
+            catch (Exception e)
             {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+
                 bRes = false;
             }
 
@@ -491,8 +514,10 @@ namespace HClassLibrary
             {
                 setValue(col, row, value);
             }
-            catch
+            catch (Exception e)
             {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+                
                 bRes = false;
             }
 
@@ -514,8 +539,10 @@ namespace HClassLibrary
             {
                 setValue(col, row, value);
             }
-            catch
+            catch (Exception e)
             {
+                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+
                 bRes = false;
             }
 

@@ -206,8 +206,7 @@ namespace HClassLibrary
         public ConnectionSettingsError Validate()
         {
             try {
-                IPAddress ip;
-                ip = IPAddress.Parse(server);
+                IPAddress ip = IPAddress.Parse(server);
                 if (IPAddress.TryParse(server, out ip) == false)
                 {
                     //MessageBox.Show("Неправильный ip-адрес.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
