@@ -416,7 +416,7 @@ namespace HClassLibrary
                 //Проверить количество букв в наименовании
                 if (n > 26)
                     //Добавить 1-ю букву
-                    sbRes.Append((char)('A' + (n / 26)));
+                    sbRes.Append((char)('A' + ((n / 26) - 1)));
                 else
                     ;
                 //Добавить крайнюю букву
