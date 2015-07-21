@@ -188,7 +188,9 @@ namespace HClassLibrary
         {
             try
             {
-                semaState.Release(1);
+                if (semaState.WaitOne (0, true) == false)
+                    semaState.Release(1);
+                else ;
             }
             catch (Exception e)
             {
@@ -247,7 +249,7 @@ namespace HClassLibrary
         /// <param name="state">Состояние запроса</param>
         /// <param name="req">Признак получения ответа при запросе</param>
         /// <param name="res">Признак...</param>
-        protected abstract void StateErrors(int state, int req, int res);
+        protected abstract INDEX_WAITHANDLE_REASON StateErrors(int state, int req, int res);
         /// <summary>
         /// Обработка НЕ КРИТИЧной ошибки при получении результата
         /// </summary>
@@ -263,6 +265,10 @@ namespace HClassLibrary
         {
             int /*StatesMachine*/ currentState;
             bool bRes = false;
+
+            int requestIsOk = 0
+                , responseIsOk = 0;
+            INDEX_WAITHANDLE_REASON reason = INDEX_WAITHANDLE_REASON.SUCCESS;
 
             while (!(threadStateIsWorking < 0))
             {
@@ -286,7 +292,10 @@ namespace HClassLibrary
 
                     while (true)
                     {
-                        int requestIsOk = 0;
+                        requestIsOk =
+                        responseIsOk = 0;
+                        reason = INDEX_WAITHANDLE_REASON.SUCCESS;
+
                         bool error = true;
                         int dataPresent = -1;
                         object objRes = null;
@@ -313,33 +322,36 @@ namespace HClassLibrary
 
                         if (requestIsOk == 0)
                         {
-                            int responseIsOk = 0;
                             if ((dataPresent == 0) && (error == false) && (newState == false))
                                 responseIsOk = StateResponse(currentState, objRes);
                             else
                                 responseIsOk = -1;
 
-                            if (((!(responseIsOk == 0)) || (!(dataPresent == 0)) || (error == true)) && (newState == false))
-                            {
-                                if (responseIsOk < 0)
+                            if (responseIsOk == -102)
+                                //Для алгоритма сигнализации 'TecView::SuccessThreadRDGValues () - ...'
+                                reason = INDEX_WAITHANDLE_REASON.BREAK;
+                            else
+                                if (((!(responseIsOk == 0)) || (!(dataPresent == 0)) || (error == true)) && (newState == false))
                                 {
-                                    StateErrors(currentState, requestIsOk, responseIsOk);
-                                    lock (m_lockState)
+                                    if (responseIsOk < 0)
                                     {
-                                        if (newState == false)
+                                        reason = StateErrors(currentState, requestIsOk, responseIsOk);
+                                        lock (m_lockState)
                                         {
-                                            states.Clear();
-                                            break;
+                                            if (newState == false)
+                                            {
+                                                states.Clear();
+                                                break;
+                                            }
+                                            else
+                                                ;
                                         }
-                                        else
-                                            ;
                                     }
+                                    else
+                                        StateWarnings(currentState, requestIsOk, responseIsOk);
                                 }
                                 else
-                                    StateWarnings(currentState, requestIsOk, responseIsOk);
-                            }
-                            else
-                                ;
+                                    ;
                         }
                         else
                         {
@@ -376,7 +388,7 @@ namespace HClassLibrary
                     }
 
                     //Закончена обработка всех событий
-                    completeHandleStates();
+                    completeHandleStates(reason);
                     //Текущий индекс вне дипазона
                     _indexCurState = -1;
                 }
@@ -402,23 +414,31 @@ namespace HClassLibrary
         /// <summary>
         /// Установить признак окончания обработки всех событий
         /// </summary>
-        protected void completeHandleStates()
+        protected void completeHandleStates(INDEX_WAITHANDLE_REASON indxEv)
         {
-            try { ((AutoResetEvent)m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS]).Set(); }
+            try
+            {
+                if (((int)indxEv == (int)INDEX_WAITHANDLE_REASON.SUCCESS)
+                    || ((int)indxEv > (m_waitHandleState.Length - 1)))
+                    ((AutoResetEvent)m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS]).Set();
+                else
+                    ((ManualResetEvent)m_waitHandleState[(int)indxEv]).Set();
+
+            }
             catch (Exception e)
             {
                 Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadFunction () - m_waitHandleState[0]).Set()");
             }
         }
 
-        protected void abortThreadGetValues(INDEX_WAITHANDLE_REASON reason)
-        {
-            if (m_waitHandleState.Length > (int)reason)
-            {
-                ((ManualResetEvent)m_waitHandleState[(int)reason]).Set();
-            }
-            else
-                ;
-        }
+        //protected void abortThreadGetValues(INDEX_WAITHANDLE_REASON reason)
+        //{
+        //    if (m_waitHandleState.Length > (int)reason)
+        //    {
+        //        ((ManualResetEvent)m_waitHandleState[(int)reason]).Set();
+        //    }
+        //    else
+        //        ;
+        //}
     }
 }

@@ -11,6 +11,7 @@ namespace HClassLibrary
     public delegate void DelegateFunc();
     public delegate void DelegateIntFunc(int param);
     public delegate void DelegateIntIntFunc(int param1, int param2);
+    public delegate int IntDelegateIntIntFunc(int param1, int param2);
     public delegate void DelegateStringFunc(string param);
     public delegate void DelegateBoolFunc(bool param);
     public delegate void DelegateObjectFunc(object obj);
