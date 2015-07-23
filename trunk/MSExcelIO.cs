@@ -351,6 +351,9 @@ namespace HClassLibrary
             return bRes;
         }
 
+        /// <summary>
+        /// Количество открытых документов
+        /// </summary>
         private int Count
         {
             get
