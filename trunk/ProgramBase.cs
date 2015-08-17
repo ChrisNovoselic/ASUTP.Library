@@ -119,6 +119,9 @@ namespace HClassLibrary
             Application.Exit(cancelEvtArgs);
         }
 
+        /// <summary>
+        /// Оброботчик исключений в потоках и запись их в лог
+        /// </summary>
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
             string strHeader = "ProgramBase::Application_ThreadException () - ...";
@@ -130,6 +133,9 @@ namespace HClassLibrary
             Exit ();            
         }
 
+        /// <summary>
+        /// Оборботчик не перехваченного исключения в текущем домене и запись их в лог
+        /// </summary>
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             string strHeader = "ProgramBase::CurrentDomain_UnhandledException () - ..."
@@ -156,6 +162,9 @@ namespace HClassLibrary
         public static int s_iMessageShowUnhandledException = -1;
         public static int s_iMessageShowUnhandledExceptionDetail = -1;
 
+        /// <summary>
+        /// Запись в  лог имени проложения
+        /// </summary>
         public static string AppName
         {
             get
@@ -164,6 +173,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Возвращает версию продукта с датой
+        /// </summary>
         public static string AppProductVersion
         {
             get
@@ -173,6 +185,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Функция завершения приложения
+        /// </summary>
         public static void AppExit()
         {
             string commandLineArgs = getCommandLineArgs();
@@ -188,6 +203,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Функция перезапуска приложения
+        /// </summary>
         public static void AppRestart()
         {
             string commandLineArgs = getCommandLineArgs();
@@ -204,6 +222,9 @@ namespace HClassLibrary
             Process.Start(exePath, commandLineArgs);
         }
 
+        /// <summary>
+        /// Формируек командную строку для запуска приложения
+        /// </summary>
         static string getCommandLineArgs()
         {
             Queue<string> args = new Queue<string>(Environment.GetCommandLineArgs());
@@ -211,6 +232,9 @@ namespace HClassLibrary
             return string.Join(" ", args.ToArray());
         }
 
+        /// <summary>
+        /// Обработчик сообщений в очереди
+        /// </summary>
         static void wait_allowingEvents(int durationMS)
         {
             DateTime start = DateTime.Now;

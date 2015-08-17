@@ -18,6 +18,10 @@ namespace HClassLibrary
         MD5CryptoServiceProvider md5;
 
         public enum ID_ROLES : uint { COM_DISP = 1, ADMIN, NSS };
+
+        /// <summary>
+        /// Наименование пользователя
+        /// </summary>
         public static string getOwnerPass(int id_role)
         {
             string[] ownersPass = { "диспетчера", "администратора", "НССа" };
@@ -31,6 +35,9 @@ namespace HClassLibrary
         private volatile uint m_idExtPass;
         private Object m_lockObj;
 
+        /// <summary>
+        /// Идентификатор соединения с источником информации при выполнении запроса
+        /// </summary>
         private int m_idListener;
 
         public Passwords()
@@ -45,6 +52,9 @@ namespace HClassLibrary
             m_lockObj = new Object();
         }
 
+        /// <summary>
+        /// Идентификатор соединения с источником информации при выполнении запроса
+        /// </summary>
         public void SetIdListener (int idListener) { m_idListener = idListener; }
 
         void MessageBox(string msg, MessageBoxButtons btn = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.Error)
@@ -53,6 +63,9 @@ namespace HClassLibrary
             Logging.Logg().Error(msg, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
+        /// <summary>
+        /// Функция получения пароля для пользователя  
+        /// </summary>
         private Errors GetPassword(out int er)
         {
             Errors errRes = Errors.NoError;
@@ -72,6 +85,9 @@ namespace HClassLibrary
         public static void Code () {}
         public static void Decode () {}
 
+        /// <summary>
+        /// Функция проверки установки пароля для пользователя
+        /// </summary>
         public bool SetPassword(string password, uint idExtPass, uint idRolePass)
         {
             int err = -1;
@@ -115,6 +131,9 @@ namespace HClassLibrary
             return true;
         }
 
+        /// <summary>
+        /// Функция проверки пароля пользователя
+        /// </summary>
         public Errors ComparePassword(string password, uint id_ext, uint id_role)
         {
             int err = -1;
@@ -182,6 +201,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Функция получения строки запроса на проверку пароля
+        /// </summary>
         private string GetPassRequest()
         {
             string strRes = string.Empty;
@@ -195,6 +217,9 @@ namespace HClassLibrary
             return strRes;
         }
 
+        /// <summary>
+        /// Функция проверки пароля для пользователя
+        /// </summary>
         private bool GetPassResponse(DataTable table)
         {
             if (table.Rows.Count != 0)
@@ -215,6 +240,10 @@ namespace HClassLibrary
             return true;
         }
 
+        /// <summary>
+        /// Функция получения запроса для установки пароля
+        /// <returns>Запрос</returns>
+        /// </summary>
         private string SetPassRequest(string password, bool insert)
         {
             string query = string.Empty;

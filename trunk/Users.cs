@@ -40,6 +40,9 @@ namespace HClassLibrary
             static DataTable m_tblValues;
             static DataTable m_tblTypes;
 
+            /// <summary>
+            /// Функция подключения пользователя
+            /// </summary>
             public HProfiles(int iListenerId, int id_role, int id_user)
             {
                 int err = -1;
@@ -75,6 +78,9 @@ namespace HClassLibrary
                     ;
             }
 
+            /// <summary>
+            /// Функция получения доступа
+            /// </summary>
             public static object GetAllowed(int id)
             {
                 object objRes = false;
@@ -128,6 +134,9 @@ namespace HClassLibrary
                 return objRes;
             }
 
+            /// <summary>
+            /// Функция добавления прав доступа для пользователя
+            /// </summary>
             public static void SetAllowed(int iListenerId, int id, string val)
             {
                 string query = string.Empty;
@@ -323,6 +332,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Функция запроса для поиска пользователя
+        /// </summary>
         private void registrationINI(object par)
         {
             Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
@@ -382,6 +394,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Запуск проверки пользователя 
+        /// </summary>
         private void registrationEnv(object par)
         {
             int idListener = (int)par //idListener = ((int [])par)[0]
@@ -496,6 +511,10 @@ namespace HClassLibrary
             Logging.Logg().Action(strMes, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
+        /// <summary>
+        /// Функция получения строки запроса пользователя
+        ///  /// <returns>Строка строку запроса</returns>
+        /// </summary>
         private static string getUsersRequest(string where, string orderby)
         {
             string strQuery = string.Empty;
@@ -531,6 +550,9 @@ namespace HClassLibrary
             users = DbTSQLInterface.Select(connSett, getUsersRequest(where, orderby), out err);
         }*/
 
+        /// <summary>
+        /// Функция запроса для поиска пользователя
+        /// </summary>
         public static void GetUsers(ref DbConnection conn, string where, string orderby, out DataTable users, out int err)
         {
             err = 0;
@@ -546,6 +568,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Функция взятия ролей из БД
+        /// </summary>
         public static void GetRoles(ref DbConnection conn, string where, string orderby, out DataTable roles, out int err)
         {
             err = 0;
@@ -570,6 +595,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Возвращает ИД пользователя
+        /// </summary>
         public static int Id
         {
             get
@@ -578,6 +606,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Возвращает доменное имя
+        /// </summary>
         public static string DomainName
         {
             get
@@ -586,6 +617,9 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Возвращает ИД ТЭЦ
+        /// </summary>
         public static int allTEC
         {
             get
