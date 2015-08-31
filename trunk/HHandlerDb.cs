@@ -219,10 +219,12 @@ namespace HClassLibrary
             else
                 ;
         }
+
         /// <summary>
         /// Наименование в ОС для зоны "Москва - стандартное время РФ"
         /// </summary>
         private static string s_Name_Moscow_TimeZone = @"Russian Standard Time";
+
         /// <summary>
         /// Привести дату/время к зоне "Москва - стандартное время РФ"
         /// </summary>

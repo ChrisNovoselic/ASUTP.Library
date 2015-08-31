@@ -295,7 +295,10 @@ namespace HClassLibrary
                         ;
 
                 if ((have_msg == 0) || (show_error_alert == false))
+                {
+                    string str = (string)DateTime.Now.ToLongTimeString();
                     m_lblMainState.Text = "";
+                }
                 else
                     ;
 
