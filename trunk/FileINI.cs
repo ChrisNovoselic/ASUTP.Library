@@ -267,19 +267,38 @@ namespace HClassLibrary
         public string GetMainValueOfKey(string key) {
             return GetSecValueOfKey(SEC_SHR_MAIN, key);
         }
-
+        /// <summary>
+        /// Установить значение по ключу в главной секции
+        /// </summary>
+        /// <param name="key">Ключ для сохранения значения</param>
+        /// <param name="val">Значение для сохранения</param>
         public void SetMainValueOfKey(string key, string val)
         {
-            WriteString(SEC_MAIN, key, val);
+            //WriteString(SEC_MAIN, key, val);
+            SetSecValueOfKey (SEC_SHR_MAIN, key, val);
         }
-
+        /// <summary>
+        /// Установить значение по ключу в указанной секции
+        /// </summary>
+        /// <param name="sec_shr">Краткое наименование секции</param>
+        /// <param name="key">Ключ для сохранения значения</param>
+        /// <param name="val">Значение для сохранения</param>
         public void SetSecValueOfKey(string sec_shr, string key, string val)
         {
             string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
 
+            if (isSec(sec_shr) == false)
+                m_values.Add (sec, new Dictionary<string,string> ());
+            else
+                ;
+
+            if (m_values[sec].ContainsKey(key) == false)
+                m_values[sec].Add (key, val);
+            else
+                m_values[sec][key] = val;
+
             WriteString (sec, key, val);
         }
-
         /// <summary>
         /// Получить значение из указанной секции по ключу
         /// </summary>
