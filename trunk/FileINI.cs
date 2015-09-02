@@ -285,18 +285,22 @@ namespace HClassLibrary
         /// <param name="val">Значение для сохранения</param>
         public void SetSecValueOfKey(string sec_shr, string key, string val)
         {
+            //Полное наименование секции в файле конфигурации
             string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
-
+            //Проверить наличие секции (по словарю считанных значений)
             if (isSec(sec_shr) == false)
+                //Если нет - добавить
                 m_values.Add (sec, new Dictionary<string,string> ());
             else
                 ;
-
+            //Проверить наличие ключа в секции (по словарю считанных значений)
             if (m_values[sec].ContainsKey(key) == false)
+                //Если нет - добавить
                 m_values[sec].Add (key, val);
             else
+                //Есть - изменить на новое значение
                 m_values[sec][key] = val;
-
+            //Сохранить в файле
             WriteString (sec, key, val);
         }
         /// <summary>
@@ -312,8 +316,14 @@ namespace HClassLibrary
             //Logging.Logg().Debug(@"FileINI::GetSecValueOfKey () - isSec (sec_shr)=" + isSec(sec_shr).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
             return isSec (sec_shr) == true ? m_values[sec].ContainsKey(key) == true ? m_values[sec][key] : string.Empty : string.Empty;
         }
+        /// <summary>
+        /// Возвраить словарь всех значений для секции
+        /// </summary>
+        /// <param name="sec_shr"></param>
+        /// <returns></returns>
         protected Dictionary<string, string> getSecValues(string sec_shr)
         {
+            //Полное наименование секции в файле конфигурации
             string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
             return isSec(sec_shr) == true ? m_values[sec] : null;
         }
