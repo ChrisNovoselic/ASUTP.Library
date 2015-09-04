@@ -12,8 +12,8 @@ using System.Windows.Forms.VisualStyles; //PushButtonState
 using System.Runtime.Remoting.Messaging; //AsyncResult...
 
 namespace HClassLibrary
-{
-    public abstract class HPanelCommon : TableLayoutPanel
+{    
+    public abstract class HPanelCommon : TableLayoutPanel//, IDisposable
     {
         public HPanelCommon(int iColumnCount/* = 16*/, int iRowCount/* = 16*/)
         {
