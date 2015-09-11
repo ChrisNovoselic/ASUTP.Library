@@ -261,6 +261,8 @@ namespace HClassLibrary
         /// <returns></returns>
         public static TimeSpan GetUTCOffsetOfMoscowTimeZone()
         {
+            DateTime dtNow = DateTime.Now;
+
             ////Перечисление всех зо ОС
             //System.Collections.ObjectModel.ReadOnlyCollection <TimeZoneInfo> tzi = TimeZoneInfo.GetSystemTimeZones ();
             //foreach (TimeZoneInfo tz in tzi) {
@@ -268,13 +270,15 @@ namespace HClassLibrary
             //}
 
             ////Вариант №1 - работает, если у пользователя установлено обновление (сезонный переход 26.10.2014)
-            //return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.Now, HAdmin.s_Name_Moscow_TimeZone) - DateTime.UtcNow;
+            //return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dtNow, HAdmin.s_Name_Moscow_TimeZone) - DateTime.UtcNow;
             ////Вариант №2 - работает, если у пользователя установлено обновление (сезонный переход 26.10.2014)
-            //return TimeZoneInfo.FindSystemTimeZoneById(HAdmin.s_Name_Moscow_TimeZone).GetUtcOffset(DateTime.Now);
+            //return TimeZoneInfo.FindSystemTimeZoneById(HAdmin.s_Name_Moscow_TimeZone).GetUtcOffset(dtNow);
             ////Вариант №3 - работает, если у пользователя установлено обновление (сезонный переход 26.10.2014) + известно смещение зоны пользователя от МСК
-            //return DateTime.UtcNow - DateTime.Now - TimeSpan.FromHours(offset_msc);
+            //return DateTime.UtcNow - dtNow - TimeSpan.FromHours(offset_msc);
             //Вариант №4
             return TimeSpan.FromHours (3);
+            ////Вариант №5
+            //return TimeSpan.FromHours(TimeZone.CurrentTimeZone.GetUtcOffset(dtNow).Hours - TimeZoneInfo.FindSystemTimeZoneById(HHandlerDb.s_Name_Moscow_TimeZone).GetUtcOffset(dtNow).Hours);
         }
         /// <summary>
         /// Передать строку сообщения с ошибкой для отображения
