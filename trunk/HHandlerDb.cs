@@ -251,6 +251,28 @@ namespace HClassLibrary
             return dtRes;
         }
 
+        public static DateTime ToMoscowTimeZone()
+        {
+            DateTime dtRes
+                , dt = DateTime.Now;
+
+            if (!(dt.Kind == DateTimeKind.Local))
+                dtRes = dt.Add(GetUTCOffsetOfMoscowTimeZone());
+            else
+            {
+                dtRes = dt - TimeZoneInfo.Local.GetUtcOffset(dt);
+                if (dtRes.IsDaylightSavingTime() == true)
+                {
+                    dtRes = dtRes.AddHours(-1);
+                }
+                else { }
+
+                dtRes = dtRes.Add(GetUTCOffsetOfMoscowTimeZone());
+            }
+
+            return dtRes;
+        }
+
         //public static TimeSpan GetOffsetOfCurrentTimeZone()
         //{
         //    return DateTime.Now - HAdmin.ToCurrentTimeZone(TimeZone.CurrentTimeZone.ToUniversalTime(DateTime.Now));
@@ -269,16 +291,18 @@ namespace HClassLibrary
             //    Console.WriteLine (tz.DisplayName + @", " +  tz.StandardName + @", " + tz.Id);
             //}
 
+            return
             ////Вариант №1 - работает, если у пользователя установлено обновление (сезонный переход 26.10.2014)
-            //return TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dtNow, HAdmin.s_Name_Moscow_TimeZone) - DateTime.UtcNow;
+            //    TimeZoneInfo.ConvertTimeBySystemTimeZoneId(dtNow, HAdmin.s_Name_Moscow_TimeZone) - DateTime.UtcNow
             ////Вариант №2 - работает, если у пользователя установлено обновление (сезонный переход 26.10.2014)
-            //return TimeZoneInfo.FindSystemTimeZoneById(HAdmin.s_Name_Moscow_TimeZone).GetUtcOffset(dtNow);
+            //    TimeZoneInfo.FindSystemTimeZoneById(HAdmin.s_Name_Moscow_TimeZone).GetUtcOffset(dtNow)
             ////Вариант №3 - работает, если у пользователя установлено обновление (сезонный переход 26.10.2014) + известно смещение зоны пользователя от МСК
-            //return DateTime.UtcNow - dtNow - TimeSpan.FromHours(offset_msc);
+            //    DateTime.UtcNow - dtNow - TimeSpan.FromHours(offset_msc)
             //Вариант №4
-            return TimeSpan.FromHours (3);
+                TimeSpan.FromHours (3)
             ////Вариант №5
-            //return TimeSpan.FromHours(TimeZone.CurrentTimeZone.GetUtcOffset(dtNow).Hours - TimeZoneInfo.FindSystemTimeZoneById(HHandlerDb.s_Name_Moscow_TimeZone).GetUtcOffset(dtNow).Hours);
+            //    TimeSpan.FromHours(TimeZone.CurrentTimeZone.GetUtcOffset(dtNow).Hours - TimeZoneInfo.FindSystemTimeZoneById(HHandlerDb.s_Name_Moscow_TimeZone).GetUtcOffset(dtNow).Hours)
+                ;
         }
         /// <summary>
         /// Передать строку сообщения с ошибкой для отображения
