@@ -13,10 +13,10 @@ namespace HClassLibrary
         /// Признак запуска окна
         /// </summary>
         private bool started;
-        /// <summary>
-        /// Объект синхронизации - блокирует использующие потоки до момента создания дескриптора окна
-        /// </summary>
-        public Semaphore m_semaHandleCreated;
+        ///// <summary>
+        ///// Объект синхронизации - блокирует использующие потоки до момента создания дескриптора окна
+        ///// </summary>
+        //public Semaphore m_semaHandleCreated;
 
         public Semaphore m_semaFormClosed;
 
@@ -25,8 +25,8 @@ namespace HClassLibrary
             InitializeComponent();
             started = false;
 
-            m_semaHandleCreated = new Semaphore(1, 1);
-            m_semaHandleCreated.WaitOne ();
+            //m_semaHandleCreated = new Semaphore(1, 1);
+            //m_semaHandleCreated.WaitOne ();
 
             m_semaFormClosed = new Semaphore(1, 1);
 
@@ -84,7 +84,7 @@ namespace HClassLibrary
 
         private void FormWait_HandleCreated(object sender, EventArgs e)
         {
-            m_semaHandleCreated.Release(1);
+            //m_semaHandleCreated.Release(1);
         }
 
         private void WaitForm_FormClosing(object sender, FormClosingEventArgs e)

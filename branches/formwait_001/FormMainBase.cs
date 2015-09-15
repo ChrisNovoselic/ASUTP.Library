@@ -29,6 +29,9 @@ namespace HClassLibrary
         protected DelegateFunc delegateHideGraphicsSettings;
         protected DelegateFunc delegateParamsApply;
 
+        private enum INDEX_SYNCWAIT { UNKNOWN = -1, CLOSING, START, STOP, COUNT_INDEX_SYNCWAIT }
+        private AutoResetEvent [] m_arSyncWait;
+
         protected bool show_error_alert = false;
 
         public static int s_iMainSourceData = -1;
@@ -37,11 +40,21 @@ namespace HClassLibrary
         {
             InitializeComponent();
 
+            this.FormClosing += new FormClosingEventHandler(FormMainBase_FormClosing);
+
             formWait = new FormWait();
             delegateStopWaitForm = new DelegateFunc(formWait.StopWaitForm);
 
             delegateStartWait = new DelegateFunc(StartWait);
             delegateStopWait = new DelegateFunc(StopWait);
+
+            m_arSyncWait = new AutoResetEvent [(int)INDEX_SYNCWAIT.COUNT_INDEX_SYNCWAIT];
+            for (int i = 0; i < (int)INDEX_SYNCWAIT.COUNT_INDEX_SYNCWAIT; i ++)
+                m_arSyncWait[i] = new AutoResetEvent (false);
+
+            m_threadFormWait = new Thread(new ParameterizedThreadStart(ThreadProc));
+            m_threadFormWait.IsBackground = true;
+            m_threadFormWait.Start(formWait);
         }
 
         private void InitializeComponent()
@@ -71,10 +84,33 @@ namespace HClassLibrary
             if (bThrow == true) Abort(msgThrow); else ;
         }
 
-        public static void ThreadProc(object data)
+        public void ThreadProc(object data)
         {
-            FormWait fw = (FormWait)data;
-            fw.StartWaitForm();
+            INDEX_SYNCWAIT indx = INDEX_SYNCWAIT.UNKNOWN;
+            FormWait fw = data as FormWait;
+
+            while (! (indx == INDEX_SYNCWAIT.CLOSING))
+            {
+                indx = (INDEX_SYNCWAIT)WaitHandle.WaitAny(m_arSyncWait);
+                Console.WriteLine(@"FormMainBase::ThreadProc () - indx=" + indx.ToString () + @" - ...");
+
+                switch (indx)
+                {
+                    case INDEX_SYNCWAIT.CLOSING:
+                        break;
+                    case INDEX_SYNCWAIT.START:
+                        fw.Location = new Point(this.Location.X + (this.Width - formWait.Width) / 2, this.Location.Y + (this.Height - formWait.Height) / 2);
+                        //fw.StartWaitForm ();
+                        BeginInvoke (new DelegateFunc (fw.StartWaitForm));
+                        break;
+                    case INDEX_SYNCWAIT.STOP:
+                        //fw.StopWaitForm();
+                        BeginInvoke(new DelegateFunc(fw.StopWaitForm));
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         public void StartWait()
@@ -83,20 +119,10 @@ namespace HClassLibrary
             {
                 if (waitCounter == 0)
                 {
-                    //this.Opacity = 0.75;
-                    if ((! (m_threadFormWait == null))
-                        && (m_threadFormWait.IsAlive == true))
-                        m_threadFormWait.Join();
-                    else
-                        ;
-
                     formWait.m_semaFormClosed.WaitOne ();
 
-                    m_threadFormWait = null;
-                    m_threadFormWait = new Thread(new ParameterizedThreadStart(ThreadProc));
-                    formWait.Location = new Point(this.Location.X + (this.Width - formWait.Width) / 2, this.Location.Y + (this.Height - formWait.Height) / 2);
-                    m_threadFormWait.IsBackground = true;
-                    m_threadFormWait.Start(formWait);
+                    m_arSyncWait[(int)INDEX_SYNCWAIT.START].Set();
+
                 }
                 else
                     ;
@@ -115,16 +141,9 @@ namespace HClassLibrary
 
                 if (waitCounter == 0)
                 {
-                    //Прозрачность
-                    //this.Opacity = 1.0;
-                    //Ожидать закрытия десккриптора окна
-                    ////Вариант №1
-                    //while (formWait.IsHandleCreated == false)
-                    //    ;
-                    //Вариант №2
-                    formWait.m_semaHandleCreated.WaitOne ();
+                    //formWait.m_semaHandleCreated.WaitOne ();
 
-                    formWait.Invoke(delegateStopWaitForm);
+                    m_arSyncWait[(int)INDEX_SYNCWAIT.STOP].Set ();
                 }
                 else
                     ;
@@ -174,5 +193,10 @@ namespace HClassLibrary
         }
 
         public virtual void Close (bool bForce) { base.Close (); }
+
+        private void  FormMainBase_FormClosing (object obj, FormClosingEventArgs ev)
+        {
+            m_arSyncWait[(int)INDEX_SYNCWAIT.CLOSING].Set ();
+        }
     }
 }
