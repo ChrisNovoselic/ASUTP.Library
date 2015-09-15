@@ -23,7 +23,7 @@ namespace HClassLibrary
 
         protected DelegateFunc delegateStartWait;
         protected DelegateFunc delegateStopWait;
-        protected DelegateFunc delegateStopWaitForm;
+        private DelegateFunc delegateStopWaitForm;
         protected DelegateFunc delegateEvent;
         protected DelegateIntFunc delegateUpdateActiveGui;
         protected DelegateFunc delegateHideGraphicsSettings;
@@ -90,6 +90,9 @@ namespace HClassLibrary
                     else
                         ;
 
+                    formWait.m_semaFormClosed.WaitOne ();
+
+                    m_threadFormWait = null;
                     m_threadFormWait = new Thread(new ParameterizedThreadStart(ThreadProc));
                     formWait.Location = new Point(this.Location.X + (this.Width - formWait.Width) / 2, this.Location.Y + (this.Height - formWait.Height) / 2);
                     m_threadFormWait.IsBackground = true;

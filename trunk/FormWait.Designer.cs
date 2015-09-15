@@ -61,8 +61,7 @@ namespace HClassLibrary
             this.Name = "FormWait";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "FormWait";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.WaitForm_FormClosing);
+            this.Text = "FormWait";            
             this.ResumeLayout(false);
             this.PerformLayout();
 
