@@ -43,9 +43,9 @@ namespace HClassLibrary
 
                 //if (IsHandleCreated == true)
                     if (InvokeRequired == true)
-                        BeginInvoke(new DelegateFunc (startWaitForm));
+                        BeginInvoke(new DelegateFunc (show));
                     else
-                        startWaitForm ();
+                        show ();
                 //else ;
             }
             else
@@ -60,9 +60,9 @@ namespace HClassLibrary
 
                 if (IsHandleCreated == true)
                     if (InvokeRequired == true)
-                        BeginInvoke(new DelegateFunc (stopWaitForm));
+                        BeginInvoke(new DelegateFunc (hide));
                     else
-                        stopWaitForm ();
+                        hide ();
                 else
                     ;
             }
@@ -70,13 +70,13 @@ namespace HClassLibrary
                 ;
         }
 
-        private void startWaitForm()
+        private void show()
         {
             this.ShowDialog ();
             Console.WriteLine(@"FormWait::startWaitForm () - ...");
         }
 
-        private void stopWaitForm()
+        private void hide()
         {
             this.Close();
             Console.WriteLine(@"FormWait::stopWaitForm () - ...");
