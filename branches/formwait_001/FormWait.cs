@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace HClassLibrary
 {
@@ -18,21 +19,33 @@ namespace HClassLibrary
         ///// </summary>
         //public Semaphore m_semaHandleCreated;
 
-        public Semaphore m_semaFormClosed;
+        //public Semaphore m_semaFormClosed;
 
-        public FormWait()
+        private static FormWait _this;
+        
+        public static FormWait This { get { if (_this == null) _this = create (); else ; return _this; } }
+
+        private FormWait () : base ()
         {
-            InitializeComponent();
-            started = false;
+        }
+
+        private static FormWait create()
+        {
+            FormWait objRes = new FormWait ();
+
+            objRes.InitializeComponent();
+            objRes.started = false;
 
             //m_semaHandleCreated = new Semaphore(1, 1);
             //m_semaHandleCreated.WaitOne ();
 
-            m_semaFormClosed = new Semaphore(1, 1);
+            //objRes.m_semaFormClosed = new Semaphore(1, 1);
 
-            this.HandleCreated += new EventHandler(FormWait_HandleCreated);
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.WaitForm_FormClosing);
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.WaitForm_FormClosed);
+            objRes.HandleCreated += new EventHandler(objRes.FormWait_HandleCreated);
+            objRes.FormClosing += new System.Windows.Forms.FormClosingEventHandler(objRes.WaitForm_FormClosing);
+            objRes.FormClosed += new System.Windows.Forms.FormClosedEventHandler(objRes.WaitForm_FormClosed);
+
+            return objRes;
         }
 
         public void StartWaitForm()
@@ -72,14 +85,19 @@ namespace HClassLibrary
 
         private void show()
         {
-            this.ShowDialog ();
+            _this.ShowDialog ();
             Console.WriteLine(@"FormWait::startWaitForm () - ...");
         }
 
         private void hide()
         {
-            this.Close();
+            _this.Close();
             Console.WriteLine(@"FormWait::stopWaitForm () - ...");
+        }
+
+        public void SetLocation ()
+        {
+            //Location = new Point(Parent.Location.X + (Parent.Width - this.Width) / 2, Parent.Location.Y + (Parent.Height - this.Height) / 2);
         }
 
         private void FormWait_HandleCreated(object sender, EventArgs e)
@@ -89,7 +107,7 @@ namespace HClassLibrary
 
         private void WaitForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (started == true)
+            if (_this.started == true)
                 //Отменить закрытие, если установлен признак отображения
                 e.Cancel = true;
             else
@@ -99,7 +117,7 @@ namespace HClassLibrary
 
         private void WaitForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            m_semaFormClosed.Release(1);
+            //m_semaFormClosed.Release(1);
         }
     }
 }

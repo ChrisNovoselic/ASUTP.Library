@@ -12,25 +12,25 @@ namespace HClassLibrary
     
     public abstract class FormMainBase : Form
     {
-        protected FormWait formWait;
+        private static FormWait formWait;
         protected static FIleConnSett s_fileConnSett;
 
         protected object lockEvent;
         private object lockValue;
-        private int waitCounter;
+        private static int waitCounter;
 
-        private Thread m_threadFormWait;
+        private static Thread m_threadFormWait;
 
         protected DelegateFunc delegateStartWait;
         protected DelegateFunc delegateStopWait;
-        private DelegateFunc delegateStopWaitForm;
+        //private DelegateFunc delegateStopWaitForm;
         protected DelegateFunc delegateEvent;
         protected DelegateIntFunc delegateUpdateActiveGui;
         protected DelegateFunc delegateHideGraphicsSettings;
         protected DelegateFunc delegateParamsApply;
 
         private enum INDEX_SYNCWAIT { UNKNOWN = -1, CLOSING, START, STOP, COUNT_INDEX_SYNCWAIT }
-        private AutoResetEvent [] m_arSyncWait;
+        private static AutoResetEvent [] m_arSyncWait;
 
         protected bool show_error_alert = false;
 
@@ -40,13 +40,12 @@ namespace HClassLibrary
         {
             InitializeComponent();
 
+            formWait = FormWait.This;
+
             this.FormClosing += new FormClosingEventHandler(FormMainBase_FormClosing);
 
-            formWait = new FormWait();
-            delegateStopWaitForm = new DelegateFunc(formWait.StopWaitForm);
-
-            delegateStartWait = new DelegateFunc(StartWait);
-            delegateStopWait = new DelegateFunc(StopWait);
+            delegateStartWait = new DelegateFunc(startWait);
+            delegateStopWait = new DelegateFunc(stopWait);
 
             m_arSyncWait = new AutoResetEvent [(int)INDEX_SYNCWAIT.COUNT_INDEX_SYNCWAIT];
             for (int i = 0; i < (int)INDEX_SYNCWAIT.COUNT_INDEX_SYNCWAIT; i ++)
@@ -54,7 +53,7 @@ namespace HClassLibrary
 
             m_threadFormWait = new Thread(new ParameterizedThreadStart(ThreadProc));
             m_threadFormWait.IsBackground = true;
-            m_threadFormWait.Start(formWait);
+            m_threadFormWait.Start(null);
         }
 
         private void InitializeComponent()
@@ -84,10 +83,10 @@ namespace HClassLibrary
             if (bThrow == true) Abort(msgThrow); else ;
         }
 
-        public void ThreadProc(object data)
+        public static void ThreadProc(object data)
         {
             INDEX_SYNCWAIT indx = INDEX_SYNCWAIT.UNKNOWN;
-            FormWait fw = data as FormWait;
+            //FormWait fw = data as FormWait;
 
             while (! (indx == INDEX_SYNCWAIT.CLOSING))
             {
@@ -99,13 +98,13 @@ namespace HClassLibrary
                     case INDEX_SYNCWAIT.CLOSING:
                         break;
                     case INDEX_SYNCWAIT.START:
-                        fw.Location = new Point(this.Location.X + (this.Width - formWait.Width) / 2, this.Location.Y + (this.Height - formWait.Height) / 2);
-                        //fw.StartWaitForm ();
-                        BeginInvoke (new DelegateFunc (fw.StartWaitForm));
+                        formWait.SetLocation (); //= new Point(this.Location.X + (this.Width - formWait.Width) / 2, this.Location.Y + (this.Height - formWait.Height) / 2);
+                        formWait.StartWaitForm();
+                        //BeginInvoke (new DelegateFunc (fw.StartWaitForm));
                         break;
                     case INDEX_SYNCWAIT.STOP:
-                        //fw.StopWaitForm();
-                        BeginInvoke(new DelegateFunc(fw.StopWaitForm));
+                        formWait.StopWaitForm();
+                        //BeginInvoke(new DelegateFunc(fw.StopWaitForm));
                         break;
                     default:
                         break;
@@ -113,13 +112,13 @@ namespace HClassLibrary
             }
         }
 
-        public void StartWait()
+        private void startWait()
         {
             lock (lockValue)
             {
                 if (waitCounter == 0)
                 {
-                    formWait.m_semaFormClosed.WaitOne ();
+                    //formWait.m_semaFormClosed.WaitOne ();
 
                     m_arSyncWait[(int)INDEX_SYNCWAIT.START].Set();
 
@@ -131,7 +130,7 @@ namespace HClassLibrary
             }
         }
 
-        public void StopWait()
+        private void stopWait()
         {
             lock (lockValue)
             {

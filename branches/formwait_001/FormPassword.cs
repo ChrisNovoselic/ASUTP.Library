@@ -30,8 +30,10 @@ namespace HClassLibrary
             if (e.KeyCode == Keys.Enter)
             {
                 delegateStartWait();
+                //StartWait();
                 Errors errRes = m_pass.ComparePassword(tbxPassword.Text, (uint)m_idExtPassword, (uint)m_idRolePassword);
                 delegateStopWait();
+                //StopWait ();
                 tbxPassword.Clear ();
                 //StopWait();
                 switch (errRes)

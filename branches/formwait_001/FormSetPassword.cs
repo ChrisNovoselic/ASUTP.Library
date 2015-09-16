@@ -28,8 +28,10 @@ namespace HClassLibrary
             if (tbxNewPassword.Text == tbxNewPasswordAgain.Text)
             {
                 delegateStartWait ();
+                //StartWait();
                 m_pass.SetPassword(tbxNewPassword.Text, (uint)m_idExtPassword, (uint)m_idRolePassword);
                 delegateStopWait();
+                //StopWait ();
                 
                 closing = true;
                 Close();
