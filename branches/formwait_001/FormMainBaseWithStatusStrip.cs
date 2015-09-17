@@ -109,6 +109,7 @@ namespace HClassLibrary
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDescMessage;
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDateMessage;
 
+        protected object lockEvent; 
         protected System.Windows.Forms.Timer m_timer;
 
         protected HReports m_report;
@@ -117,6 +118,7 @@ namespace HClassLibrary
         {
             InitializeComponent();
 
+            lockEvent = new object();
             delegateEvent = new DelegateFunc(EventRaised);
 
             m_report = new HReports();
