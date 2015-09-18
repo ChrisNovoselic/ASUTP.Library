@@ -24,11 +24,11 @@ namespace HClassLibrary
             closing = false;
         }
 
-        public void SetDelegateWait (DelegateFunc start, DelegateFunc stop, DelegateFunc ev)
-        {
-            delegateStartWait = start;
-            delegateStopWait = stop;
-        }
+        //public void SetDelegateWait (DelegateFunc start, DelegateFunc stop, DelegateFunc ev)
+        //{
+        //    delegateStartWait = start;
+        //    delegateStopWait = stop;
+        //}
 
         protected void SetIdPass(int id_ext, Passwords.ID_ROLES id_role)
         {

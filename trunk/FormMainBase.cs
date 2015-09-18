@@ -12,51 +12,86 @@ namespace HClassLibrary
     
     public abstract class FormMainBase : Form
     {
-        protected FormWait formWait;
+        /// <summary>
+        /// Форма, индицирующая продолжительное выполнение операции
+        /// </summary>
+        private FormWait m_formWait;
+        /// <summary>
+        /// Объект для работы с шифрованным файлом с параметрами соединения с БД (конфигурации)
+        /// </summary>
         protected static FIleConnSett s_fileConnSett;
-
-        protected object lockEvent;
-        private object lockValue;
-        private int waitCounter;
-
-        private Thread m_threadFormWait;
-
+        /// <summary>
+        /// Объект для синхронизации доступа к счетчику кол-ва отображаемых наследуемых форм
+        /// </summary>
+        private static object lockCounter = new object ();
+        /// <summary>
+        /// СЧетчик кол-ва наследуемых отображаемых форм
+        /// </summary>
+        private static int formCounter = 0;
+        /// <summary>
+        /// Делегат для вызова на отображение окна 'FormWait'
+        /// </summary>        
         protected DelegateFunc delegateStartWait;
+        /// <summary>
+        /// Делегат для снятия с отображения окна 'FormWait'
+        /// </summary>
         protected DelegateFunc delegateStopWait;
-        private DelegateFunc delegateStopWaitForm;
+        /// <summary>
+        /// Делегат для обработки события периодического обновления строки состояния наследуемой формы
+        /// </summary>
         protected DelegateFunc delegateEvent;
+        /// <summary>
+        /// Делегат для обработки события - применение параметров (с обновлением) графической интерпретации данных
+        /// </summary>        
         protected DelegateIntFunc delegateUpdateActiveGui;
+        /// <summary>
+        /// Делегат для обработки события - скрыть форму с параметрами графической интерпретации данных
+        /// </summary>
         protected DelegateFunc delegateHideGraphicsSettings;
+        /// <summary>
+        /// Делегат для обработки события - применение параметров
+        /// </summary>
         protected DelegateFunc delegateParamsApply;
-
-        protected bool show_error_alert = false;
-
-        public static int s_iMainSourceData = -1;
-
+        /// <summary>
+        /// Идентификатор основного источника данных
+        /// </summary>
+        public static int s_iMainSourceData = -1;        
+        /// <summary>
+        /// Конструктор - основной (без параметров)
+        /// </summary>
         protected FormMainBase()
         {
             InitializeComponent();
 
-            formWait = new FormWait();
-            delegateStopWaitForm = new DelegateFunc(formWait.StopWaitForm);
+            m_formWait = FormWait.This;
 
-            delegateStartWait = new DelegateFunc(StartWait);
-            delegateStopWait = new DelegateFunc(StopWait);
+            this.HandleCreated += new EventHandler(FormMainBase_HandleCreated);
+            this.FormClosed += new FormClosedEventHandler(FormMainBase_FormClosed);
+
+            delegateStartWait = new DelegateFunc(startWait);
+            delegateStopWait = new DelegateFunc(stopWait);
         }
-
+        /// <summary>
+        /// Инициализация индивидуальных параметров формы
+        /// </summary>
         private void InitializeComponent()
         {
-            lockEvent = new object();
-
-            lockValue = new object();
-            waitCounter = 0;
         }
-
+        /// <summary>
+        /// Инициировать аварийное завершение работы
+        /// </summary>
+        /// <param name="msg"></param>
         protected void Abort(string msg)
         {
             throw new Exception(msg);
         }
-
+        /// <summary>
+        /// Инициировать (при необходимости) аврийное завершение
+        ///  , отобразить сообщение
+        /// </summary>
+        /// <param name="msg">Текст сообщения</param>
+        /// <param name="bThrow">Признак инициирования аварийного завершения</param>
+        /// <param name="bSupport">Признак отображения контактной информации техн./поддержки</param>
         protected virtual void Abort(string msg, bool bThrow = false, bool bSupport = true)
         {
             this.Activate();
@@ -70,74 +105,35 @@ namespace HClassLibrary
             MessageBox.Show(this, msgThrow, "Ошибка в работе программы!", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             if (bThrow == true) Abort(msgThrow); else ;
         }
-
-        public static void ThreadProc(object data)
+        /// <summary>
+        /// Запустить (отобразить) форму 'FormWait'
+        /// </summary>
+        private void startWait()
         {
-            FormWait fw = (FormWait)data;
-            fw.StartWaitForm();
+            m_formWait.StartWaitForm (this.Location, this.Size);
         }
-
-        public void StartWait()
+        /// <summary>
+        /// Остановить (скрыть) форму 'FormWait' 
+        /// </summary>
+        private void stopWait()
         {
-            lock (lockValue)
-            {
-                if (waitCounter == 0)
-                {
-                    //this.Opacity = 0.75;
-                    if ((! (m_threadFormWait == null))
-                        && (m_threadFormWait.IsAlive == true))
-                        m_threadFormWait.Join();
-                    else
-                        ;
-
-                    formWait.m_semaFormClosed.WaitOne ();
-
-                    m_threadFormWait = null;
-                    m_threadFormWait = new Thread(new ParameterizedThreadStart(ThreadProc));
-                    formWait.Location = new Point(this.Location.X + (this.Width - formWait.Width) / 2, this.Location.Y + (this.Height - formWait.Height) / 2);
-                    m_threadFormWait.IsBackground = true;
-                    m_threadFormWait.Start(formWait);
-                }
-                else
-                    ;
-
-                waitCounter++;
-            }
+            m_formWait.StopWaitForm();
         }
-
-        public void StopWait()
-        {
-            lock (lockValue)
-            {
-                waitCounter--;
-                if (waitCounter < 0)
-                    waitCounter = 0;
-
-                if (waitCounter == 0)
-                {
-                    //Прозрачность
-                    //this.Opacity = 1.0;
-                    //Ожидать закрытия десккриптора окна
-                    ////Вариант №1
-                    //while (formWait.IsHandleCreated == false)
-                    //    ;
-                    //Вариант №2
-                    formWait.m_semaHandleCreated.WaitOne ();
-
-                    formWait.Invoke(delegateStopWaitForm);
-                }
-                else
-                    ;
-            }
-        }
-
+        /// <summary>
+        /// Рекурсивная функция поиска элемента меню в указанном пункте меню
+        /// </summary>
+        /// <param name="miParent">Пункт меню в котором осуществляется поиск</param>
+        /// <param name="text"></param>
+        /// <returns>Результат - пукт меню с текстом для поиска</returns>
         private ToolStripMenuItem findMainMenuItemOfText(ToolStripMenuItem miParent, string text)
         {
+            //Результат 
             ToolStripMenuItem itemRes = null;
 
             if (miParent.Text == text)
                 itemRes = miParent;
             else
+                //Цикл по всем элементам пункта меню
                 foreach (ToolStripItem mi in miParent.DropDownItems)
                     if (mi is ToolStripMenuItem)
                         if (mi.Text == text)
@@ -146,7 +142,9 @@ namespace HClassLibrary
                             break;
                         }
                         else
+                            //Проверить наличие подменю
                             if (((ToolStripMenuItem)mi).DropDownItems.Count > 0)
+                                //Искать элемент в подменю
                                 findMainMenuItemOfText(mi as ToolStripMenuItem, text);
                             else
                                 ;
@@ -155,7 +153,11 @@ namespace HClassLibrary
 
             return itemRes;
         }
-
+        /// <summary>
+        /// Поиск в главном меню элемента с именнем
+        /// </summary>
+        /// <param name="text">Текст пункта (под)меню для поиска</param>
+        /// <returns>Результат - пукт меню с текстом для поиска</returns>
         public ToolStripMenuItem FindMainMenuItemOfText(string text)
         {
             ToolStripMenuItem itemRes = null;
@@ -172,7 +174,45 @@ namespace HClassLibrary
 
             return itemRes;
         }
-
+        /// <summary>
+        /// Закрыть окно
+        /// </summary>
+        /// <param name="bForce">Признак немедленного закрытия окна</param>
         public virtual void Close (bool bForce) { base.Close (); }
+        /// <summary>
+        /// Обработчик события создания дескрипотра окна
+        ///  для подсчета кол-ва отображаемых наследуемых форм
+        ///  для своевременного вызова функции полного останова окна 'FormWait'
+        /// </summary>
+        /// <param name="obj">Объект, инициировавший событие - this</param>
+        /// <param name="ev">Аргумент события</param>
+        private void FormMainBase_HandleCreated (object obj, EventArgs ev)
+        {
+            lock (lockCounter)
+            {
+                //Увеличить счетчик
+                formCounter ++;
+            }
+        }
+        /// <summary>
+        /// Обработчик события - закрытие формы
+        ///  для подсчета кол-ва отображаемых наследуемых форм
+        /// </summary>
+        /// <param name="obj">Объект, инициировавший событие - this</param>
+        /// <param name="ev">Аргумент события</param>
+        private void  FormMainBase_FormClosed (object obj, FormClosedEventArgs ev)
+        {
+            lock (lockCounter)
+            {
+                //Декрементировать счетчик
+                formCounter--;
+                //Проверить кол-во отображаемых наследуемых форм
+                if (formCounter == 0)
+                    //Полный останов 'FormWait'
+                    m_formWait.StopWaitForm (true);
+                else
+                    ;
+            }
+        }
     }
 }
