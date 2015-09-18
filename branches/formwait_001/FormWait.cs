@@ -37,10 +37,15 @@ namespace HClassLibrary
         /// Объект синхронизации - блокирует использующие потоки до момента создания дескриптора окна
         /// </summary>
         private Semaphore m_semaHandleCreated
-        /// <summary>
-        /// Объект синхронизации - блокирует использующие потоки до момента закрытия окна
-        /// </summary>
-            , m_semaFormClosed;
+        ///  <summary>
+        /// Объект синхронизации - блокирует использующие потоки до момента уничтожения дескриптора окна
+        ///  </summary>
+            , m_semaHandleDestroyed
+        ///// <summary>
+        ///// Объект синхронизации - блокирует использующие потоки до момента закрытия окна
+        ///// </summary>
+            //, m_semaFormClosed        
+            ;
         /// <summary>
         /// Ссылка на самого себя
         ///  для реализации создания одного и только одного объекта в границах приложения
@@ -66,7 +71,9 @@ namespace HClassLibrary
             //Задать состояние - окно НЕ отображается
             m_semaHandleCreated.WaitOne ();
             //Создать/инициализировать объект синхронизации закрытия окна (состояние - окно НЕ отображается)
-            m_semaFormClosed = new Semaphore(1, 1);
+            m_semaHandleDestroyed = new Semaphore(1, 1);
+            ////Создать/инициализировать объект синхронизации закрытия окна (состояние - окно НЕ отображается)
+            //m_semaFormClosed = new Semaphore(1, 1);
             //Создать/инициализировать объекты синхронизации по изменению состояния окна
             if (m_arSyncState == null)
             {
@@ -89,8 +96,9 @@ namespace HClassLibrary
             delegateFuncClose = new DelegateFunc (close);
 
             HandleCreated += new EventHandler(FormWait_HandleCreated);
+            HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
             FormClosing += new System.Windows.Forms.FormClosingEventHandler(WaitForm_FormClosing);
-            FormClosed += new System.Windows.Forms.FormClosedEventHandler(WaitForm_FormClosed);
+            //FormClosed += new System.Windows.Forms.FormClosedEventHandler(WaitForm_FormClosed);
         }
 
         private void startThreadWait ()
@@ -126,7 +134,8 @@ namespace HClassLibrary
 
                 if (waitCounter == 1)
                 {
-                    m_semaFormClosed.WaitOne();
+                    //m_semaFormClosed.WaitOne();
+                    m_semaHandleDestroyed.WaitOne();
                     setLocation(ptLocationParent, szParent);
                     m_arSyncState[(int)INDEX_SYNCSTATE.SHOW].Set();
                 }
@@ -194,6 +203,11 @@ namespace HClassLibrary
             m_semaHandleCreated.Release(1);
         }
 
+        private void FormWait_HandleDestroyed(object sender, EventArgs e)
+        {
+            m_semaHandleDestroyed.Release(1);
+        }
+
         private void WaitForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             ////Отменить закрытие, если установлен признак отображения
@@ -205,11 +219,11 @@ namespace HClassLibrary
             Console.WriteLine(@"FormWait::WaitForm_FormClosing (отмена=" + e.Cancel.ToString() + @") - ...");
         }
 
-        private void WaitForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            //m_threadWait.Join ();
-            m_semaFormClosed.Release(1);
-        }
+        //private void WaitForm_FormClosed(object sender, FormClosedEventArgs e)
+        //{
+        //    //m_threadWait.Join ();
+        //    m_semaFormClosed.Release(1);
+        //}
 
         public void ThreadProc(object data)
         {
