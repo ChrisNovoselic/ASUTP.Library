@@ -114,7 +114,7 @@ namespace HClassLibrary
             lock (lockCounter)
             {
                 waitCounter++;
-                Console.WriteLine(@"FormWait::START; waitCounter=" + waitCounter);
+                //Console.WriteLine(@"FormWait::START; waitCounter=" + waitCounter);
                 //Отображать только один раз
                 if (waitCounter == 1)
                 {
@@ -155,7 +155,7 @@ namespace HClassLibrary
                 }
                 else
                     ;
-                Console.WriteLine(@"FormWait::STOP; waitCounter=" + waitCounter);
+                //Console.WriteLine(@"FormWait::STOP; waitCounter=" + waitCounter);
                 if (bStopped == true)
                 {
                     // для потока 'SHOW' (или наоборот)
@@ -224,7 +224,12 @@ namespace HClassLibrary
         {
             m_semaHandleDestroyed.Release(1);
         }
-
+        /// <summary>
+        /// Обработчик события - перед закрытием окна
+        ///  проверяется признак отображения окна 'FormWait'
+        /// </summary>
+        /// <param name="sender">Объект, инициоровавший событие - this</param>
+        /// <param name="e">Аргумент события</param>
         private void WaitForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             ////Отменить закрытие, если установлен признак отображения
@@ -233,7 +238,7 @@ namespace HClassLibrary
             //    e.Cancel = isStarted;
             //}
 
-            Console.WriteLine(@"FormWait::WaitForm_FormClosing (отмена=" + e.Cancel.ToString() + @") - ...");
+            //Console.WriteLine(@"FormWait::WaitForm_FormClosing (отмена=" + e.Cancel.ToString() + @") - ...");
         }
         /// <summary>
         /// Потоковая функция отображения оркна
@@ -247,7 +252,7 @@ namespace HClassLibrary
             {
                 //Ожидать разрешения на выполнение операции
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent [] { m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING], m_arSyncState[(int)INDEX_SYNCSTATE.SHOW] });
-                Console.WriteLine(@"FormMainBase::ThreadProcShow () - indx=" + indx.ToString() + @" - ...");
+                //Console.WriteLine(@"FormMainBase::ThreadProcShow () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
                 {
@@ -273,7 +278,7 @@ namespace HClassLibrary
             {
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent[] { m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING], m_arSyncState[(int)INDEX_SYNCSTATE.HIDE] });
                 indx = indx == INDEX_SYNCSTATE.CLOSING ? INDEX_SYNCSTATE.CLOSING : indx + 1;
-                Console.WriteLine(@"FormMainBase::ThreadProcHide () - indx=" + indx.ToString() + @" - ...");
+                //Console.WriteLine(@"FormMainBase::ThreadProcHide () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
                 {
