@@ -19,13 +19,17 @@ namespace HClassLibrary
         /// </summary>
         private int waitCounter;
         /// <summary>
-        /// Поток обработки событий по изменению состоянию окна
+        /// Поток обработки событий по изменению состоянию окна - отображение
         /// </summary>
-        private Thread m_threadState;
+        private Thread
+            m_threadShow
+        /// <summary>
+        /// Поток обработки событий по изменению состоянию окна - снятие с отображения
+        /// </summary>
+            , m_threadHide
+            ;
         private enum INDEX_SYNCSTATE { UNKNOWN = -1, CLOSING, SHOW, HIDE, COUNT_INDEX_SYNCSTATE }
         private AutoResetEvent[] m_arSyncState;
-        
-        private Thread m_threadWait;
 
         private DelegateFunc delegateFuncClose;
 
@@ -83,67 +87,52 @@ namespace HClassLibrary
             }
             else
                 ;
-            
-            if (m_threadState == null)
-            {
-                m_threadState = new Thread(new ParameterizedThreadStart(ThreadProc));
-                m_threadState.IsBackground = true;
-                m_threadState.Start(null);
-            }
-            else
-                ;
+
+            m_threadShow = new Thread(new ParameterizedThreadStart(ThreadProcShow));
+            m_threadShow.Name = @"FormWait.Thread - SHOW";
+            m_threadShow.IsBackground = true;
+            m_threadShow.Start(null);
+
+            m_threadHide = new Thread(new ParameterizedThreadStart(ThreadProcHide));
+            m_threadHide.Name = @"FormWait.Thread - HIDE";
+            m_threadHide.IsBackground = true;
+            m_threadHide.Start(null);
 
             delegateFuncClose = new DelegateFunc (close);
 
             HandleCreated += new EventHandler(FormWait_HandleCreated);
             HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
             FormClosing += new System.Windows.Forms.FormClosingEventHandler(WaitForm_FormClosing);
-            //FormClosed += new System.Windows.Forms.FormClosedEventHandler(WaitForm_FormClosed);
         }
-
-        private void startThreadWait ()
-        {
-            if (!(m_threadWait == null))
-            {
-                m_threadWait.Join (66);
-                
-                if (m_threadWait.IsAlive == true)
-                {
-                    Console.WriteLine (@"FormWait::ABORT threadWait ...");
-                    
-                    m_threadWait.Abort ();
-                }
-                else
-                    ;
-                m_threadWait = null;
-            }
-            else
-                ;
-
-            m_threadWait = new Thread(new ParameterizedThreadStart(show));
-            m_threadWait.IsBackground = true;
-            m_threadWait.Start ();
-        }
-
+        /// <summary>
+        /// Вызвать на отображение окно
+        /// </summary>
+        /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
+        /// <param name="szParent">Размер родительского окна</param>
         public void StartWaitForm(Point ptLocationParent, Size szParent)
         {
             lock (lockCounter)
             {
                 waitCounter++;
                 Console.WriteLine(@"FormWait::START; waitCounter=" + waitCounter);
-
+                //Отображать только один раз
                 if (waitCounter == 1)
                 {
-                    //m_semaFormClosed.WaitOne();
+                    //Ожидать снятия с отображения
                     m_semaHandleDestroyed.WaitOne();
+                    //Установить координаты для отображения
                     setLocation(ptLocationParent, szParent);
+                    //Рпзрешить отображение
                     m_arSyncState[(int)INDEX_SYNCSTATE.SHOW].Set();
                 }
                 else
                     ;
             }
         }
-
+        /// <summary>
+        /// Снять с отображения окно
+        /// </summary>
+        /// <param name="bStopped"></param>
         public void StopWaitForm(bool bStopped = false)
         {
             lock (lockCounter)
@@ -168,41 +157,69 @@ namespace HClassLibrary
                     ;
                 Console.WriteLine(@"FormWait::STOP; waitCounter=" + waitCounter);
                 if (bStopped == true)
+                {
+                    // для потока 'SHOW' (или наоборот)
                     m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING].Set();
+                    // для потока 'HIDE' (или наоборот)
+                    m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING].Set();
+                }
                 else
                     ;
             }
         }
-
-        private void show(object obj)
+        /// <summary>
+        /// Отобразить окно
+        /// </summary>
+        private void show()
         {
             //Console.WriteLine(@"FormWait::show () - ...");
             Location = _location;
-            ShowDialog ();            
+            ShowDialog();
         }
-
+        /// <summary>
+        /// Снять с отображения окно
+        /// </summary>
         private void hide()
         {
             m_semaHandleCreated.WaitOne();
-            BeginInvoke (delegateFuncClose);
+            if (InvokeRequired == true)
+                BeginInvoke (delegateFuncClose);
+            else
+                close ();
             //Console.WriteLine(@"FormWait::hide () - ...");
         }
-
+        /// <summary>
+        /// Делегат для вызова метода закрытия окна
+        /// </summary>
         private void close()
         {
             Close ();
         }
-
+        /// <summary>
+        /// Установить позицию окна
+        ///  в зависимости от позиции родительского
+        /// </summary>
+        /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
+        /// <param name="szParent">Размер родительского окна</param>
         private void setLocation(Point ptLocationParent, Size szParent)
         {
             _location = new Point(ptLocationParent.X + (szParent.Width - this.Width) / 2, ptLocationParent.Y + (szParent.Height - this.Height) / 2);
         }
-
+        /// <summary>
+        /// Обработчик события - создание дескриптора окна
+        ///  гарантированное отображение н экране огна
+        /// </summary>
+        /// <param name="sender">Объект, инициоровавший событие - this</param>
+        /// <param name="e">Аргумент события</param>
         private void FormWait_HandleCreated(object sender, EventArgs e)
         {
             m_semaHandleCreated.Release(1);
         }
-
+        /// <summary>
+        /// Обработчик события - уничтожение дескриптора окна
+        /// </summary>
+        /// <param name="sender">Объект, инициоровавший событие - this</param>
+        /// <param name="e">Аргумент события</param>
         private void FormWait_HandleDestroyed(object sender, EventArgs e)
         {
             m_semaHandleDestroyed.Release(1);
@@ -218,32 +235,52 @@ namespace HClassLibrary
 
             Console.WriteLine(@"FormWait::WaitForm_FormClosing (отмена=" + e.Cancel.ToString() + @") - ...");
         }
-
-        //private void WaitForm_FormClosed(object sender, FormClosedEventArgs e)
-        //{
-        //    //m_threadWait.Join ();
-        //    m_semaFormClosed.Release(1);
-        //}
-
-        public void ThreadProc(object data)
+        /// <summary>
+        /// Потоковая функция отображения оркна
+        /// </summary>
+        /// <param name="data">Аргумент при запуске потока</param>
+        public void ThreadProcShow(object data)
         {
             INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
-            //FormWait fw = data as FormWait;
 
             while (!(indx == INDEX_SYNCSTATE.CLOSING))
             {
-                Console.WriteLine(@"FormMainBase::ThreadProc () - indx=" + indx.ToString() + @" - ...");
-                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(m_arSyncState);
+                //Ожидать разрешения на выполнение операции
+                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent [] { m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING], m_arSyncState[(int)INDEX_SYNCSTATE.SHOW] });
+                Console.WriteLine(@"FormMainBase::ThreadProcShow () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
                 {
-                    case INDEX_SYNCSTATE.CLOSING:
+                    case INDEX_SYNCSTATE.CLOSING: // завершение потоковой функции
                         break;
-                    case INDEX_SYNCSTATE.SHOW:                        
-                        startThreadWait ();
+                    case INDEX_SYNCSTATE.SHOW: // отобразить окно
+                        show ();
                         break;
-                    case INDEX_SYNCSTATE.HIDE:
-                        hide ();
+                    default:
+                        break;
+                }
+            }
+        }
+        /// <summary>
+        /// Потоковая функция снятия с отображения оркна
+        /// </summary>
+        /// <param name="data">Аргумент при запуске потока</param>
+        public void ThreadProcHide(object data)
+        {
+            INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
+
+            while (!(indx == INDEX_SYNCSTATE.CLOSING))
+            {
+                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent[] { m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING], m_arSyncState[(int)INDEX_SYNCSTATE.HIDE] });
+                indx = indx == INDEX_SYNCSTATE.CLOSING ? INDEX_SYNCSTATE.CLOSING : indx + 1;
+                Console.WriteLine(@"FormMainBase::ThreadProcHide () - indx=" + indx.ToString() + @" - ...");
+
+                switch (indx)
+                {
+                    case INDEX_SYNCSTATE.CLOSING: // завершение потоковой функции
+                        break;
+                    case INDEX_SYNCSTATE.HIDE: // снять с отображения окно
+                        hide();
                         break;
                     default:
                         break;

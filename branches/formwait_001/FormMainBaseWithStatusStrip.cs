@@ -112,6 +112,11 @@ namespace HClassLibrary
         protected object lockEvent; 
         protected System.Windows.Forms.Timer m_timer;
 
+        /// <summary>
+        /// Признак отображения сообщения (в 1-ой части строки состояния)
+        /// </summary>
+        protected bool show_error_alert = false;        
+
         protected HReports m_report;
 
         protected FormMainBaseWithStatusStrip()
