@@ -19,6 +19,14 @@ namespace HClassLibrary
         /// </summary>
         private int waitCounter;
         /// <summary>
+        /// Дата/время начала отображения окна
+        /// </summary>
+        private DateTime m_dtStartShow;
+        /// <summary>
+        /// Максимальное время отображения окна (секунды)
+        /// </summary>
+        protected static int s_secMaxShowing = 6;
+        /// <summary>
         /// Поток обработки событий по изменению состоянию окна - отображение
         /// </summary>
         private Thread
@@ -70,6 +78,7 @@ namespace HClassLibrary
             //Инициализация объектов подсчета кол-ва вызовов на отображение формы
             lockCounter = new object ();
             waitCounter = 0;
+            m_dtStartShow = DateTime.MinValue;
             //Создать/инициализировать объект синхронизации создания/отображения окна
             m_semaHandleCreated = new Semaphore(1, 1);
             //Задать состояние - окно НЕ отображается
@@ -113,13 +122,35 @@ namespace HClassLibrary
         {
             lock (lockCounter)
             {
+                Logging.Logg().Debug(@"FormWait::StartWaitForm (waitCounter=" + waitCounter + @") - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
+                //Блок для исключения ситуации неограниченного увеличения значения счетчика
+                // ограничитель - максимальное допустимое время (секунды) отображения окна
+                if (waitCounter > 0)
+                    //Проверить признак 1-го отображения окна
+                    if (!(m_dtStartShow == DateTime.MinValue))
+                        //Проверить условие СБРОСА (снятия с отображения)
+                        if ((m_dtStartShow - DateTime.Now).TotalSeconds > s_secMaxShowing)
+                        {
+                            Logging.Logg().Warning(@"FormWait::StartWaitForm (waitCounter=" + waitCounter + @") - СБРОС счетчика - превышение максмального времени ожидания ...", Logging.INDEX_MESSAGE.NOT_SET);
+                            //Выполнить СБРОС (снятие с отображения)
+                            waitCounter = 0;
+                            m_arSyncState[(int)INDEX_SYNCSTATE.HIDE].Set();
+                        }
+                        else
+                            ;
+                    else
+                        ;
+                else
+                    ;
                 waitCounter++;
                 //Console.WriteLine(@"FormWait::START; waitCounter=" + waitCounter);
                 //Отображать только один раз
                 if (waitCounter == 1)
                 {
-                    //Ожидать снятия с отображения
-                    m_semaHandleDestroyed.WaitOne();
+                    //Зафиксировать дату/время начала отображения окна
+                    m_dtStartShow = DateTime.Now;
+                    ////Ожидать снятия с отображения
+                    //m_semaHandleDestroyed.WaitOne();
                     //Установить координаты для отображения
                     setLocation(ptLocationParent, szParent);
                     //Рпзрешить отображение
@@ -173,6 +204,10 @@ namespace HClassLibrary
         private void show()
         {
             //Console.WriteLine(@"FormWait::show () - ...");
+
+            //Ожидать снятия с отображения
+            m_semaHandleDestroyed.WaitOne();
+
             Location = _location;
             ShowDialog();
         }
@@ -204,6 +239,8 @@ namespace HClassLibrary
         private void setLocation(Point ptLocationParent, Size szParent)
         {
             _location = new Point(ptLocationParent.X + (szParent.Width - this.Width) / 2, ptLocationParent.Y + (szParent.Height - this.Height) / 2);
+            //_parent = parent;
+            //_location = new Point(_parent.Location.X + (_parent.Size.Width - this.Width) / 2, _parent.Location.Y + (_parent.Size.Height - this.Height) / 2);
         }
         /// <summary>
         /// Обработчик события - создание дескриптора окна

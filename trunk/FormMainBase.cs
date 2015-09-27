@@ -111,6 +111,7 @@ namespace HClassLibrary
         private void startWait()
         {
             m_formWait.StartWaitForm (this.Location, this.Size);
+            //m_formWait.StartWaitForm(this);
         }
         /// <summary>
         /// Остановить (скрыть) форму 'FormWait' 

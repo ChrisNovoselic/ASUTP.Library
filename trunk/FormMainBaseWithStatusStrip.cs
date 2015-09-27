@@ -284,10 +284,12 @@ namespace HClassLibrary
         {
             if (m_timer.Interval == ProgramBase.TIMER_START_INTERVAL)
             {
-                timer_Start ();
+                timer_Start();
 
                 m_timer.Interval = 1000;
             }
+            else
+                ;
 
             lock (lockEvent)
             {
