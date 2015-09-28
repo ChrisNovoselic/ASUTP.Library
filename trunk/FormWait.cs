@@ -39,7 +39,8 @@ namespace HClassLibrary
         private enum INDEX_SYNCSTATE { UNKNOWN = -1, CLOSING, SHOW, HIDE, COUNT_INDEX_SYNCSTATE }
         private AutoResetEvent[] m_arSyncState;
 
-        private DelegateFunc delegateFuncClose;
+        private DelegateFunc delegateFuncClose
+            , delegateFuncShowDialog;
 
         /// <summary>
         /// ѕризнак запуска окна
@@ -107,6 +108,7 @@ namespace HClassLibrary
             m_threadHide.IsBackground = true;
             m_threadHide.Start(null);
 
+            delegateFuncShowDialog = new DelegateFunc (showDialog);
             delegateFuncClose = new DelegateFunc (close);
 
             HandleCreated += new EventHandler(FormWait_HandleCreated);
@@ -122,7 +124,8 @@ namespace HClassLibrary
         {
             lock (lockCounter)
             {
-                Logging.Logg().Debug(@"FormWait::StartWaitForm (waitCounter=" + waitCounter + @") - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
+                ////«афиксировать в’од в 'FormWait::StartWaitForm'
+                //Logging.Logg().Debug(@"FormWait::StartWaitForm (waitCounter=" + waitCounter + @") - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Ѕлок дл€ исключени€ ситуации неограниченного увеличени€ значени€ счетчика
                 // ограничитель - максимальное допустимое врем€ (секунды) отображени€ окна
                 if (waitCounter > 0)
@@ -203,25 +206,45 @@ namespace HClassLibrary
         /// </summary>
         private void show()
         {
+            ////«афиксировать в’од в 'FormWait::show'
+            //Logging.Logg().Debug(@"FormWait::show () waitCounter=" + waitCounter + @" - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
             //Console.WriteLine(@"FormWait::show () - ...");
 
-            //ќжидать сн€ти€ с отображени€
+            ////ќжидать сн€ти€ с отображени€
             m_semaHandleDestroyed.WaitOne();
 
             Location = _location;
-            ShowDialog();
+            if (InvokeRequired == true)
+                BeginInvoke(delegateFuncShowDialog);
+            else
+                showDialog();
+
+            ////«афиксировать вџ’од в 'FormWait::show'
+            //Logging.Logg().Debug(@"FormWait::show () waitCounter=" + waitCounter + @" - вџ’од ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
         /// <summary>
         /// —н€ть с отображени€ окно
         /// </summary>
         private void hide()
         {
+            ////«афиксировать в’од в 'FormWait::hide'
+            //Logging.Logg().Debug(@"FormWait::hide () waitCounter=" + waitCounter + @" - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
+            
+            //ќжидать создани€ дескриптора окна (по сути - отображени€)
             m_semaHandleCreated.WaitOne();
+
             if (InvokeRequired == true)
-                BeginInvoke (delegateFuncClose);
+                BeginInvoke(delegateFuncClose);
             else
                 close ();
-            //Console.WriteLine(@"FormWait::hide () - ...");
+
+            ////«афиксировать вџ’од в 'FormWait::hide'
+            //Logging.Logg().Debug(@"FormWait::hide () waitCounter=" + waitCounter + @" - вџ’од ...", Logging.INDEX_MESSAGE.NOT_SET);
+        }
+
+        private void showDialog()
+        {
+            ShowDialog();
         }
         /// <summary>
         /// ƒелегат дл€ вызова метода закрыти€ окна
