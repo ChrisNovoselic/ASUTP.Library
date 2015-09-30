@@ -66,7 +66,8 @@ namespace HClassLibrary
             m_formWait = FormWait.This;
 
             this.HandleCreated += new EventHandler(FormMainBase_HandleCreated);
-            this.FormClosed += new FormClosedEventHandler(FormMainBase_FormClosed);
+            this.HandleDestroyed += new EventHandler(FormMainBase_HandleDestroyed);
+            this.FormClosed += new FormClosedEventHandler(FormMainBase_FormClosed);            
 
             delegateStartWait = new DelegateFunc(startWait);
             delegateStopWait = new DelegateFunc(stopWait);
@@ -76,6 +77,7 @@ namespace HClassLibrary
         /// </summary>
         private void InitializeComponent()
         {
+            //TODO
         }
         /// <summary>
         /// Инициировать аварийное завершение работы
@@ -110,8 +112,11 @@ namespace HClassLibrary
         /// </summary>
         private void startWait()
         {
-            m_formWait.StartWaitForm (this.Location, this.Size);
-            //m_formWait.StartWaitForm(this);
+            if (! (this.WindowState == FormWindowState.Minimized))
+                m_formWait.StartWaitForm (this.Location, this.Size);
+                //m_formWait.StartWaitForm(this);
+            else
+                ;
         }
         /// <summary>
         /// Остановить (скрыть) форму 'FormWait' 
@@ -192,7 +197,20 @@ namespace HClassLibrary
             lock (lockCounter)
             {
                 //Увеличить счетчик
-                formCounter ++;
+                formCounter++;
+
+                //Console.WriteLine(@"FormMainBase::InitializeComponent () - formCounter=" + formCounter);
+            }            
+        }
+
+        private void FormMainBase_HandleDestroyed(object obj, EventArgs ev)
+        {
+            lock (lockCounter)
+            {
+                //Декрементировать счетчик
+                formCounter--;
+
+                //Console.WriteLine(@"FormMainBase::InitializeComponent () - formCounter=" + formCounter);
             }
         }
         /// <summary>
@@ -205,10 +223,8 @@ namespace HClassLibrary
         {
             lock (lockCounter)
             {
-                //Декрементировать счетчик
-                formCounter--;
                 //Проверить кол-во отображаемых наследуемых форм
-                if (formCounter == 0)
+                if ((formCounter - 1) == 0)
                     //Полный останов 'FormWait'
                     m_formWait.StopWaitForm (true);
                 else

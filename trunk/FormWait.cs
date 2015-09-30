@@ -325,6 +325,8 @@ namespace HClassLibrary
                         break;
                 }
             }
+
+            //Logging.Logg().Debug(@"FormMainBase::ThreadProcShow () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
         /// <summary>
         /// Потоковая функция снятия с отображения оркна
@@ -351,6 +353,8 @@ namespace HClassLibrary
                         break;
                 }
             }
+
+            //Logging.Logg().Debug(@"FormMainBase::ThreadProcHide () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
     }
 }
