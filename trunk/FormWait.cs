@@ -25,7 +25,7 @@ namespace HClassLibrary
         /// <summary>
         /// Максимальное время отображения окна (секунды)
         /// </summary>
-        protected static int s_secMaxShowing = 6;
+        public static int s_secMaxShowing = 6;
         /// <summary>
         /// Поток обработки событий по изменению состоянию окна - отображение
         /// </summary>
@@ -132,7 +132,7 @@ namespace HClassLibrary
                     //Проверить признак 1-го отображения окна
                     if (!(m_dtStartShow == DateTime.MinValue))
                         //Проверить условие СБРОСА (снятия с отображения)
-                        if ((m_dtStartShow - DateTime.Now).TotalSeconds > s_secMaxShowing)
+                        if ((DateTime.Now - m_dtStartShow).TotalSeconds > s_secMaxShowing)
                         {
                             Logging.Logg().Warning(@"FormWait::StartWaitForm (waitCounter=" + waitCounter + @") - СБРОС счетчика - превышение максмального времени ожидания ...", Logging.INDEX_MESSAGE.NOT_SET);
                             //Выполнить СБРОС (снятие с отображения)
