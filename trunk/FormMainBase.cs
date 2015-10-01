@@ -65,7 +65,7 @@ namespace HClassLibrary
 
             m_formWait = FormWait.This;
 
-            this.HandleCreated += new EventHandler(FormMainBase_HandleCreated);
+            this.Shown += new EventHandler(FormMainBase_Shown);
             this.HandleDestroyed += new EventHandler(FormMainBase_HandleDestroyed);
             this.FormClosed += new FormClosedEventHandler(FormMainBase_FormClosed);            
 
@@ -113,8 +113,9 @@ namespace HClassLibrary
         private void startWait()
         {
             if (! (this.WindowState == FormWindowState.Minimized))
-                m_formWait.StartWaitForm (this.Location, this.Size);
-                //m_formWait.StartWaitForm(this);
+                m_formWait.StartWaitForm (this.Location, this.Size)
+                //m_formWait.StartWaitForm(this)
+                ;
             else
                 ;
         }
@@ -192,7 +193,7 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="obj">Объект, инициировавший событие - this</param>
         /// <param name="ev">Аргумент события</param>
-        private void FormMainBase_HandleCreated (object obj, EventArgs ev)
+        private void FormMainBase_Shown (object obj, EventArgs ev)
         {
             lock (lockCounter)
             {

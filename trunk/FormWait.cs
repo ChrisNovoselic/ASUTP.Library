@@ -49,15 +49,11 @@ namespace HClassLibrary
         /// <summary>
         /// Объект синхронизации - блокирует использующие потоки до момента создания дескриптора окна
         /// </summary>
-        private Semaphore m_semaHandleCreated
-        ///  <summary>
-        /// Объект синхронизации - блокирует использующие потоки до момента уничтожения дескриптора окна
-        ///  </summary>
-            , m_semaHandleDestroyed
-        ///// <summary>
-        ///// Объект синхронизации - блокирует использующие потоки до момента закрытия окна
-        ///// </summary>
-            //, m_semaFormClosed        
+        private Semaphore m_semaShown
+            /// <summary>
+            /// Объект синхронизации - блокирует использующие потоки до момента закрытия окна
+            /// </summary>
+            , m_semaFormClosed        
             ;
         /// <summary>
         /// Ссылка на самого себя
@@ -76,19 +72,18 @@ namespace HClassLibrary
         private FormWait () : base ()
         {
             InitializeComponent();
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             //Инициализация объектов подсчета кол-ва вызовов на отображение формы
             lockCounter = new object ();
             waitCounter = 0;
             m_dtStartShow = DateTime.MinValue;
             //Создать/инициализировать объект синхронизации создания/отображения окна
-            m_semaHandleCreated = new Semaphore(1, 1);
-            //Задать состояние - окно НЕ отображается
-            m_semaHandleCreated.WaitOne ();
+            m_semaShown = new Semaphore(0, 1);
+            //m_semaShown.WaitOne ();
             //Создать/инициализировать объект синхронизации закрытия окна (состояние - окно НЕ отображается)
-            m_semaHandleDestroyed = new Semaphore(1, 1);
+            m_semaFormClosed = new Semaphore(1, 1);
             ////Создать/инициализировать объект синхронизации закрытия окна (состояние - окно НЕ отображается)
-            //m_semaFormClosed = new Semaphore(1, 1);
-            //Создать/инициализировать объекты синхронизации по изменению состояния окна
             if (m_arSyncState == null)
             {
                 m_arSyncState = new AutoResetEvent[(int)INDEX_SYNCSTATE.COUNT_INDEX_SYNCSTATE];
@@ -111,9 +106,8 @@ namespace HClassLibrary
             delegateFuncShowDialog = new DelegateFunc (showDialog);
             delegateFuncClose = new DelegateFunc (close);
 
-            HandleCreated += new EventHandler(FormWait_HandleCreated);
-            HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
-            FormClosing += new System.Windows.Forms.FormClosingEventHandler(WaitForm_FormClosing);
+            Shown += new EventHandler(FormWait_Shown);
+            FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
         }
         /// <summary>
         /// Вызвать на отображение окно
@@ -122,6 +116,9 @@ namespace HClassLibrary
         /// <param name="szParent">Размер родительского окна</param>
         public void StartWaitForm(Point ptLocationParent, Size szParent)
         {
+            //Зафиксировать вХод в 'FormWait::StartWaitForm'
+            Logging.Logg().Warning(@"FormWait::StartWaitForm () - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
+
             lock (lockCounter)
             {
                 ////Зафиксировать вХод в 'FormWait::StartWaitForm'
@@ -136,8 +133,8 @@ namespace HClassLibrary
                         {
                             Logging.Logg().Warning(@"FormWait::StartWaitForm (waitCounter=" + waitCounter + @") - СБРОС счетчика - превышение максмального времени ожидания ...", Logging.INDEX_MESSAGE.NOT_SET);
                             //Выполнить СБРОС (снятие с отображения)
-                            waitCounter = 0;
-                            m_arSyncState[(int)INDEX_SYNCSTATE.HIDE].Set();
+                            waitCounter = 1; //0
+                            //m_arSyncState[(int)INDEX_SYNCSTATE.HIDE].Set();
                         }
                         else
                             ;
@@ -145,10 +142,10 @@ namespace HClassLibrary
                         ;
                 else
                     ;
-                waitCounter++;
+                //waitCounter++;
                 //Console.WriteLine(@"FormWait::START; waitCounter=" + waitCounter);
                 //Отображать только один раз
-                if (waitCounter == 1)
+                if (waitCounter == 0) //1
                 {
                     //Зафиксировать дату/время начала отображения окна
                     m_dtStartShow = DateTime.Now;
@@ -175,12 +172,12 @@ namespace HClassLibrary
                 {
                     if (bStopped == false)
                     {
-                            waitCounter--;
+                            //waitCounter--;
                     }
                     else
-                        waitCounter = 0;
+                        waitCounter = 1; //0
 
-                    if (waitCounter == 0)
+                    if (waitCounter == 1) // == 0
                     {
                         m_arSyncState [(int)INDEX_SYNCSTATE.HIDE].Set();
                     }
@@ -206,18 +203,23 @@ namespace HClassLibrary
         /// </summary>
         private void show()
         {
+            bool bFormClosed = false;            
+
             ////Зафиксировать вХод в 'FormWait::show'
             //Logging.Logg().Debug(@"FormWait::show () waitCounter=" + waitCounter + @" - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
             //Console.WriteLine(@"FormWait::show () - ...");
 
-            ////Ожидать снятия с отображения
-            m_semaHandleDestroyed.WaitOne();
+            //Ожидать снятия с отображения
+            bFormClosed = m_semaFormClosed.WaitOne(); //s_secMaxShowing
 
             Location = _location;
-            if (InvokeRequired == true)
-                BeginInvoke(delegateFuncShowDialog);
+            if (bFormClosed == true)
+                if (InvokeRequired == true)
+                    BeginInvoke(delegateFuncShowDialog);
+                else
+                    showDialog();
             else
-                showDialog();
+                Logging.Logg().Warning(@"FormWait::show () waitCounter=" + waitCounter + @" - m_semaFormClosed=" + bFormClosed.ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET); ;
 
             ////Зафиксировать вЫХод в 'FormWait::show'
             //Logging.Logg().Debug(@"FormWait::show () waitCounter=" + waitCounter + @" - вЫХод ...", Logging.INDEX_MESSAGE.NOT_SET);
@@ -227,17 +229,22 @@ namespace HClassLibrary
         /// </summary>
         private void hide()
         {
+            bool bShown = false;
+
             ////Зафиксировать вХод в 'FormWait::hide'
             //Logging.Logg().Debug(@"FormWait::hide () waitCounter=" + waitCounter + @" - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
-            
+
             //Ожидать создания дескриптора окна (по сути - отображения)
-            m_semaHandleCreated.WaitOne();
+            bShown = m_semaShown.WaitOne(); //s_secMaxShowing
 
-            if (InvokeRequired == true)
-                BeginInvoke(delegateFuncClose);
+            if (bShown == true)
+                if (InvokeRequired == true)
+                    BeginInvoke(delegateFuncClose);
+                else
+                    close ();
             else
-                close ();
-
+                Logging.Logg().Warning(@"FormWait::hide () waitCounter=" + waitCounter + @" - m_semaHandleCreated=" + bShown.ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET); ;
+            
             ////Зафиксировать вЫХод в 'FormWait::hide'
             //Logging.Logg().Debug(@"FormWait::hide () waitCounter=" + waitCounter + @" - вЫХод ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
@@ -245,6 +252,7 @@ namespace HClassLibrary
         private void showDialog()
         {
             ShowDialog();
+            Focus ();
         }
         /// <summary>
         /// Делегат для вызова метода закрытия окна
@@ -264,6 +272,20 @@ namespace HClassLibrary
             _location = new Point(ptLocationParent.X + (szParent.Width - this.Width) / 2, ptLocationParent.Y + (szParent.Height - this.Height) / 2);
             //_parent = parent;
             //_location = new Point(_parent.Location.X + (_parent.Size.Width - this.Width) / 2, _parent.Location.Y + (_parent.Size.Height - this.Height) / 2);
+        }        
+        /// <summary>
+        /// Обработчик события - уничтожение дескриптора окна
+        /// </summary>
+        /// <param name="sender">Объект, инициоровавший событие - this</param>
+        /// <param name="e">Аргумент события</param>
+        private void FormWait_Shown(object sender, EventArgs e)
+        {
+            lock (lockCounter)
+            {
+                waitCounter = 1;
+            }
+            
+            m_semaShown.Release(1);
         }
         /// <summary>
         /// Обработчик события - создание дескриптора окна
@@ -271,34 +293,14 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="sender">Объект, инициоровавший событие - this</param>
         /// <param name="e">Аргумент события</param>
-        private void FormWait_HandleCreated(object sender, EventArgs e)
+        private void FormWait_FormClosed(object sender, FormClosedEventArgs e)
         {
-            m_semaHandleCreated.Release(1);
-        }
-        /// <summary>
-        /// Обработчик события - уничтожение дескриптора окна
-        /// </summary>
-        /// <param name="sender">Объект, инициоровавший событие - this</param>
-        /// <param name="e">Аргумент события</param>
-        private void FormWait_HandleDestroyed(object sender, EventArgs e)
-        {
-            m_semaHandleDestroyed.Release(1);
-        }
-        /// <summary>
-        /// Обработчик события - перед закрытием окна
-        ///  проверяется признак отображения окна 'FormWait'
-        /// </summary>
-        /// <param name="sender">Объект, инициоровавший событие - this</param>
-        /// <param name="e">Аргумент события</param>
-        private void WaitForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            ////Отменить закрытие, если установлен признак отображения
-            //lock (lockCounter)
-            //{
-            //    e.Cancel = isStarted;
-            //}
+            m_semaFormClosed.Release(1);
 
-            //Console.WriteLine(@"FormWait::WaitForm_FormClosing (отмена=" + e.Cancel.ToString() + @") - ...");
+            lock (lockCounter)
+            {
+                waitCounter = 0;
+            }
         }
         /// <summary>
         /// Потоковая функция отображения оркна
@@ -312,6 +314,8 @@ namespace HClassLibrary
             {
                 //Ожидать разрешения на выполнение операции
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent [] { m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING], m_arSyncState[(int)INDEX_SYNCSTATE.SHOW] });
+                //Зафиксировать событие
+                Logging.Logg().Debug(@"FormWait::ThreadProcShow (waitCounter=" + waitCounter + @") - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Console.WriteLine(@"FormMainBase::ThreadProcShow () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
@@ -340,6 +344,8 @@ namespace HClassLibrary
             {
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent[] { m_arSyncState[(int)INDEX_SYNCSTATE.CLOSING], m_arSyncState[(int)INDEX_SYNCSTATE.HIDE] });
                 indx = indx == INDEX_SYNCSTATE.CLOSING ? INDEX_SYNCSTATE.CLOSING : indx + 1;
+                //Зафиксировать событие
+                Logging.Logg().Debug(@"FormWait::ThreadProcHide (waitCounter=" + waitCounter + @") - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Console.WriteLine(@"FormMainBase::ThreadProcHide () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
