@@ -52,7 +52,7 @@ namespace HClassLibrary
         /// <summary>
         /// Признак запуска окна
         /// </summary>
-        private bool isRepeat { get { return _waitCounter > 0; } }
+        private bool isContinue { get { return _waitCounter > 0; } }
 
         private AutoResetEvent [] m_arSyncStates;
         /// <summary>
@@ -61,6 +61,7 @@ namespace HClassLibrary
         /// </summary>
         private static FormWait _this;
         private Point _location;
+        private bool _focused;
         private Form _parent;
         /// <summary>
         /// Получить объект из внешенго кода
@@ -116,38 +117,39 @@ namespace HClassLibrary
             delegateFuncShowDialog = new DelegateFunc (showDialog);
             delegateFuncClose = new DelegateFunc (close);
 
-            Shown += new EventHandler(FormWait_Shown);
-            FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
+            //Shown += new EventHandler(FormWait_Shown);
+            this.HandleCreated += new EventHandler(FormWait_Shown);
+            //FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
+            this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
         }
         /// <summary>
         /// Вызвать на отображение окно
         /// </summary>
         /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
         /// <param name="szParent">Размер родительского окна</param>
-        public void StartWaitForm(Point ptLocationParent, Size szParent)
+        public void StartWaitForm(bool focused, Point ptParent, Size szParent)
         {
-            //Зафиксировать вХод в 'FormWait::StartWaitForm'
-            Logging.Logg().Warning(@"FormWait::StartWaitForm () - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
-
             lock (lockState)
             {
-                //Console.WriteLine(@"FormWait::START; waitCounter=" + waitCounter);
+                //Зафиксировать вХод в 'FormWait::StartWaitForm'
+                Logging.Logg().Warning(@"FormWait::StartWaitForm (_state=" + _state.ToString () + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
+                //Console.WriteLine(@"FormWait::START; _state=" + _state.ToString () + @", waitCounter=" + waitCounter);
+
+                _waitCounter++;
 
                 if (_state == STATE.UNVISIBLED)
                 {
                     //Установить координаты для отображения
-                    setLocation(ptLocationParent, szParent);
+                    setLocation(focused, ptParent, szParent);
                     //Рпзрешить отображение
                     m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG].Set();
 
                     _state = STATE.SHOWING;
                 }
                 else
-                    if (_state == STATE.CLOUSING)
-                    {
-                        _waitCounter++;
-                    }
-                    else
+                    //if (_state == STATE.CLOUSING)
+                    //    _waitCounter++;
+                    //else
                         ;
             }
         }
@@ -155,10 +157,18 @@ namespace HClassLibrary
         /// Снять с отображения окно
         /// </summary>
         /// <param name="bStopped"></param>
-        public void StopWaitForm(bool bStopped = false)
+        public void StopWaitForm(bool bExit = false)
         {
             lock (lockState)
             {
+                //Зафиксировать вХод в 'FormWait::StartWaitForm'
+                Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
+
+                if (_waitCounter > 0)
+                    _waitCounter--;
+                else
+                    ;
+
                 if (_state == STATE.VISIBLED)
                 {
                     m_arSyncManaged[(int)INDEX_SYNCSTATE.CLOSE].Set();
@@ -166,16 +176,15 @@ namespace HClassLibrary
                     _state = STATE.CLOUSING;
                 }
                 else
-                    if (_state == STATE.SHOWING)
-                    {
-                        _waitCounter--;
-                    }
-                    else
+                    //if (_state == STATE.SHOWING)
+                    //    _waitCounter--;
+                    //else
+                    //
                         ;
 
                 //Console.WriteLine(@"FormWait::STOP; waitCounter=" + waitCounter);
 
-                if (bStopped == true)
+                if (bExit == true)
                 {
                     bool bClosed = false;
                     if (!(_state == STATE.UNVISIBLED))
@@ -194,13 +203,20 @@ namespace HClassLibrary
                 else
                     ;
             }
+
+            Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вЫХод...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         private void showDialog()
         {
+            Logging.Logg().Debug(@"FormWait::showDialog () - !!!!!!!!!!!!!", Logging.INDEX_MESSAGE.NOT_SET);
+            
             Location = _location;
             ShowDialog();
-            Focus ();
+            if (_focused == true)
+                Focus ();
+            else
+                ;
         }
         /// <summary>
         /// Делегат для вызова метода закрытия окна
@@ -215,11 +231,12 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
         /// <param name="szParent">Размер родительского окна</param>
-        private void setLocation(Point ptLocationParent, Size szParent)
+        private void setLocation(bool focused, Point ptParent, Size szParent)
         {
-            _location = new Point(ptLocationParent.X + (szParent.Width - this.Width) / 2, ptLocationParent.Y + (szParent.Height - this.Height) / 2);
             //_parent = parent;
+            _focused = focused; //_parent.Focused;
             //_location = new Point(_parent.Location.X + (_parent.Size.Width - this.Width) / 2, _parent.Location.Y + (_parent.Size.Height - this.Height) / 2);
+            _location = new Point(ptParent.X + (szParent.Width - this.Width) / 2, ptParent.Y + (szParent.Height - this.Height) / 2);
         }        
         /// <summary>
         /// Обработчик события - 
@@ -239,6 +256,11 @@ namespace HClassLibrary
         {
             m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
         }
+
+        private void FormWait_HandleDestroyed(object sender, EventArgs e)
+        {
+            m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
+        }
         /// <summary>
         /// Потоковая функция отображения окна
         /// </summary>
@@ -250,8 +272,8 @@ namespace HClassLibrary
             while (!(indx == INDEX_SYNCSTATE.EXIT))
             {
                 //Ожидать разрешения на выполнение операции
-                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent [] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
-                                                                                    , m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG] });
+                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle [] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
+                                                                                , m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG] });
                 //Зафиксировать событие
                 Logging.Logg().Debug(@"FormWait::fThreadProcShowDialog () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Console.WriteLine(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...");
@@ -261,7 +283,10 @@ namespace HClassLibrary
                     case INDEX_SYNCSTATE.EXIT: // завершение потоковой функции
                         break;
                     case INDEX_SYNCSTATE.SHOWDIALOG: // отобразить окно
-                        showDialog();
+                        //if (InvokeRequired == true)
+                        //    BeginInvoke(delegateFuncShowDialog);
+                        //else
+                            showDialog();
                         break;
                     default:
                         break;
@@ -280,7 +305,7 @@ namespace HClassLibrary
 
             while (!(indx == INDEX_SYNCSTATE.EXIT))
             {
-                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new AutoResetEvent[] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
+                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle[] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
                                                                                 , m_arSyncManaged[(int)INDEX_SYNCSTATE.CLOSE] });
                 indx = indx == INDEX_SYNCSTATE.EXIT ? INDEX_SYNCSTATE.EXIT : indx + 1;
                 //Зафиксировать событие
@@ -314,6 +339,9 @@ namespace HClassLibrary
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle[] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
                                                                                 , m_arSyncStates[(int)INDEX_SYNCSTATE.SHOWDIALOG - 1]
                                                                                 , m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1]});
+                //Зафиксировать событие
+                Logging.Logg().Debug(@"FormWait::fThreadProcState () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
+                //Console.WriteLine(@"FormMainBase::fThreadProcState () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
                 {
@@ -324,7 +352,14 @@ namespace HClassLibrary
                         {
                             _state = STATE.VISIBLED;
 
-                            _waitCounter = 1;
+                            if (isContinue == false)
+                            {
+                                m_arSyncManaged[(int)INDEX_SYNCSTATE.CLOSE].Set ();
+
+                                _state = STATE.CLOUSING;
+                            }
+                            else
+                                ;
                         }
                         break;
                     case INDEX_SYNCSTATE.CLOSE: // снять с отображения окно
@@ -332,7 +367,16 @@ namespace HClassLibrary
                         {
                             _state = STATE.UNVISIBLED;
 
-                            _waitCounter = 0;
+                            if (isContinue == true)
+                            {
+                                _waitCounter --;
+
+                                m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG].Set();
+
+                                _state = STATE.SHOWING;
+                            }
+                            else
+                                ;
                         }
                         break;
                     default:
