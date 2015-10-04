@@ -116,7 +116,7 @@ namespace HClassLibrary
             
             if (! (this.WindowState == FormWindowState.Minimized))
                 //m_formWait.StartWaitForm (this)
-                m_formWait.StartWaitForm (this.Focused, this.Location, this.Size)
+                m_formWait.StartWaitForm (this.Location, this.Size)
                 ;
             else
                 ;

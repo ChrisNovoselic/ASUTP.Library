@@ -61,7 +61,7 @@ namespace HClassLibrary
         /// </summary>
         private static FormWait _this;
         private Point _location;
-        private bool _focused;
+        //private bool _focused;
         private Form _parent;
         /// <summary>
         /// Получить объект из внешенго кода
@@ -127,7 +127,7 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
         /// <param name="szParent">Размер родительского окна</param>
-        public void StartWaitForm(bool focused, Point ptParent, Size szParent)
+        public void StartWaitForm(Point ptParent, Size szParent)
         {
             lock (lockState)
             {
@@ -140,7 +140,7 @@ namespace HClassLibrary
                 if (_state == STATE.UNVISIBLED)
                 {
                     //Установить координаты для отображения
-                    setLocation(focused, ptParent, szParent);
+                    setLocation(ptParent, szParent);
                     //Рпзрешить отображение
                     m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG].Set();
 
@@ -213,10 +213,10 @@ namespace HClassLibrary
             
             Location = _location;
             ShowDialog();
-            if (_focused == true)
-                Focus ();
-            else
-                ;
+            //if (_focused == true)
+            //    Focus ();
+            //else
+            //    ;
         }
         /// <summary>
         /// Делегат для вызова метода закрытия окна
@@ -231,10 +231,10 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
         /// <param name="szParent">Размер родительского окна</param>
-        private void setLocation(bool focused, Point ptParent, Size szParent)
+        private void setLocation(Point ptParent, Size szParent)
         {
             //_parent = parent;
-            _focused = focused; //_parent.Focused;
+            //_focused = focused; //_parent.Focused;
             //_location = new Point(_parent.Location.X + (_parent.Size.Width - this.Width) / 2, _parent.Location.Y + (_parent.Size.Height - this.Height) / 2);
             _location = new Point(ptParent.X + (szParent.Width - this.Width) / 2, ptParent.Y + (szParent.Height - this.Height) / 2);
         }        
