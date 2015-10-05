@@ -133,8 +133,8 @@ namespace HClassLibrary
 
             //Shown += new EventHandler(FormWait_Shown);
             this.HandleCreated += new EventHandler(FormWait_Shown);
-            //FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
-            this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
+            FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
+            //this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
         }
         /// <summary>
         /// Вызвать на отображение окно
@@ -268,10 +268,10 @@ namespace HClassLibrary
             m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
         }
 
-        private void FormWait_HandleDestroyed(object sender, EventArgs e)
-        {
-            m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
-        }
+        //private void FormWait_HandleDestroyed(object sender, EventArgs e)
+        //{
+        //    m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
+        //}
         ///// <summary>
         ///// Потоковая функция отображения окна
         ///// </summary>
