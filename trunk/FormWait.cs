@@ -34,15 +34,15 @@ namespace HClassLibrary
         /// ѕоток обработки событий по изменению состо€нию окна - отображение
         /// </summary>
         private BackgroundWorker //Thread
-            m_threadShow
-        /// <summary>
-        /// ѕоток обработки событий по изменению состо€нию окна - сн€тие с отображени€
-        /// </summary>
-            , m_threadHide
-        /// <summary>
-        /// ѕоток обработки событий по изменению состо€нию окна - отображение/сн€тие с отображени€
-        /// </summary>
-            , m_threadState
+            m_threadShowDialog
+        ///// <summary>
+        ///// ѕоток обработки событий по изменению состо€нию окна - сн€тие с отображени€
+        ///// </summary>
+        //    , m_threadHide
+        ///// <summary>
+        ///// ѕоток обработки событий по изменению состо€нию окна - отображение/сн€тие с отображени€
+        ///// </summary>
+        //    , m_threadState
             ;
         private enum INDEX_SYNCSTATE { UNKNOWN = -1, EXIT, SHOWDIALOG, CLOSE, COUNT_INDEX_SYNCSTATE }
         private AutoResetEvent[] m_arSyncManaged;
@@ -103,13 +103,14 @@ namespace HClassLibrary
             //BackgroundWorker threadShow = new BackgroundWorker ();
             //threadShow.
 
-            m_threadShow = new BackgroundWorker (); //new Thread(new ParameterizedThreadStart(fThreadProcShowDialog));
+            m_threadShowDialog = new BackgroundWorker (); //new Thread(new ParameterizedThreadStart(fThreadProcShowDialog));
             //m_threadShow.IsBackground = true;
             //m_threadShow.Name = @"FormWait.Thread - SHOWDIALOG";
             //m_threadShow.IsBackground = true;
             //m_threadShow.Start(null);
-            m_threadShow.DoWork += new DoWorkEventHandler(fThreadProcShowDialog);
-            m_threadShow.RunWorkerAsync ();
+            m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
+            m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadShowDialog_RunWorkerCompleted);
+            m_threadShowDialog.RunWorkerAsync();
 
             m_threadHide = new BackgroundWorker(); //new Thread(new ParameterizedThreadStart(fThreadProcClose));
             //m_threadHide.IsBackground = true;
@@ -276,7 +277,7 @@ namespace HClassLibrary
         ///// </summary>
         ///// <param name="data">јргумент при запуске потока</param>
         //private void fThreadProcShowDialog(object data)
-        private void fThreadProcShowDialog(object obj, DoWorkEventArgs ev)
+        private void fThreadProcShowDialog_DoWork(object obj, DoWorkEventArgs ev)
         {
             INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
 
@@ -305,6 +306,10 @@ namespace HClassLibrary
             }
 
             //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
+        }
+
+        private void fThreadProcShowDialog_RunWorkerCompleted(object obj, RunWorkerCompletedEventArgs ev)
+        {
         }
         ///// <summary>
         ///// ѕотокова€ функци€ сн€ти€ с отображени€ оркна
