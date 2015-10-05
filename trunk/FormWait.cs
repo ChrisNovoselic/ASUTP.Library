@@ -35,14 +35,14 @@ namespace HClassLibrary
         /// </summary>
         private BackgroundWorker //Thread
             m_threadShowDialog
-        ///// <summary>
-        ///// Поток обработки событий по изменению состоянию окна - снятие с отображения
-        ///// </summary>
-        //    , m_threadHide
-        ///// <summary>
-        ///// Поток обработки событий по изменению состоянию окна - отображение/снятие с отображения
-        ///// </summary>
-        //    , m_threadState
+            /// <summary>
+            /// Поток обработки событий по изменению состоянию окна - снятие с отображения
+            /// </summary>
+            , m_threadHide
+            /// <summary>
+            /// Поток обработки событий по изменению состоянию окна - отображение/снятие с отображения
+            /// </summary>
+            , m_threadState
             ;
         private enum INDEX_SYNCSTATE { UNKNOWN = -1, EXIT, SHOWDIALOG, CLOSE, COUNT_INDEX_SYNCSTATE }
         private AutoResetEvent[] m_arSyncManaged;
@@ -109,7 +109,7 @@ namespace HClassLibrary
             //m_threadShow.IsBackground = true;
             //m_threadShow.Start(null);
             m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
-            m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadShowDialog_RunWorkerCompleted);
+            //m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadShowDialog_RunWorkerCompleted);
             m_threadShowDialog.RunWorkerAsync();
 
             m_threadHide = new BackgroundWorker(); //new Thread(new ParameterizedThreadStart(fThreadProcClose));
