@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.ComponentModel; //BackgroundWorker
 using System.Windows.Forms;
 using System.Drawing;
 
@@ -32,7 +33,7 @@ namespace HClassLibrary
         /// <summary>
         /// Поток обработки событий по изменению состоянию окна - отображение
         /// </summary>
-        private Thread
+        private BackgroundWorker //Thread
             m_threadShow
         /// <summary>
         /// Поток обработки событий по изменению состоянию окна - снятие с отображения
@@ -99,20 +100,32 @@ namespace HClassLibrary
             else
                 ;
 
-            m_threadShow = new Thread(new ParameterizedThreadStart(fThreadProcShowDialog));
-            m_threadShow.Name = @"FormWait.Thread - SHOWDIALOG";
-            m_threadShow.IsBackground = true;
-            m_threadShow.Start(null);
+            //BackgroundWorker threadShow = new BackgroundWorker ();
+            //threadShow.
 
-            m_threadHide = new Thread(new ParameterizedThreadStart(fThreadProcClose));
-            m_threadHide.Name = @"FormWait.Thread - CLOSE";
-            m_threadHide.IsBackground = true;
-            m_threadHide.Start(null);
+            m_threadShow = new BackgroundWorker (); //new Thread(new ParameterizedThreadStart(fThreadProcShowDialog));
+            //m_threadShow.IsBackground = true;
+            //m_threadShow.Name = @"FormWait.Thread - SHOWDIALOG";
+            //m_threadShow.IsBackground = true;
+            //m_threadShow.Start(null);
+            m_threadShow.DoWork += new DoWorkEventHandler(fThreadProcShowDialog);
+            m_threadShow.RunWorkerAsync ();
 
-            m_threadState = new Thread(new ParameterizedThreadStart(fThreadProcState));
-            m_threadState.Name = @"FormWait.Thread - STATE";
-            m_threadState.IsBackground = true;
-            m_threadState.Start(null);
+            m_threadHide = new BackgroundWorker(); //new Thread(new ParameterizedThreadStart(fThreadProcClose));
+            //m_threadHide.IsBackground = true;
+            //m_threadHide.Name = @"FormWait.Thread - CLOSE";
+            //m_threadHide.IsBackground = true;
+            //m_threadHide.Start(null);
+            m_threadHide.DoWork += new DoWorkEventHandler(fThreadProcClose);
+            m_threadHide.RunWorkerAsync();
+
+            m_threadState = new BackgroundWorker(); //new Thread(new ParameterizedThreadStart(fThreadProcState));
+            //m_threadState.IsBackground = true;
+            //m_threadState.Name = @"FormWait.Thread - STATE";
+            //m_threadState.IsBackground = true;
+            //m_threadState.Start(null);
+            m_threadState.DoWork += new DoWorkEventHandler(fThreadProcState);
+            m_threadState.RunWorkerAsync();
 
             delegateFuncShowDialog = new DelegateFunc (showDialog);
             delegateFuncClose = new DelegateFunc (close);
@@ -131,8 +144,8 @@ namespace HClassLibrary
         {
             lock (lockState)
             {
-                //Зафиксировать вХод в 'FormWait::StartWaitForm'
-                Logging.Logg().Warning(@"FormWait::StartWaitForm (_state=" + _state.ToString () + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
+                ////Зафиксировать вХод в 'FormWait::StartWaitForm'
+                //Logging.Logg().Warning(@"FormWait::StartWaitForm (_state=" + _state.ToString () + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Console.WriteLine(@"FormWait::START; _state=" + _state.ToString () + @", waitCounter=" + waitCounter);
 
                 _waitCounter++;
@@ -161,8 +174,8 @@ namespace HClassLibrary
         {
             lock (lockState)
             {
-                //Зафиксировать вХод в 'FormWait::StartWaitForm'
-                Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
+                ////Зафиксировать вХод в 'FormWait::StartWaitForm'
+                //Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 if (_waitCounter > 0)
                     _waitCounter--;
@@ -186,12 +199,13 @@ namespace HClassLibrary
 
                 if (bExit == true)
                 {
-                    bool bClosed = false;
-                    if (!(_state == STATE.UNVISIBLED))
-                        //Ожидать закрытия окна
-                        bClosed = m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].WaitOne();
-                    else
-                        ;
+                    //bool bClosed = false;
+                    //if (!(_state == STATE.UNVISIBLED))
+                    //    //Ожидать закрытия окна
+                    //    bClosed = m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].WaitOne()
+                    //    ;
+                    //else
+                    //    ;
                     
                     // для потока 'SHOWDIALOG' (или наоборот)
                     m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT].Set();
@@ -204,19 +218,15 @@ namespace HClassLibrary
                     ;
             }
 
-            Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вЫХод...", Logging.INDEX_MESSAGE.NOT_SET);
+            //Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вЫХод...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         private void showDialog()
         {
-            Logging.Logg().Debug(@"FormWait::showDialog () - !!!!!!!!!!!!!", Logging.INDEX_MESSAGE.NOT_SET);
-            
+            //Logging.Logg().Debug(@"FormWait::showDialog () - !!!!!!!!!!!!!", Logging.INDEX_MESSAGE.NOT_SET);
+
             Location = _location;
             ShowDialog();
-            //if (_focused == true)
-            //    Focus ();
-            //else
-            //    ;
         }
         /// <summary>
         /// Делегат для вызова метода закрытия окна
@@ -261,11 +271,12 @@ namespace HClassLibrary
         {
             m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
         }
-        /// <summary>
-        /// Потоковая функция отображения окна
-        /// </summary>
-        /// <param name="data">Аргумент при запуске потока</param>
-        private void fThreadProcShowDialog(object data)
+        ///// <summary>
+        ///// Потоковая функция отображения окна
+        ///// </summary>
+        ///// <param name="data">Аргумент при запуске потока</param>
+        //private void fThreadProcShowDialog(object data)
+        private void fThreadProcShowDialog(object obj, DoWorkEventArgs ev)
         {
             INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
 
@@ -274,8 +285,8 @@ namespace HClassLibrary
                 //Ожидать разрешения на выполнение операции
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle [] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
                                                                                 , m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG] });
-                //Зафиксировать событие
-                Logging.Logg().Debug(@"FormWait::fThreadProcShowDialog () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
+                ////Зафиксировать событие
+                //Logging.Logg().Debug(@"FormWait::fThreadProcShowDialog () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Console.WriteLine(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
@@ -295,11 +306,12 @@ namespace HClassLibrary
 
             //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
-        /// <summary>
-        /// Потоковая функция снятия с отображения оркна
-        /// </summary>
-        /// <param name="data">Аргумент при запуске потока</param>
-        private void fThreadProcClose(object data)
+        ///// <summary>
+        ///// Потоковая функция снятия с отображения оркна
+        ///// </summary>
+        ///// <param name="data">Аргумент при запуске потока</param>
+        //private void fThreadProcClose(object data)
+        private void fThreadProcClose(object obj, DoWorkEventArgs ev)
         {
             INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
 
@@ -308,8 +320,8 @@ namespace HClassLibrary
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle[] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
                                                                                 , m_arSyncManaged[(int)INDEX_SYNCSTATE.CLOSE] });
                 indx = indx == INDEX_SYNCSTATE.EXIT ? INDEX_SYNCSTATE.EXIT : indx + 1;
-                //Зафиксировать событие
-                Logging.Logg().Debug(@"FormWait::fThreadProcClose () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
+                ////Зафиксировать событие
+                //Logging.Logg().Debug(@"FormWait::fThreadProcClose () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Console.WriteLine(@"FormMainBase::fThreadProcClose () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
@@ -330,7 +342,8 @@ namespace HClassLibrary
             //Logging.Logg().Debug(@"FormMainBase::fThreadProcClose () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
-        private void fThreadProcState(object data)
+        //private void fThreadProcState(object data)
+        private void fThreadProcState(object obj, DoWorkEventArgs ev)
         {
             INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
 
@@ -339,8 +352,8 @@ namespace HClassLibrary
                 indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle[] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
                                                                                 , m_arSyncStates[(int)INDEX_SYNCSTATE.SHOWDIALOG - 1]
                                                                                 , m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1]});
-                //Зафиксировать событие
-                Logging.Logg().Debug(@"FormWait::fThreadProcState () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
+                ////Зафиксировать событие
+                //Logging.Logg().Debug(@"FormWait::fThreadProcState () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
                 //Console.WriteLine(@"FormMainBase::fThreadProcState () - indx=" + indx.ToString() + @" - ...");
 
                 switch (indx)
