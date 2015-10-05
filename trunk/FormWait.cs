@@ -35,17 +35,8 @@ namespace HClassLibrary
         /// </summary>
         private BackgroundWorker //Thread
             m_threadShowDialog
-            /// <summary>
-            /// Поток обработки событий по изменению состоянию окна - снятие с отображения
-            /// </summary>
-            , m_threadHide
-            /// <summary>
-            /// Поток обработки событий по изменению состоянию окна - отображение/снятие с отображения
-            /// </summary>
-            , m_threadState
             ;
         private enum INDEX_SYNCSTATE { UNKNOWN = -1, EXIT, SHOWDIALOG, CLOSE, COUNT_INDEX_SYNCSTATE }
-        private AutoResetEvent[] m_arSyncManaged;
 
         private DelegateFunc delegateFuncClose
             , delegateFuncShowDialog;
@@ -55,7 +46,7 @@ namespace HClassLibrary
         /// </summary>
         private bool isContinue { get { return _waitCounter > 0; } }
 
-        private AutoResetEvent [] m_arSyncStates;
+        private Semaphore m_semaRunWorkerCompleted;
         /// <summary>
         /// Ссылка на самого себя
         ///  для реализации создания одного и только одного объекта в границах приложения
@@ -81,58 +72,18 @@ namespace HClassLibrary
             _state = STATE.UNVISIBLED;
             _waitCounter = 0;
             //m_dtStartShow = DateTime.MinValue;
-            
-            if (m_arSyncStates == null)
-            {
-                m_arSyncStates = new AutoResetEvent[(int)INDEX_SYNCSTATE.COUNT_INDEX_SYNCSTATE - 1];
-                for (int i = (int)INDEX_SYNCSTATE.SHOWDIALOG; i < (int)INDEX_SYNCSTATE.COUNT_INDEX_SYNCSTATE; i++)
-                    m_arSyncStates[i - 1] = new AutoResetEvent(false);
-            }
-            else
-                ;
 
-            if (m_arSyncManaged == null)
-            {
-                m_arSyncManaged = new AutoResetEvent[(int)INDEX_SYNCSTATE.COUNT_INDEX_SYNCSTATE];
-                for (int i = 0; i < (int)INDEX_SYNCSTATE.COUNT_INDEX_SYNCSTATE; i++)
-                    m_arSyncManaged[i] = new AutoResetEvent(false);
-            }
-            else
-                ;
+            m_semaRunWorkerCompleted = new Semaphore(0, 1);
 
-            //BackgroundWorker threadShow = new BackgroundWorker ();
-            //threadShow.
-
-            m_threadShowDialog = new BackgroundWorker (); //new Thread(new ParameterizedThreadStart(fThreadProcShowDialog));
-            //m_threadShow.IsBackground = true;
-            //m_threadShow.Name = @"FormWait.Thread - SHOWDIALOG";
-            //m_threadShow.IsBackground = true;
-            //m_threadShow.Start(null);
+            m_threadShowDialog = new BackgroundWorker ();
             m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
-            //m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadShowDialog_RunWorkerCompleted);
-            m_threadShowDialog.RunWorkerAsync();
-
-            m_threadHide = new BackgroundWorker(); //new Thread(new ParameterizedThreadStart(fThreadProcClose));
-            //m_threadHide.IsBackground = true;
-            //m_threadHide.Name = @"FormWait.Thread - CLOSE";
-            //m_threadHide.IsBackground = true;
-            //m_threadHide.Start(null);
-            m_threadHide.DoWork += new DoWorkEventHandler(fThreadProcClose);
-            m_threadHide.RunWorkerAsync();
-
-            m_threadState = new BackgroundWorker(); //new Thread(new ParameterizedThreadStart(fThreadProcState));
-            //m_threadState.IsBackground = true;
-            //m_threadState.Name = @"FormWait.Thread - STATE";
-            //m_threadState.IsBackground = true;
-            //m_threadState.Start(null);
-            m_threadState.DoWork += new DoWorkEventHandler(fThreadProcState);
-            m_threadState.RunWorkerAsync();
+            m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadProcShowDialog_RunWorkerCompleted);            
 
             delegateFuncShowDialog = new DelegateFunc (showDialog);
             delegateFuncClose = new DelegateFunc (close);
 
-            //Shown += new EventHandler(FormWait_Shown);
-            this.HandleCreated += new EventHandler(FormWait_Shown);
+            this.Shown += new EventHandler(FormWait_Shown);
+            //this.HandleCreated += new EventHandler(FormWait_Shown);
             FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
             //this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
         }
@@ -156,7 +107,7 @@ namespace HClassLibrary
                     //Установить координаты для отображения
                     setLocation(ptParent, szParent);
                     //Рпзрешить отображение
-                    m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG].Set();
+                    m_threadShowDialog.RunWorkerAsync();
 
                     _state = STATE.SHOWING;
                 }
@@ -185,7 +136,10 @@ namespace HClassLibrary
 
                 if (_state == STATE.VISIBLED)
                 {
-                    m_arSyncManaged[(int)INDEX_SYNCSTATE.CLOSE].Set();
+                    if (InvokeRequired == true)
+                        BeginInvoke(delegateFuncClose);
+                    else
+                        close();
 
                     _state = STATE.CLOUSING;
                 }
@@ -197,26 +151,6 @@ namespace HClassLibrary
                         ;
 
                 //Console.WriteLine(@"FormWait::STOP; waitCounter=" + waitCounter);
-
-                if (bExit == true)
-                {
-                    //bool bClosed = false;
-                    //if (!(_state == STATE.UNVISIBLED))
-                    //    //Ожидать закрытия окна
-                    //    bClosed = m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].WaitOne()
-                    //    ;
-                    //else
-                    //    ;
-                    
-                    // для потока 'SHOWDIALOG' (или наоборот)
-                    m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT].Set();
-                    // для потока 'CLOSE' (или наоборот)
-                    m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT].Set();
-                    // для потока 'STATE' (или наоборот)
-                    m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT].Set();
-                }
-                else
-                    ;
             }
 
             //Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вЫХод...", Logging.INDEX_MESSAGE.NOT_SET);
@@ -256,7 +190,22 @@ namespace HClassLibrary
         /// <param name="e">Аргумент события</param>
         private void FormWait_Shown(object sender, EventArgs e)
         {
-            m_arSyncStates[(int)INDEX_SYNCSTATE.SHOWDIALOG - 1].Set();
+            lock (lockState)
+            {
+                _state = STATE.VISIBLED;
+
+                if (isContinue == false)
+                {
+                    _state = STATE.CLOUSING;
+                        
+                    if (InvokeRequired == true)
+                        BeginInvoke(delegateFuncClose);
+                    else
+                        close();
+                }
+                else
+                    ;
+            }
         }
         /// <summary>
         /// Обработчик события - 
@@ -265,7 +214,6 @@ namespace HClassLibrary
         /// <param name="e">Аргумент события</param>
         private void FormWait_FormClosed(object sender, FormClosedEventArgs e)
         {
-            m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
         }
 
         //private void FormWait_HandleDestroyed(object sender, EventArgs e)
@@ -279,128 +227,34 @@ namespace HClassLibrary
         //private void fThreadProcShowDialog(object data)
         private void fThreadProcShowDialog_DoWork(object obj, DoWorkEventArgs ev)
         {
-            INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
+            ////Зафиксировать событие
+            //Logging.Logg().Debug(@"FormWait::fThreadProcShowDialog () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
+            //Console.WriteLine(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...");
 
-            while (!(indx == INDEX_SYNCSTATE.EXIT))
-            {
-                //Ожидать разрешения на выполнение операции
-                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle [] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
-                                                                                , m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG] });
-                ////Зафиксировать событие
-                //Logging.Logg().Debug(@"FormWait::fThreadProcShowDialog () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
-                //Console.WriteLine(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...");
-
-                switch (indx)
-                {
-                    case INDEX_SYNCSTATE.EXIT: // завершение потоковой функции
-                        break;
-                    case INDEX_SYNCSTATE.SHOWDIALOG: // отобразить окно
-                        //if (InvokeRequired == true)
-                        //    BeginInvoke(delegateFuncShowDialog);
-                        //else
-                            showDialog();
-                        break;
-                    default:
-                        break;
-                }
-            }
+                
+            //if (InvokeRequired == true)
+            //    BeginInvoke(delegateFuncShowDialog);
+            //else
+                showDialog();                        
 
             //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
         private void fThreadProcShowDialog_RunWorkerCompleted(object obj, RunWorkerCompletedEventArgs ev)
         {
-        }
-        ///// <summary>
-        ///// Потоковая функция снятия с отображения оркна
-        ///// </summary>
-        ///// <param name="data">Аргумент при запуске потока</param>
-        //private void fThreadProcClose(object data)
-        private void fThreadProcClose(object obj, DoWorkEventArgs ev)
-        {
-            INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
-
-            while (!(indx == INDEX_SYNCSTATE.EXIT))
+            lock (lockState)
             {
-                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle[] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
-                                                                                , m_arSyncManaged[(int)INDEX_SYNCSTATE.CLOSE] });
-                indx = indx == INDEX_SYNCSTATE.EXIT ? INDEX_SYNCSTATE.EXIT : indx + 1;
-                ////Зафиксировать событие
-                //Logging.Logg().Debug(@"FormWait::fThreadProcClose () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
-                //Console.WriteLine(@"FormMainBase::fThreadProcClose () - indx=" + indx.ToString() + @" - ...");
+                _state = STATE.UNVISIBLED;
 
-                switch (indx)
+                if (isContinue == true)
                 {
-                    case INDEX_SYNCSTATE.EXIT: // завершение потоковой функции
-                        break;
-                    case INDEX_SYNCSTATE.CLOSE: // снять с отображения окно
-                        if (InvokeRequired == true)
-                            BeginInvoke(delegateFuncClose);
-                        else
-                            close();
-                        break;
-                    default:
-                        break;
+                    _state = STATE.SHOWING;
+
+                    m_threadShowDialog.RunWorkerAsync();
                 }
+                else
+                    ;
             }
-
-            //Logging.Logg().Debug(@"FormMainBase::fThreadProcClose () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
-        }
-
-        //private void fThreadProcState(object data)
-        private void fThreadProcState(object obj, DoWorkEventArgs ev)
-        {
-            INDEX_SYNCSTATE indx = INDEX_SYNCSTATE.UNKNOWN;
-
-            while (!(indx == INDEX_SYNCSTATE.EXIT))
-            {
-                indx = (INDEX_SYNCSTATE)WaitHandle.WaitAny(new WaitHandle[] { m_arSyncManaged[(int)INDEX_SYNCSTATE.EXIT]
-                                                                                , m_arSyncStates[(int)INDEX_SYNCSTATE.SHOWDIALOG - 1]
-                                                                                , m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1]});
-                ////Зафиксировать событие
-                //Logging.Logg().Debug(@"FormWait::fThreadProcState () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
-                //Console.WriteLine(@"FormMainBase::fThreadProcState () - indx=" + indx.ToString() + @" - ...");
-
-                switch (indx)
-                {
-                    case INDEX_SYNCSTATE.EXIT: // завершение потоковой функции
-                        break;
-                    case INDEX_SYNCSTATE.SHOWDIALOG: // отобразить окно
-                        lock (lockState)
-                        {
-                            _state = STATE.VISIBLED;
-
-                            if (isContinue == false)
-                            {
-                                m_arSyncManaged[(int)INDEX_SYNCSTATE.CLOSE].Set ();
-
-                                _state = STATE.CLOUSING;
-                            }
-                            else
-                                ;
-                        }
-                        break;
-                    case INDEX_SYNCSTATE.CLOSE: // снять с отображения окно
-                        lock (lockState)
-                        {
-                            _state = STATE.UNVISIBLED;
-
-                            if (isContinue == true)
-                            {
-                                _waitCounter --;
-
-                                m_arSyncManaged[(int)INDEX_SYNCSTATE.SHOWDIALOG].Set();
-
-                                _state = STATE.SHOWING;
-                            }
-                            else
-                                ;
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        }        
     }
 }
