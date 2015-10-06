@@ -112,7 +112,7 @@ namespace HClassLibrary
         /// </summary>
         private void startWait()
         {
-            Logging.Logg().Debug(@"FormMainBase::startWait (WindowState=" + this.WindowState + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            //Logging.Logg().Debug(@"FormMainBase::startWait (WindowState=" + this.WindowState + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
             
             if (! (this.WindowState == FormWindowState.Minimized))
                 //m_formWait.StartWaitForm (this)
@@ -126,7 +126,7 @@ namespace HClassLibrary
         /// </summary>
         private void stopWait()
         {
-            Logging.Logg().Debug(@"FormMainBase::stopWait (WindowState=" + this.WindowState + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            //Logging.Logg().Debug(@"FormMainBase::stopWait (WindowState=" + this.WindowState + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
             m_formWait.StopWaitForm();
         }

@@ -20,7 +20,8 @@ namespace HClassLibrary
 
     public delegate int IntDelegateFunc();
     public delegate int IntDelegateIntFunc(int param);
-    
+
+    public delegate string StringDelegateFunc();
     public delegate string StringDelegateIntFunc (int param);
     public delegate string StringDelegateStringFunc(string keyParam);
 
