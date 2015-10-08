@@ -8,6 +8,7 @@ using System.ComponentModel;
 
 namespace HClassLibrary
 {
+    public delegate int DelegateRegisterDbSource(object connSett, bool active, string desc, bool bReq = false);    
     /// <summary>
     /// Интерфейс для класса с описанием управления установленными соединениями с источниками данных
     /// </summary>
@@ -67,16 +68,19 @@ namespace HClassLibrary
     /// </summary>
     public class DbSources : HClassLibrary.IDbSources
     {
-        private enum INDEX_SYNCHRONIZE { UNKNOWN = -1, EXIT, REGISTER, UNREGISTER }
+        private event DelegateRegisterDbSource evtRegister;
+        //public event DelegateIntFunc UnRegister;
 
-        private Queue <object []> m_queueToRegistered;
-        private Queue <int> m_queueResult;
-        private Queue<int> m_queueToUnRegistered;
+        //private enum INDEX_SYNCHRONIZE { UNKNOWN = -1, EXIT, REGISTER, UNREGISTER }
 
-        private AutoResetEvent [] m_arEvtComleted;
-        private AutoResetEvent [] m_arSyncProc;
+        //private Queue <object []> m_queueToRegistered;
+        //private Queue <int> m_queueResult;
+        //private Queue<int> m_queueToUnRegistered;
 
-        private BackgroundWorker m_threadConnSett; 
+        //private AutoResetEvent [] m_arEvtComleted;
+        //private AutoResetEvent [] m_arSyncProc;
+
+        //private BackgroundWorker m_threadConnSett; 
         /// <summary>
         /// Ссылка на "самого себя" - для исключения создания 2-х объектов класса
         /// </summary>
@@ -132,56 +136,59 @@ namespace HClassLibrary
             m_dictListeners = new Dictionary<int,DbSourceListener> ();
             m_objDictListeners = new object ();
 
-            m_queueToRegistered = new Queue<object []> ();
-            m_queueResult = new Queue <int> ();
-            m_queueToUnRegistered = new Queue<int>();
-            m_arSyncProc = new AutoResetEvent [] {
-                new AutoResetEvent (false)
-                , new AutoResetEvent (false)
-                , new AutoResetEvent (false)
-            };
-            m_arEvtComleted = new AutoResetEvent[] {
-                new AutoResetEvent (false)
-                , new AutoResetEvent (false)
-            };
-            m_threadConnSett = new BackgroundWorker ();
-            m_threadConnSett.DoWork += new DoWorkEventHandler(fThreadProcConnSett);
-            m_threadConnSett.RunWorkerAsync ();
+            evtRegister += new DelegateRegisterDbSource(register);
+            //UnRegister += new DelegateIntFunc(unRegister);
+
+            //m_queueToRegistered = new Queue<object []> ();
+            //m_queueResult = new Queue <int> ();
+            //m_queueToUnRegistered = new Queue<int>();
+            //m_arSyncProc = new AutoResetEvent [] {
+            //    new AutoResetEvent (false)
+            //    , new AutoResetEvent (false)
+            //    , new AutoResetEvent (false)
+            //};
+            //m_arEvtComleted = new AutoResetEvent[] {
+            //    new AutoResetEvent (false)
+            //    , new AutoResetEvent (false)
+            //};
+            //m_threadConnSett = new BackgroundWorker ();
+            //m_threadConnSett.DoWork += new DoWorkEventHandler(fThreadProcConnSett);
+            //m_threadConnSett.RunWorkerAsync ();
         }
 
         ~DbSources()
         {
             UnRegister ();
 
-            m_arSyncProc[(int)INDEX_SYNCHRONIZE.EXIT].Set ();
+            //m_arSyncProc[(int)INDEX_SYNCHRONIZE.EXIT].Set ();
         }
 
-        private void fThreadProcConnSett (object obj, DoWorkEventArgs ev)
-        {
-            INDEX_SYNCHRONIZE indx = INDEX_SYNCHRONIZE.UNKNOWN;
+        //private void fThreadProcConnSett (object obj, DoWorkEventArgs ev)
+        //{
+        //    INDEX_SYNCHRONIZE indx = INDEX_SYNCHRONIZE.UNKNOWN;
 
-            while (! (indx == INDEX_SYNCHRONIZE.EXIT))
-            {
-                indx = (INDEX_SYNCHRONIZE) WaitHandle.WaitAny (m_arSyncProc);
+        //    while (! (indx == INDEX_SYNCHRONIZE.EXIT))
+        //    {
+        //        indx = (INDEX_SYNCHRONIZE) WaitHandle.WaitAny (m_arSyncProc);
 
-                switch (indx)
-                {
-                    case INDEX_SYNCHRONIZE.EXIT:
-                        break;
-                    case INDEX_SYNCHRONIZE.REGISTER:
-                        object []pars = m_queueToRegistered.Dequeue ();
-                        m_queueResult.Enqueue (register (pars [0], (bool)pars [1], (string)pars [2], (bool)pars [3])); 
-                        break;
-                    case INDEX_SYNCHRONIZE.UNREGISTER:
-                        unRegister (m_queueToUnRegistered.Dequeue ());
-                        break;
-                    default:
-                        break;
-                }
+        //        switch (indx)
+        //        {
+        //            case INDEX_SYNCHRONIZE.EXIT:
+        //                break;
+        //            case INDEX_SYNCHRONIZE.REGISTER:
+        //                object []pars = m_queueToRegistered.Dequeue ();
+        //                m_queueResult.Enqueue (register (pars [0], (bool)pars [1], (string)pars [2], (bool)pars [3])); 
+        //                break;
+        //            case INDEX_SYNCHRONIZE.UNREGISTER:
+        //                unRegister (m_queueToUnRegistered.Dequeue ());
+        //                break;
+        //            default:
+        //                break;
+        //        }
 
-                m_arEvtComleted[(int)indx - 1].Set ();
-            }
-        }
+        //        m_arEvtComleted[(int)indx - 1].Set ();
+        //    }
+        //}
         /// <summary>
         /// Функция для доступа к объекту
         /// </summary>
@@ -194,22 +201,27 @@ namespace HClassLibrary
 
             return m_this;
         }
-        /// <summary>
-        /// Регистриует клиента соединения, активным или нет, при необходимости принудительно отдельный экземпляр
-        /// </summary>
-        /// <param name="connSett">параметры соединения</param>
-        /// <param name="active">признак активности</param>
-        /// <param name="bReq">признак принудительного создания отдельного экземпляра</param>
-        /// <returns>Идентификатор для получения значений при обращении к БД</returns>
+        ///// <summary>
+        ///// Регистриует клиента соединения, активным или нет, при необходимости принудительно отдельный экземпляр
+        ///// </summary>
+        ///// <param name="connSett">параметры соединения</param>
+        ///// <param name="active">признак активности</param>
+        ///// <param name="bReq">признак принудительного создания отдельного экземпляра</param>
+        ///// <returns>Идентификатор для получения значений при обращении к БД</returns>
+        //public virtual int Register(object connSett, bool active, string desc, bool bReq = false)
+        //{
+        //    m_queueToRegistered.Enqueue(new object[] { connSett, active, desc, bReq });
+
+        //    m_arSyncProc [(int)INDEX_SYNCHRONIZE.REGISTER].Set ();
+
+        //    m_arEvtComleted[(int)INDEX_SYNCHRONIZE.REGISTER - 1].WaitOne();
+
+        //    return m_queueResult.Dequeue ();
+        //}
+
         public virtual int Register(object connSett, bool active, string desc, bool bReq = false)
         {
-            m_queueToRegistered.Enqueue(new object[] { connSett, active, desc, bReq });
-
-            m_arSyncProc [(int)INDEX_SYNCHRONIZE.REGISTER].Set ();
-
-            m_arEvtComleted[(int)INDEX_SYNCHRONIZE.REGISTER - 1].WaitOne();
-
-            return m_queueResult.Dequeue ();
+            return evtRegister(connSett, active, desc, bReq);
         }
 
         private int register(object connSett, bool active, string desc, bool bReq = false)
@@ -394,20 +406,21 @@ namespace HClassLibrary
                 UnRegister(id);
         }
 
-        /// <summary>
-        /// Отмена регистрации клиента соединения
-        /// </summary>
-        /// <param name="id">зарегистрированный идентификатор</param>
+        ///// <summary>
+        ///// Отмена регистрации клиента соединения
+        ///// </summary>
+        ///// <param name="id">зарегистрированный идентификатор</param>
+        //public void UnRegister(int id)
+        //{
+        //    m_queueToUnRegistered.Enqueue(id);
+
+        //    m_arSyncProc[(int)INDEX_SYNCHRONIZE.UNREGISTER].Set();
+
+        //    m_arEvtComleted[(int)INDEX_SYNCHRONIZE.UNREGISTER - 1].WaitOne();
+        //}
+
         public void UnRegister(int id)
-        {
-            m_queueToUnRegistered.Enqueue (id);
-
-            m_arSyncProc[(int)INDEX_SYNCHRONIZE.UNREGISTER].Set ();
-
-            m_arEvtComleted[(int)INDEX_SYNCHRONIZE.UNREGISTER - 1].WaitOne ();
-        }
-
-        private void unRegister(int id)
+        //private void unRegister(int id)
         {
             int err = -1;
 
