@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
+using System.Threading;
+using System.ComponentModel;
+
 namespace HClassLibrary
 {
     /// <summary>
@@ -63,7 +66,17 @@ namespace HClassLibrary
     /// Класс для описания управлением установленными соединениями с источниками данных
     /// </summary>
     public class DbSources : HClassLibrary.IDbSources
-    {        
+    {
+        private enum INDEX_SYNCHRONIZE { UNKNOWN = -1, EXIT, REGISTER, UNREGISTER }
+
+        private Queue <object []> m_queueToRegistered;
+        private Queue <int> m_queueResult;
+        private Queue<int> m_queueToUnRegistered;
+
+        private AutoResetEvent [] m_arEvtComleted;
+        private AutoResetEvent [] m_arSyncProc;
+
+        private BackgroundWorker m_threadConnSett; 
         /// <summary>
         /// Ссылка на "самого себя" - для исключения создания 2-х объектов класса
         /// </summary>
@@ -118,6 +131,56 @@ namespace HClassLibrary
             m_dictDbInterfaces = new Dictionary <int, DbInterface> ();
             m_dictListeners = new Dictionary<int,DbSourceListener> ();
             m_objDictListeners = new object ();
+
+            m_queueToRegistered = new Queue<object []> ();
+            m_queueResult = new Queue <int> ();
+            m_queueToUnRegistered = new Queue<int>();
+            m_arSyncProc = new AutoResetEvent [] {
+                new AutoResetEvent (false)
+                , new AutoResetEvent (false)
+                , new AutoResetEvent (false)
+            };
+            m_arEvtComleted = new AutoResetEvent[] {
+                new AutoResetEvent (false)
+                , new AutoResetEvent (false)
+            };
+            m_threadConnSett = new BackgroundWorker ();
+            m_threadConnSett.DoWork += new DoWorkEventHandler(fThreadProcConnSett);
+            m_threadConnSett.RunWorkerAsync ();
+        }
+
+        ~DbSources()
+        {
+            UnRegister ();
+
+            m_arSyncProc[(int)INDEX_SYNCHRONIZE.EXIT].Set ();
+        }
+
+        private void fThreadProcConnSett (object obj, DoWorkEventArgs ev)
+        {
+            INDEX_SYNCHRONIZE indx = INDEX_SYNCHRONIZE.UNKNOWN;
+
+            while (! (indx == INDEX_SYNCHRONIZE.EXIT))
+            {
+                indx = (INDEX_SYNCHRONIZE) WaitHandle.WaitAny (m_arSyncProc);
+
+                switch (indx)
+                {
+                    case INDEX_SYNCHRONIZE.EXIT:
+                        break;
+                    case INDEX_SYNCHRONIZE.REGISTER:
+                        object []pars = m_queueToRegistered.Dequeue ();
+                        m_queueResult.Enqueue (register (pars [0], (bool)pars [1], (string)pars [2], (bool)pars [3])); 
+                        break;
+                    case INDEX_SYNCHRONIZE.UNREGISTER:
+                        unRegister (m_queueToUnRegistered.Dequeue ());
+                        break;
+                    default:
+                        break;
+                }
+
+                m_arEvtComleted[(int)indx - 1].Set ();
+            }
         }
         /// <summary>
         /// Функция для доступа к объекту
@@ -137,8 +200,19 @@ namespace HClassLibrary
         /// <param name="connSett">параметры соединения</param>
         /// <param name="active">признак активности</param>
         /// <param name="bReq">признак принудительного создания отдельного экземпляра</param>
-        /// <returns></returns>
+        /// <returns>Идентификатор для получения значений при обращении к БД</returns>
         public virtual int Register(object connSett, bool active, string desc, bool bReq = false)
+        {
+            m_queueToRegistered.Enqueue(new object[] { connSett, active, desc, bReq });
+
+            m_arSyncProc [(int)INDEX_SYNCHRONIZE.REGISTER].Set ();
+
+            m_arEvtComleted[(int)INDEX_SYNCHRONIZE.REGISTER - 1].WaitOne();
+
+            return m_queueResult.Dequeue ();
+        }
+
+        private int register(object connSett, bool active, string desc, bool bReq = false)
         {
             int id = -1,
                 err = 0;
@@ -246,7 +320,7 @@ namespace HClassLibrary
         /// <param name="active">Признак активности</param>
         /// <param name="err">Признак ошибки при выполнении регистрации</param>
         /// <returns>Результат выполнения</returns>
-        protected int registerListener(int id, int idListener, bool active, out int err)
+        private int registerListener(int id, int idListener, bool active, out int err)
         {
             int iRes = -1;
 
@@ -325,6 +399,15 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="id">зарегистрированный идентификатор</param>
         public void UnRegister(int id)
+        {
+            m_queueToUnRegistered.Enqueue (id);
+
+            m_arSyncProc[(int)INDEX_SYNCHRONIZE.UNREGISTER].Set ();
+
+            m_arEvtComleted[(int)INDEX_SYNCHRONIZE.UNREGISTER - 1].WaitOne ();
+        }
+
+        private void unRegister(int id)
         {
             int err = -1;
 
