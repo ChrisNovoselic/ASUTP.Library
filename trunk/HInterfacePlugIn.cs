@@ -139,6 +139,7 @@ namespace HClassLibrary
             : base()
         {
             m_markDataHost = new HMark ();
+            _MarkReversed = false;
             m_evObjectHandleCreated = new ManualResetEvent (false);
             //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);
         }
@@ -235,7 +236,8 @@ namespace HClassLibrary
         {
             base.DataAskedHost(new object [] {_Id, par});
         }
-        //public event DelegateObjectFunc EvtDataRecievedHost;
+        
+        protected bool _MarkReversed;
         /// <summary>
         /// Обработчик события ответа от главной формы
         /// </summary>
@@ -246,7 +248,10 @@ namespace HClassLibrary
             else
                 ;
 
-            m_markDataHost.Marked(((EventArgsDataHost)obj).id);
+            if (_MarkReversed == false)
+                m_markDataHost.Marked(((EventArgsDataHost)obj).id);
+            else
+                m_markDataHost.Set(((EventArgsDataHost)obj).id, m_markDataHost.IsMarked(((EventArgsDataHost)obj).id));
         }
     }
     /// <summary>
