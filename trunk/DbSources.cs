@@ -320,7 +320,7 @@ namespace HClassLibrary
         /// <param name="active">Признак активности</param>
         /// <param name="err">Признак ошибки при выполнении регистрации</param>
         /// <returns>Результат выполнения</returns>
-        private int registerListener(int id, int idListener, bool active, out int err)
+        protected int registerListener(int id, int idListener, bool active, out int err)
         {
             int iRes = -1;
 
@@ -359,7 +359,7 @@ namespace HClassLibrary
         /// <param name="idListener">Идентификатор</param>
         /// <param name="active"></param>
         /// <param name="err"></param>
-        private void registerListener(int idReg, int id, int idListener, bool active, out int err)
+        protected void registerListener(int idReg, int id, int idListener, bool active, out int err)
         {
             err = -1;
             DbConnection dbConn = null;
