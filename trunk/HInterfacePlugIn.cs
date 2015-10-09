@@ -30,6 +30,11 @@ namespace HClassLibrary
         , ERROR
     }
 
+    public enum ID_HEAD_ASKED_HOST
+    {
+        GET, CONFIRM
+    }
+
     public interface IPlugIn
     {
         IPlugInHost Host { get; set; }

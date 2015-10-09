@@ -136,6 +136,7 @@ namespace HClassLibrary
             m_dictListeners = new Dictionary<int,DbSourceListener> ();
             m_objDictListeners = new object ();
 
+            //m_evtRegisterComleted = new AutoResetEvent (false);
             evtRegister += new DelegateRegisterDbSource(register);
             //UnRegister += new DelegateIntFunc(unRegister);
 
@@ -219,8 +220,11 @@ namespace HClassLibrary
         //    return m_queueResult.Dequeue ();
         //}
 
+        //private AutoResetEvent m_evtRegisterComleted;
+
         public virtual int Register(object connSett, bool active, string desc, bool bReq = false)
         {
+            //m_evtRegisterComleted.WaitOne ();
             return evtRegister(connSett, active, desc, bReq);
         }
 
@@ -229,7 +233,8 @@ namespace HClassLibrary
             int id = -1,
                 err = 0;
             //Блокировать доступ к словарю
-            lock (m_objDictListeners)
+            lock (this)
+            //lock (m_objDictListeners)
             {
                 //Проверить тип объекта с параметрами соединения
                 if (connSett is ConnectionSettings == true)
@@ -295,18 +300,18 @@ namespace HClassLibrary
 
                             id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
                         }
-                        catch (Exception e) { err = -1; }
+                        catch (Exception e) { Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbSources::register () - ListenerRegister () - ConnectionSettings.ID=" + (connSett as ConnectionSettings).id); err = -1; }
                     }
                     else
                         ; // m_dictDbInterfaces[((ConnectionSettings)connSett).id].Name = desc;
                 else
                     ;
-            }
 
-            if (err == 0)
-                return registerListener (((ConnectionSettings)connSett).id, id, active, out err);
-            else
-                return err;
+                if (err == 0)
+                    return registerListener(ListenerIdLocal, ((ConnectionSettings)connSett).id, id, active, out err);
+                else
+                    return err;
+            }
         }
         /// <summary>
         /// Установить новые параметры для соединения с БД
@@ -324,45 +329,61 @@ namespace HClassLibrary
             else 
                 ;
         }
-        /// <summary>
-        /// Регистрировать подписчика на установленное соединение - получить идентификатор для передачи во-вне
-        /// </summary>
-        /// <param name="id">Идентификатор чего ???</param>
-        /// <param name="idListener">Идентификатор чего ???</param>
-        /// <param name="active">Признак активности</param>
-        /// <param name="err">Признак ошибки при выполнении регистрации</param>
-        /// <returns>Результат выполнения</returns>
-        protected int registerListener(int id, int idListener, bool active, out int err)
+
+        //Function to get random number
+        private static readonly Random getrandom = new Random();
+        private static readonly object syncLock = new object();
+        public static int GetRandomNumber()
         {
-            int iRes = -1;
-
-            lock (m_objDictListeners) {
-                //Поиск нового идентифакатора для подписчика
-                for (iRes = 0; iRes < m_dictListeners.Keys.Count; iRes ++)
-                {
-                    if (m_dictListeners.ContainsKey(iRes) == false)
-                    {
-                        //registerListener(iRes, ((ConnectionSettings)connSett).id, id, active, out err);
-                        break;
-                    }
-                    else
-                        ;
-                }
-
-                //Зарегистрировать новый идентификатор
-                //if (! (iRes < m_dictListeners.Keys.Count))
-                    registerListener(iRes, id, idListener, active, out err);
-                //else
-                //    ;
+            lock (syncLock)
+            { // synchronize
+                return getrandom.Next(1, Int32.MaxValue);
             }
-
-            if (! (err == 0))
-                iRes = -1;
-            else
-                ;
-                
-            return iRes;
         }
+
+        private int ListenerIdLocal
+        {
+            get { return GetRandomNumber() /*Int32.Parse(DateTime.UtcNow.ToString (@"mmssfffff"))*/; }
+        }
+        ///// <summary>
+        ///// Регистрировать подписчика на установленное соединение - получить идентификатор для передачи во-вне
+        ///// </summary>
+        ///// <param name="id">Идентификатор чего ???</param>
+        ///// <param name="idListener">Идентификатор чего ???</param>
+        ///// <param name="active">Признак активности</param>
+        ///// <param name="err">Признак ошибки при выполнении регистрации</param>
+        ///// <returns>Результат выполнения</returns>
+        //protected int registerListener(int id, int idListener, bool active, out int err)
+        //{
+        //    int iRes = -1;
+
+        //    //lock (m_objDictListeners) {
+        //        //Поиск нового идентифакатора для подписчика
+        //        for (iRes = 0; iRes < m_dictListeners.Keys.Count; iRes ++)
+        //        {
+        //            if (m_dictListeners.ContainsKey(iRes) == false)
+        //            {
+        //                //registerListener(iRes, ((ConnectionSettings)connSett).id, id, active, out err);
+        //                break;
+        //            }
+        //            else
+        //                ;
+        //        }
+
+        //        //Зарегистрировать новый идентификатор
+        //        //if (! (iRes < m_dictListeners.Keys.Count))
+        //            registerListener(iRes, id, idListener, active, out err);
+        //        //else
+        //        //    ;
+        //    //}
+
+        //    if (! (err == 0))
+        //        iRes = -1;
+        //    else
+        //        ;
+                
+        //    return iRes;
+        //}
         /// <summary>
         ///  Регистрировать подписчика на установленное соединение - получить идентификатор для передачи в 'registerListener'
         /// </summary>
@@ -371,29 +392,30 @@ namespace HClassLibrary
         /// <param name="idListener">Идентификатор</param>
         /// <param name="active"></param>
         /// <param name="err"></param>
-        protected void registerListener(int idReg, int id, int idListener, bool active, out int err)
+        protected int registerListener(int idReg, int id, int idListener, bool active, out int err)
         {
-            err = -1;
+            err = 0;
             DbConnection dbConn = null;
             
-            if (active == true) {
-                err = 0;
-            }
-            else {
-                ////Вариант №1
-                //dbConn = DbTSQLInterface.getConnection((ConnectionSettings)m_dictDbInterfaces[id].m_connectionSettings, out err);
-
-                //Вариант №2
-                err = 0;
+            if (active == false) {
                 try {
                     dbConn = ((DbTSQLInterface)m_dictDbInterfaces[id]).GetConnection(out err);
-                } catch (Exception e) { err = -1; }
+                }
+                catch (Exception e) { Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbSources::register () - GetConnection () - ..."); err = -1; }
             }
-
-            if (err == 0)
-                m_dictListeners.Add(idReg, new DbSourceListener(id, idListener, dbConn));
             else
                 ;
+
+            if (err == 0)
+            {
+                Console.WriteLine(@"DbSources::registerListener (id=" + id + @", idReg=" + idReg);
+                
+                m_dictListeners.Add(idReg, new DbSourceListener(id, idListener, dbConn));
+            }
+            else
+                ;
+
+            return idReg;
         }
 
         public void UnRegister()
