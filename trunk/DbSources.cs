@@ -341,7 +341,7 @@ namespace HClassLibrary
             }
         }
 
-        private int ListenerIdLocal
+        protected int ListenerIdLocal
         {
             get { return GetRandomNumber() /*Int32.Parse(DateTime.UtcNow.ToString (@"mmssfffff"))*/; }
         }

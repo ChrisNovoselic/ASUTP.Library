@@ -46,7 +46,7 @@ namespace HClassLibrary
         /// </summary>
         private bool isContinue { get { return _waitCounter > 0; } }
 
-        private Semaphore m_semaRunWorkerCompleted;
+        //private Semaphore m_semaShowDialog_RunWorkerCompleted;
         /// <summary>
         /// Ссылка на самого себя
         ///  для реализации создания одного и только одного объекта в границах приложения
@@ -56,9 +56,22 @@ namespace HClassLibrary
         //private bool _focused;
         private Form _parent;
         /// <summary>
-        /// Получить объект из внешенго кода
+        /// Получить объект для внешенго кода
         /// </summary>
-        public static FormWait This { get { if (_this == null) _this = new FormWait (); else ; return _this; } }
+        public static FormWait This
+        {
+            get
+            {
+                if (_this == null)
+                {
+                    _this = new FormWait ();
+                }
+                else
+                    ;
+
+                return _this;
+            }
+        }
         /// <summary>
         /// Конструктор - основной (без параметров)
         /// </summary>
@@ -73,7 +86,7 @@ namespace HClassLibrary
             _waitCounter = 0;
             //m_dtStartShow = DateTime.MinValue;
 
-            m_semaRunWorkerCompleted = new Semaphore(0, 1);
+            //m_semaShowDialog_RunWorkerCompleted = new Semaphore(0, 1);
 
             m_threadShowDialog = new BackgroundWorker ();
             m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
@@ -84,7 +97,7 @@ namespace HClassLibrary
 
             this.Shown += new EventHandler(FormWait_Shown);
             //this.HandleCreated += new EventHandler(FormWait_Shown);
-            FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
+            //FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
             //this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
         }
         /// <summary>
@@ -187,7 +200,7 @@ namespace HClassLibrary
         /// Обработчик события - 
         /// </summary>
         /// <param name="sender">Объект, инициоровавший событие - this</param>
-        /// <param name="e">Аргумент события</param>
+        /// <param name="e">Аргумент события</param>        
         private void FormWait_Shown(object sender, EventArgs e)
         {
             lock (lockState)
@@ -207,24 +220,23 @@ namespace HClassLibrary
                     ;
             }
         }
-        /// <summary>
-        /// Обработчик события - 
-        /// </summary>
-        /// <param name="sender">Объект, инициоровавший событие - this</param>
-        /// <param name="e">Аргумент события</param>
-        private void FormWait_FormClosed(object sender, FormClosedEventArgs e)
-        {
-        }
+        ///// <summary>
+        ///// Обработчик события - 
+        ///// </summary>
+        ///// <param name="sender">Объект, инициоровавший событие - this</param>
+        ///// <param name="e">Аргумент события</param>        
+        //private void FormWait_FormClosed(object sender, FormClosedEventArgs e)
+        //{
+        //}
 
         //private void FormWait_HandleDestroyed(object sender, EventArgs e)
         //{
-        //    m_arSyncStates[(int)INDEX_SYNCSTATE.CLOSE - 1].Set();
         //}
         ///// <summary>
         ///// Потоковая функция отображения окна
         ///// </summary>
-        ///// <param name="data">Аргумент при запуске потока</param>
-        //private void fThreadProcShowDialog(object data)
+        ///// <param name="data">Аргумент при запуске потока</param>        
+        //private void fThreadProcShowDialog(object data)        
         private void fThreadProcShowDialog_DoWork(object obj, DoWorkEventArgs ev)
         {
             ////Зафиксировать событие
