@@ -1,8 +1,6 @@
 using System;
 using System.Threading;
-using System.ComponentModel; //BackgroundWorker
 using System.Windows.Forms;
-using System.Drawing;
 
 namespace HClassLibrary
 {
@@ -11,262 +9,102 @@ namespace HClassLibrary
     /// </summary>
     public partial class FormWait : Form
     {
-        private enum STATE { UNKNOWN = -1, UNVISIBLED, SHOWING, VISIBLED, CLOUSING }
-
-        private STATE _state;
-        /// <summary>
-        /// Объект для блокирования изменения значения счетчика вызовов окна на отображение
-        /// </summary>
-        private object lockState;
-        /// <summary>
-        /// Счетчик вызовов окна на отображение
-        /// </summary>
-        private int _waitCounter;
-        ///// <summary>
-        ///// Дата/время начала отображения окна
-        ///// </summary>
-        //private DateTime m_dtStartShow;
-        /// <summary>
-        /// Максимальное время отображения окна (секунды)
-        /// </summary>
-        public static int s_secMaxShowing = 6;
-        /// <summary>
-        /// Поток обработки событий по изменению состоянию окна - отображение
-        /// </summary>
-        private BackgroundWorker //Thread
-            m_threadShowDialog
-            ;
-        private enum INDEX_SYNCSTATE { UNKNOWN = -1, EXIT, SHOWDIALOG, CLOSE, COUNT_INDEX_SYNCSTATE }
-
-        private DelegateFunc delegateFuncClose
-            , delegateFuncShowDialog;
-
         /// <summary>
         /// Признак запуска окна
         /// </summary>
-        private bool isContinue { get { return _waitCounter > 0; } }
+        private bool started;
+        /// <summary>
+        /// Объект синхронизации - блокирует использующие потоки до момента создания дескриптора окна
+        /// </summary>
+        public Semaphore m_semaHandleCreated;
+        public Semaphore [] m_arSemaStop;
 
-        //private Semaphore m_semaShowDialog_RunWorkerCompleted;
-        /// <summary>
-        /// Ссылка на самого себя
-        ///  для реализации создания одного и только одного объекта в границах приложения
-        /// </summary>
-        private static FormWait _this;
-        private Point _location;
-        //private bool _focused;
-        private Form _parent;
-        /// <summary>
-        /// Получить объект для внешенго кода
-        /// </summary>
-        public static FormWait This
+        public FormWait()
         {
-            get
-            {
-                if (_this == null)
-                {
-                    _this = new FormWait ();
-                }
-                else
-                    ;
-
-                return _this;
-            }
-        }
-        /// <summary>
-        /// Конструктор - основной (без параметров)
-        /// </summary>
-        private FormWait () : base ()
-        {
+            Logging.Logg().Debug(@"FormWait::ctor () - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            
             InitializeComponent();
-            this.ShowIcon = false;
-            this.ShowInTaskbar = false;
-            //Инициализация объектов подсчета кол-ва вызовов на отображение формы
-            lockState = new object ();
-            _state = STATE.UNVISIBLED;
-            _waitCounter = 0;
-            //m_dtStartShow = DateTime.MinValue;
+            started = false;
 
-            //m_semaShowDialog_RunWorkerCompleted = new Semaphore(0, 1);
+            m_semaHandleCreated = new Semaphore(0, 1);
+            m_arSemaStop = new Semaphore [] {
+                new Semaphore(1, 1)
+                , new Semaphore(1, 1)
+            };
 
-            m_threadShowDialog = new BackgroundWorker ();
-            m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
-            m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadProcShowDialog_RunWorkerCompleted);            
-
-            delegateFuncShowDialog = new DelegateFunc (showDialog);
-            delegateFuncClose = new DelegateFunc (close);
-
-            this.Shown += new EventHandler(FormWait_Shown);
-            //this.HandleCreated += new EventHandler(FormWait_Shown);
-            //FormClosed +=new FormClosedEventHandler(FormWait_FormClosed);
-            //this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
+            this.FormClosing += new FormClosingEventHandler(FormWait_FormClosing);
+            this.FormClosed += new FormClosedEventHandler(FormWait_FormClosed);
+            this.HandleCreated += new EventHandler(FormWait_HandleCreated);
+            this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
         }
-        /// <summary>
-        /// Вызвать на отображение окно
-        /// </summary>
-        /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
-        /// <param name="szParent">Размер родительского окна</param>
-        public void StartWaitForm(Point ptParent, Size szParent)
+
+        public void StartWaitForm()
         {
-            lock (lockState)
+            if (started == false)
             {
-                ////Зафиксировать вХод в 'FormWait::StartWaitForm'
-                //Logging.Logg().Warning(@"FormWait::StartWaitForm (_state=" + _state.ToString () + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
-                //Console.WriteLine(@"FormWait::START; _state=" + _state.ToString () + @", waitCounter=" + waitCounter);
+                started = true;
 
-                _waitCounter++;
-
-                if (_state == STATE.UNVISIBLED)
-                {
-                    //Установить координаты для отображения
-                    setLocation(ptParent, szParent);
-                    //Рпзрешить отображение
-                    m_threadShowDialog.RunWorkerAsync();
-
-                    _state = STATE.SHOWING;
-                }
+                //if (IsHandleCreated == true)
+                if (InvokeRequired == true)
+                    BeginInvoke(new DelegateFunc(startWaitForm));
                 else
-                    //if (_state == STATE.CLOUSING)
-                    //    _waitCounter++;
-                    //else
-                        ;
+                    startWaitForm();
+                //else ;
             }
+            else
+                ;
         }
-        /// <summary>
-        /// Снять с отображения окно
-        /// </summary>
-        /// <param name="bStopped"></param>
-        public void StopWaitForm(bool bExit = false)
+
+        public void StopWaitForm()
         {
-            lock (lockState)
+            if (started == true)
             {
-                ////Зафиксировать вХод в 'FormWait::StartWaitForm'
-                //Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вХод...", Logging.INDEX_MESSAGE.NOT_SET);
+                started = false;
 
-                if (_waitCounter > 0)
-                    _waitCounter--;
-                else
-                    ;
-
-                if (_state == STATE.VISIBLED)
-                {
+                if (IsHandleCreated == true)
                     if (InvokeRequired == true)
-                        BeginInvoke(delegateFuncClose);
+                        BeginInvoke(new DelegateFunc(stopWaitForm));
                     else
-                        close();
-
-                    _state = STATE.CLOUSING;
-                }
-                else
-                    //if (_state == STATE.SHOWING)
-                    //    _waitCounter--;
-                    //else
-                    //
-                        ;
-
-                //Console.WriteLine(@"FormWait::STOP; waitCounter=" + waitCounter);
-            }
-
-            //Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вЫХод...", Logging.INDEX_MESSAGE.NOT_SET);
-        }
-
-        private void showDialog()
-        {
-            //Logging.Logg().Debug(@"FormWait::showDialog () - !!!!!!!!!!!!!", Logging.INDEX_MESSAGE.NOT_SET);
-
-            Location = _location;
-            ShowDialog();
-        }
-        /// <summary>
-        /// Делегат для вызова метода закрытия окна
-        /// </summary>
-        private void close()
-        {
-            Close ();
-        }
-        /// <summary>
-        /// Установить позицию окна
-        ///  в зависимости от позиции родительского
-        /// </summary>
-        /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
-        /// <param name="szParent">Размер родительского окна</param>
-        private void setLocation(Point ptParent, Size szParent)
-        {
-            //_parent = parent;
-            //_focused = focused; //_parent.Focused;
-            //_location = new Point(_parent.Location.X + (_parent.Size.Width - this.Width) / 2, _parent.Location.Y + (_parent.Size.Height - this.Height) / 2);
-            _location = new Point(ptParent.X + (szParent.Width - this.Width) / 2, ptParent.Y + (szParent.Height - this.Height) / 2);
-        }        
-        /// <summary>
-        /// Обработчик события - 
-        /// </summary>
-        /// <param name="sender">Объект, инициоровавший событие - this</param>
-        /// <param name="e">Аргумент события</param>        
-        private void FormWait_Shown(object sender, EventArgs e)
-        {
-            lock (lockState)
-            {
-                _state = STATE.VISIBLED;
-
-                if (isContinue == false)
-                {
-                    _state = STATE.CLOUSING;
-                        
-                    if (InvokeRequired == true)
-                        BeginInvoke(delegateFuncClose);
-                    else
-                        close();
-                }
+                        stopWaitForm();
                 else
                     ;
             }
-        }
-        ///// <summary>
-        ///// Обработчик события - 
-        ///// </summary>
-        ///// <param name="sender">Объект, инициоровавший событие - this</param>
-        ///// <param name="e">Аргумент события</param>        
-        //private void FormWait_FormClosed(object sender, FormClosedEventArgs e)
-        //{
-        //}
-
-        //private void FormWait_HandleDestroyed(object sender, EventArgs e)
-        //{
-        //}
-        ///// <summary>
-        ///// Потоковая функция отображения окна
-        ///// </summary>
-        ///// <param name="data">Аргумент при запуске потока</param>        
-        //private void fThreadProcShowDialog(object data)        
-        private void fThreadProcShowDialog_DoWork(object obj, DoWorkEventArgs ev)
-        {
-            ////Зафиксировать событие
-            //Logging.Logg().Debug(@"FormWait::fThreadProcShowDialog () - indx=" + ((INDEX_SYNCSTATE)indx).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
-            //Console.WriteLine(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...");
-
-                
-            //if (InvokeRequired == true)
-            //    BeginInvoke(delegateFuncShowDialog);
-            //else
-                showDialog();                        
-
-            //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            else
+                ;
         }
 
-        private void fThreadProcShowDialog_RunWorkerCompleted(object obj, RunWorkerCompletedEventArgs ev)
+        private void startWaitForm()
         {
-            lock (lockState)
-            {
-                _state = STATE.UNVISIBLED;
+            this.ShowDialog();
+        }
 
-                if (isContinue == true)
-                {
-                    _state = STATE.SHOWING;
+        private void stopWaitForm()
+        {
+            this.Hide ();
+            //this.Close();
+        }
 
-                    m_threadShowDialog.RunWorkerAsync();
-                }
-                else
-                    ;
-            }
-        }        
+        private void FormWait_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (started == true)
+                e.Cancel = true;
+            else
+                ;
+        }
+
+        private void FormWait_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            m_arSemaStop[0].Release(1);
+        }
+
+        private void FormWait_HandleCreated(object sender, EventArgs e)
+        {
+            m_semaHandleCreated.Release(1);
+        }
+
+        private void FormWait_HandleDestroyed(object sender, EventArgs e)
+        {
+            m_arSemaStop[1].Release(1);
+        }
     }
 }

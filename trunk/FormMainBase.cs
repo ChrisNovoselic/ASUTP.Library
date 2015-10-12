@@ -1,6 +1,8 @@
 using System;
 using System.Drawing;
 using System.Threading;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace HClassLibrary
@@ -9,91 +11,74 @@ namespace HClassLibrary
     //{
     //    public HException(string msg) : base(msg) { }
     //}
-    
+
     public abstract class FormMainBase : Form
     {
-        /// <summary>
-        /// Форма, индицирующая продолжительное выполнение операции
-        /// </summary>
-        private FormWait m_formWait;
-        /// <summary>
-        /// Объект для работы с шифрованным файлом с параметрами соединения с БД (конфигурации)
-        /// </summary>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool CloseHandle(IntPtr handle);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr OpenThread(uint desiredAccess, bool inheritHandle, uint threadId);
+        
+        protected FormWait formWait;
         protected static FIleConnSett s_fileConnSett;
-        /// <summary>
-        /// Объект для синхронизации доступа к счетчику кол-ва отображаемых наследуемых форм
-        /// </summary>
-        private static object lockCounter = new object ();
-        /// <summary>
-        /// СЧетчик кол-ва наследуемых отображаемых форм
-        /// </summary>
-        private static int formCounter = 0;
-        /// <summary>
-        /// Делегат для вызова на отображение окна 'FormWait'
-        /// </summary>        
+
+        protected object lockEvent;
+        private object lockValue;
+        private int waitCounter;
+
+        private Point _ptLocation;
+        //private Thread m_threadFormWait;        
+        private IntPtr m_handleFormWait;
+        private ParameterizedThreadStart _threadStart;
+        //private BackgroundWorker m_threadBWorkerFormWait;
+
         protected DelegateFunc delegateStartWait;
-        /// <summary>
-        /// Делегат для снятия с отображения окна 'FormWait'
-        /// </summary>
         protected DelegateFunc delegateStopWait;
-        /// <summary>
-        /// Делегат для обработки события периодического обновления строки состояния наследуемой формы
-        /// </summary>
+        protected DelegateFunc delegateStopWaitForm;
         protected DelegateFunc delegateEvent;
-        /// <summary>
-        /// Делегат для обработки события - применение параметров (с обновлением) графической интерпретации данных
-        /// </summary>        
         protected DelegateIntFunc delegateUpdateActiveGui;
-        /// <summary>
-        /// Делегат для обработки события - скрыть форму с параметрами графической интерпретации данных
-        /// </summary>
         protected DelegateFunc delegateHideGraphicsSettings;
-        /// <summary>
-        /// Делегат для обработки события - применение параметров
-        /// </summary>
         protected DelegateFunc delegateParamsApply;
-        /// <summary>
-        /// Идентификатор основного источника данных
-        /// </summary>
-        public static int s_iMainSourceData = -1;        
-        /// <summary>
-        /// Конструктор - основной (без параметров)
-        /// </summary>
+
+        protected bool show_error_alert = false;
+
+        public static int s_iMainSourceData = -1;
+
         protected FormMainBase()
         {
+            Logging.Logg().Debug(@"FormMainBase::ctor () - ...", Logging.INDEX_MESSAGE.NOT_SET);
+
             InitializeComponent();
 
-            m_formWait = FormWait.This;
+            formWait = new FormWait();
+            delegateStopWaitForm = new DelegateFunc(formWait.StopWaitForm);            
+            _ptLocation = new Point (-1, -1);
 
-            this.Shown += new EventHandler(FormMainBase_Shown);
-            this.HandleDestroyed += new EventHandler(FormMainBase_HandleDestroyed);
-            this.FormClosed += new FormClosedEventHandler(FormMainBase_FormClosed);            
+            m_handleFormWait = IntPtr.Zero;
+            _threadStart = new ParameterizedThreadStart(ThreadProc);
+            //m_threadBWorkerFormWait = new BackgroundWorker();
+            //m_threadBWorkerFormWait.WorkerReportsProgress = false;
+            //m_threadBWorkerFormWait.WorkerSupportsCancellation = true;
+            //m_threadBWorkerFormWait.DoWork += new DoWorkEventHandler(ThreadBWorkerProc);
+            //m_threadBWorkerFormWait.RunWorkerCompleted += new RunWorkerCompletedEventHandler(ThreadBWorker_RunCompleted);
 
-            delegateStartWait = new DelegateFunc(startWait);
-            delegateStopWait = new DelegateFunc(stopWait);
+            delegateStartWait = new DelegateFunc(StartWait);
+            delegateStopWait = new DelegateFunc(StopWait);
         }
-        /// <summary>
-        /// Инициализация индивидуальных параметров формы
-        /// </summary>
+
         private void InitializeComponent()
         {
-            //TODO
+            lockEvent = new object();
+
+            lockValue = new object();
+            waitCounter = 0;
         }
-        /// <summary>
-        /// Инициировать аварийное завершение работы
-        /// </summary>
-        /// <param name="msg"></param>
+
         protected void Abort(string msg)
         {
             throw new Exception(msg);
         }
-        /// <summary>
-        /// Инициировать (при необходимости) аврийное завершение
-        ///  , отобразить сообщение
-        /// </summary>
-        /// <param name="msg">Текст сообщения</param>
-        /// <param name="bThrow">Признак инициирования аварийного завершения</param>
-        /// <param name="bSupport">Признак отображения контактной информации техн./поддержки</param>
+
         protected virtual void Abort(string msg, bool bThrow = false, bool bSupport = true)
         {
             this.Activate();
@@ -107,44 +92,118 @@ namespace HClassLibrary
             MessageBox.Show(this, msgThrow, "Ошибка в работе программы!", MessageBoxButtons.OK, MessageBoxIcon.Stop);
             if (bThrow == true) Abort(msgThrow); else ;
         }
-        /// <summary>
-        /// Запустить (отобразить) форму 'FormWait'
-        /// </summary>
-        private void startWait()
-        {
-            //Logging.Logg().Debug(@"FormMainBase::startWait (WindowState=" + this.WindowState + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
-            
-            if (! (this.WindowState == FormWindowState.Minimized))
-                //m_formWait.StartWaitForm (this)
-                m_formWait.StartWaitForm (this.Location, this.Size)
-                ;
-            else
-                ;
-        }
-        /// <summary>
-        /// Остановить (скрыть) форму 'FormWait' 
-        /// </summary>
-        private void stopWait()
-        {
-            //Logging.Logg().Debug(@"FormMainBase::stopWait (WindowState=" + this.WindowState + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-            m_formWait.StopWaitForm();
+        public static void ThreadProc(object data)
+        {
+            FormWait fw =
+                (FormWait)data
+                //(FormWait)ev.Argument
+                ;
+            fw.StartWaitForm();
         }
-        /// <summary>
-        /// Рекурсивная функция поиска элемента меню в указанном пункте меню
-        /// </summary>
-        /// <param name="miParent">Пункт меню в котором осуществляется поиск</param>
-        /// <param name="text"></param>
-        /// <returns>Результат - пукт меню с текстом для поиска</returns>
+
+        //public void ThreadBWorkerProc(object data, DoWorkEventArgs ev)
+        //{
+        //    FormWait fw = (FormWait)ev.Argument;
+        //    fw.StartWaitForm();
+        //}
+
+        //public void ThreadBWorker_RunCompleted(object data, RunWorkerCompletedEventArgs ev)
+        //{
+        //    formWait.m_semaStop.Release(1);
+        //}
+        [MTAThread]
+        public void StartWait()
+        {
+            Logging.Logg().Debug(@"FormMainBase::StartWait () - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            
+            lock (lockValue)
+            {
+                if (waitCounter == 0)
+                {
+                    formWait.m_arSemaStop[1].WaitOne();
+                    //formWait.m_arSemaStop[0].WaitOne();
+
+                    //this.Opacity = 0.75;
+                    //Вариант №0
+                    if (!(m_handleFormWait == IntPtr.Zero))
+                        CloseHandle(m_handleFormWait);
+                    else
+                        ;
+                    //Вариант №1
+                    //if ((!(m_threadFormWait == null))
+                    //    && (m_threadFormWait.IsAlive == true))
+                    //{
+                    //    m_threadFormWait.Join();
+                    //    CloseHandle(OpenThread(0x40000000, false, (uint)m_threadFormWait.ManagedThreadId));
+                    //    m_threadFormWait = null;
+                    //}
+                    //else
+                    //    ;
+                    ////Вариант №2
+                    //if (!(m_threadBWorkerFormWait == null))
+                    //{
+                    //    if (m_threadBWorkerFormWait.IsBusy == true)
+                    //        m_threadBWorkerFormWait.CancelAsync();
+                    //    else
+                    //        ;
+                    //    while (m_threadBWorkerFormWait.IsBusy == true) ;
+                    //    m_threadBWorkerFormWait = null;
+                    //}
+                    //else
+                    //    ;
+
+                    //formWait.Location = new Point(this.Location.X + (this.Width - formWait.Width) / 2, this.Location.Y + (this.Height - formWait.Height) / 2);
+                    _ptLocation.X = this.Location.X + (this.Width - formWait.Width) / 2;
+                    _ptLocation.Y = this.Location.Y + (this.Height - formWait.Height) / 2;
+                    formWait.Location = _ptLocation;
+                    //Вариант №1
+                    Thread threadFormWait = new Thread(_threadStart) { IsBackground = true };
+                    threadFormWait.Start(formWait);
+                    m_handleFormWait = OpenThread(0x40000000, false, (uint)threadFormWait.ManagedThreadId);
+                    ////Вариант №2
+                    //m_threadBWorkerFormWait.RunWorkerAsync(formWait);
+                }
+                else
+                    ;
+
+                waitCounter++;
+            }
+        }
+
+        public void StopWait()
+        {
+            lock (lockValue)
+            {
+                waitCounter--;
+                if (waitCounter < 0)
+                    waitCounter = 0;
+
+                if (waitCounter == 0)
+                {
+                    //Прозрачность
+                    //this.Opacity = 1.0;
+                    //Ожидать закрытия десккриптора окна
+                    ////Вариант №1
+                    //while (formWait.IsHandleCreated == false)
+                    //    ;
+                    //Вариант №2
+                    formWait.m_semaHandleCreated.WaitOne();
+
+                    formWait.Invoke(delegateStopWaitForm);
+                }
+                else
+                    ;
+            }
+        }
+
         private ToolStripMenuItem findMainMenuItemOfText(ToolStripMenuItem miParent, string text)
         {
-            //Результат 
             ToolStripMenuItem itemRes = null;
 
             if (miParent.Text == text)
                 itemRes = miParent;
             else
-                //Цикл по всем элементам пункта меню
                 foreach (ToolStripItem mi in miParent.DropDownItems)
                     if (mi is ToolStripMenuItem)
                         if (mi.Text == text)
@@ -153,9 +212,7 @@ namespace HClassLibrary
                             break;
                         }
                         else
-                            //Проверить наличие подменю
                             if (((ToolStripMenuItem)mi).DropDownItems.Count > 0)
-                                //Искать элемент в подменю
                                 findMainMenuItemOfText(mi as ToolStripMenuItem, text);
                             else
                                 ;
@@ -164,11 +221,7 @@ namespace HClassLibrary
 
             return itemRes;
         }
-        /// <summary>
-        /// Поиск в главном меню элемента с именнем
-        /// </summary>
-        /// <param name="text">Текст пункта (под)меню для поиска</param>
-        /// <returns>Результат - пукт меню с текстом для поиска</returns>
+
         public ToolStripMenuItem FindMainMenuItemOfText(string text)
         {
             ToolStripMenuItem itemRes = null;
@@ -177,7 +230,7 @@ namespace HClassLibrary
             {
                 itemRes = findMainMenuItemOfText(mi, text);
 
-                if (! (itemRes == null))
+                if (!(itemRes == null))
                     break;
                 else
                     ;
@@ -185,56 +238,7 @@ namespace HClassLibrary
 
             return itemRes;
         }
-        /// <summary>
-        /// Закрыть окно
-        /// </summary>
-        /// <param name="bForce">Признак немедленного закрытия окна</param>
-        public virtual void Close (bool bForce) { base.Close (); }
-        /// <summary>
-        /// Обработчик события создания дескрипотра окна
-        ///  для подсчета кол-ва отображаемых наследуемых форм
-        ///  для своевременного вызова функции полного останова окна 'FormWait'
-        /// </summary>
-        /// <param name="obj">Объект, инициировавший событие - this</param>
-        /// <param name="ev">Аргумент события</param>
-        private void FormMainBase_Shown (object obj, EventArgs ev)
-        {
-            lock (lockCounter)
-            {
-                //Увеличить счетчик
-                formCounter++;
 
-                //Console.WriteLine(@"FormMainBase::InitializeComponent () - formCounter=" + formCounter);
-            }            
-        }
-
-        private void FormMainBase_HandleDestroyed(object obj, EventArgs ev)
-        {
-            lock (lockCounter)
-            {
-                //Декрементировать счетчик
-                formCounter--;
-
-                //Console.WriteLine(@"FormMainBase::InitializeComponent () - formCounter=" + formCounter);
-            }
-        }
-        /// <summary>
-        /// Обработчик события - закрытие формы
-        ///  для подсчета кол-ва отображаемых наследуемых форм
-        /// </summary>
-        /// <param name="obj">Объект, инициировавший событие - this</param>
-        /// <param name="ev">Аргумент события</param>
-        private void  FormMainBase_FormClosed (object obj, FormClosedEventArgs ev)
-        {
-            lock (lockCounter)
-            {
-                //Проверить кол-во отображаемых наследуемых форм
-                if ((formCounter - 1) == 0)
-                    //Полный останов 'FormWait'
-                    m_formWait.StopWaitForm (true);
-                else
-                    ;
-            }
-        }
+        public virtual void Close(bool bForce) { base.Close(); }
     }
 }
