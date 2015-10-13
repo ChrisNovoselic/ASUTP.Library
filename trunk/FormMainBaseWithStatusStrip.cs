@@ -110,7 +110,11 @@ namespace HClassLibrary
         protected System.Windows.Forms.ToolStripStatusLabel m_lblDateMessage;
 
         protected object lockEvent; 
-        protected System.Windows.Forms.Timer m_timer;
+        protected
+            System.Windows.Forms.Timer
+            //System.Threading.Timer
+                m_timer
+                ;
 
         /// <summary>
         /// Признак отображения сообщения (в 1-ой части строки состояния)
@@ -281,8 +285,12 @@ namespace HClassLibrary
         protected abstract void timer_Start ();
 
         private void timer_Tick(object sender, EventArgs e)
+        //private void timer_Tick(object obj)
         {
+            //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
+            
             if (m_timer.Interval == ProgramBase.TIMER_START_INTERVAL)
+            //if (obj == null)
             {
                 timer_Start();
 
@@ -291,8 +299,12 @@ namespace HClassLibrary
             else
                 ;
 
+            //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - перед lockEvent () ...", Logging.INDEX_MESSAGE.NOT_SET);
+
             lock (lockEvent)
             {
+                //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - перед UpdateStatusString () ...", Logging.INDEX_MESSAGE.NOT_SET);
+                
                 int have_msg = UpdateStatusString();
 
                 if (have_msg == -1)
@@ -315,22 +327,39 @@ namespace HClassLibrary
                 m_lblDescMessage.Invalidate();
                 m_lblDateMessage.Invalidate();
             }
+
+            //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - вЫход ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
-        private void start () {
-        }
-        
+        //private void timer_Disposed(object sender, EventArgs e)
+        //{
+        //    Logging.Logg().Debug(this.GetType().Name + @"::timer_Disposed () - ...", Logging.INDEX_MESSAGE.NOT_SET);
+        //}
+
+        //private void start () {
+        //}
+
         protected virtual void Start () {
-            if (m_timer == null) m_timer = new System.Windows.Forms.Timer(); else ;
+            if (m_timer == null)
+                m_timer =
+                    new System.Windows.Forms.Timer()
+                    //new System.Threading.Timer(new TimerCallback (timer_Tick), m_timer, 0, 1000)
+                    ;
+            else ;
             m_timer.Interval = ProgramBase.TIMER_START_INTERVAL; //Признак первой итерации
-            m_timer.Start();
             m_timer.Tick += new System.EventHandler(this.timer_Tick);
+            //m_timer.Disposed += new EventHandler(timer_Disposed);
+            m_timer.Start();
         }
 
         protected virtual void Stop()
         {
+            //Logging.Logg().Debug(this.GetType().Name + @"::Stop () - ...", Logging.INDEX_MESSAGE.NOT_SET);
+
             if (! (m_timer == null)) {
+                //m_timer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
                 m_timer.Stop();
+
                 m_timer.Dispose ();
                 m_timer = null;
             } else
