@@ -304,7 +304,10 @@ namespace HClassLibrary
         }
 
         private void threadPost (object par) {
-            m_evtConnSett.WaitOne ();
+            if (s_mode == LOG_MODE.DB)
+                m_evtConnSett.WaitOne ();
+            else
+                ;
 
             while (true) {
                 INDEX_SEMATHREAD indx_semathread = (INDEX_SEMATHREAD)WaitHandle.WaitAny(m_arEvtThread);

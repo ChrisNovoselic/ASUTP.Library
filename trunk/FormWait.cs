@@ -26,16 +26,16 @@ namespace HClassLibrary
         ///// Дата/время начала отображения окна
         ///// </summary>
         //private DateTime m_dtStartShow;
-        /// <summary>
-        /// Максимальное время отображения окна (секунды)
-        /// </summary>
-        public static int s_secMaxShowing = 6;
-        /// <summary>
-        /// Поток обработки событий по изменению состоянию окна - отображение
-        /// </summary>
-        private BackgroundWorker //Thread
-            m_threadShowDialog
-            ;
+        ///// <summary>
+        ///// Максимальное время отображения окна (секунды)
+        ///// </summary>
+        //public static int s_secMaxShowing = 6;
+        ///// <summary>
+        ///// Поток обработки событий по изменению состоянию окна - отображение
+        ///// </summary>
+        //private BackgroundWorker //Thread
+        //    m_threadShowDialog
+        //    ;
         private enum INDEX_SYNCSTATE { UNKNOWN = -1, EXIT, SHOWDIALOG, CLOSE, COUNT_INDEX_SYNCSTATE }
 
         private DelegateFunc delegateFuncClose
@@ -79,9 +79,9 @@ namespace HClassLibrary
             m_semaRunWorkerCompleted = new Semaphore(0, 1);
             _parameterizedThreadStart = new ParameterizedThreadStart(new Action <object>(showDialog));
 
-            m_threadShowDialog = new BackgroundWorker();
-            m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
-            m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadProcShowDialog_RunWorkerCompleted);
+            //m_threadShowDialog = new BackgroundWorker();
+            //m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
+            //m_threadShowDialog.RunWorkerCompleted += new RunWorkerCompletedEventHandler(fThreadProcShowDialog_RunWorkerCompleted);
 
             //delegateFuncShowDialog = new DelegateFunc(showDialog);
             delegateFuncClose = new DelegateFunc(close);
@@ -175,13 +175,13 @@ namespace HClassLibrary
             ShowDialog();
         }
 
-        private void showDialog()
-        {
-            //Logging.Logg().Debug(@"FormWait::showDialog () - !!!!!!!!!!!!!", Logging.INDEX_MESSAGE.NOT_SET);
+        //private void showDialog()
+        //{
+        //    //Logging.Logg().Debug(@"FormWait::showDialog () - !!!!!!!!!!!!!", Logging.INDEX_MESSAGE.NOT_SET);
 
-            Location = _location;
-            ShowDialog();
-        }
+        //    Location = _location;
+        //    ShowDialog();
+        //}
         /// <summary>
         /// Делегат для вызова метода закрытия окна
         /// </summary>
@@ -243,38 +243,38 @@ namespace HClassLibrary
         ///// Потоковая функция отображения окна
         ///// </summary>
         ///// <param name="data">Аргумент при запуске потока</param>
-        //private void fThreadProcShowDialog(object data)
-        private void fThreadProcShowDialog_DoWork(object obj, DoWorkEventArgs ev)
-        {
-            ////Зафиксировать событие
-            //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog_DoWork () - _state=" + _state.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
-            //Console.WriteLine(@"FormMainBase::fThreadProcShowDialog_DoWork () - indx=" + indx.ToString() + @" - ...");
+        ////private void fThreadProcShowDialog(object data)
+        //private void fThreadProcShowDialog_DoWork(object obj, DoWorkEventArgs ev)
+        //{
+        //    ////Зафиксировать событие
+        //    //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog_DoWork () - _state=" + _state.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
+        //    //Console.WriteLine(@"FormMainBase::fThreadProcShowDialog_DoWork () - indx=" + indx.ToString() + @" - ...");
 
-            //if (InvokeRequired == true)
-            //    BeginInvoke(delegateFuncShowDialog);
-            //else
-            showDialog();
+        //    //if (InvokeRequired == true)
+        //    //    BeginInvoke(delegateFuncShowDialog);
+        //    //else
+        //    showDialog();
 
-            //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
-        }
+        //    //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog () - indx=" + indx.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
+        //}
 
-        private void fThreadProcShowDialog_RunWorkerCompleted(object obj, RunWorkerCompletedEventArgs ev)
-        {
-            //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog_RunWorkerCompleted () - _state=" + _state.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
+        //private void fThreadProcShowDialog_RunWorkerCompleted(object obj, RunWorkerCompletedEventArgs ev)
+        //{
+        //    //Logging.Logg().Debug(@"FormMainBase::fThreadProcShowDialog_RunWorkerCompleted () - _state=" + _state.ToString() + @" - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-            lock (lockState)
-            {
-                _state = STATE.UNVISIBLED;
+        //    lock (lockState)
+        //    {
+        //        _state = STATE.UNVISIBLED;
 
-                if (isContinue == true)
-                {
-                    _state = STATE.SHOWING;
+        //        if (isContinue == true)
+        //        {
+        //            _state = STATE.SHOWING;
 
-                    m_threadShowDialog.RunWorkerAsync();
-                }
-                else
-                    ;
-            }
-        }
+        //            m_threadShowDialog.RunWorkerAsync();
+        //        }
+        //        else
+        //            ;
+        //    }
+        //}
     }
 }
