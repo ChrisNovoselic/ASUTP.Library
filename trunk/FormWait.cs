@@ -56,6 +56,7 @@ namespace HClassLibrary
         private Point _location;
         //private bool _focused;
         private Form _parent;
+        private ParameterizedThreadStart _parameterizedThreadStart;
         /// <summary>
         /// Получить объект из внешенго кода
         /// </summary>
@@ -76,6 +77,7 @@ namespace HClassLibrary
             //m_dtStartShow = DateTime.MinValue;
 
             m_semaRunWorkerCompleted = new Semaphore(0, 1);
+            _parameterizedThreadStart = new ParameterizedThreadStart(new Action <object>(showDialog));
 
             m_threadShowDialog = new BackgroundWorker();
             m_threadShowDialog.DoWork += new DoWorkEventHandler(fThreadProcShowDialog_DoWork);
@@ -113,7 +115,10 @@ namespace HClassLibrary
                     //Установить координаты для отображения
                     setLocation(ptParent, szParent);
                     //Рпзрешить отображение
-                    m_threadShowDialog.RunWorkerAsync();
+                    //Вариант №0
+                    new Thread (_parameterizedThreadStart).Start (null);
+                    ////Вариант №1
+                    //m_threadShowDialog.RunWorkerAsync();
 
                     _state = STATE.SHOWING;
                 }
@@ -160,6 +165,14 @@ namespace HClassLibrary
             }
 
             //Logging.Logg().Warning(@"FormWait::StopWaitForm (_state=" + _state.ToString() + @", _waitCounter=" + _waitCounter + @") - вЫХод...", Logging.INDEX_MESSAGE.NOT_SET);
+        }
+
+        private void showDialog(object obj)
+        {
+            //Logging.Logg().Debug(@"FormWait::showDialog () - !!!!!!!!!!!!!", Logging.INDEX_MESSAGE.NOT_SET);
+
+            Location = _location;
+            ShowDialog();
         }
 
         private void showDialog()

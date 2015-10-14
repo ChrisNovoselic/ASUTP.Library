@@ -104,8 +104,8 @@ namespace HClassLibrary
 
         private Thread m_threadPost;
         private
-            //System.Threading.Timer
-            System.Windows.Forms.Timer
+            System.Threading.Timer
+            //System.Windows.Forms.Timer
                 m_timerConnSett
                 ;
         private ManualResetEvent [] m_arEvtThread;
@@ -224,25 +224,25 @@ namespace HClassLibrary
         protected virtual void start () {
             m_arEvtThread = new ManualResetEvent[] { new ManualResetEvent(false), new ManualResetEvent(false) };            
 
+            if (s_mode == LOG_MODE.DB) {
+                m_evtConnSett = new ManualResetEvent(false);
+                m_timerConnSett =
+                    new System.Threading.Timer (TimerConnSett_Tick, null, 0, 6666)
+                    //new System.Windows.Forms.Timer ()
+                    ;                
+                //m_timerConnSett.Tick += new EventHandler(TimerConnSett_Tick);
+                //m_timerConnSett.Start ();
+                //m_timerConnSett.Interval = 6666;
+            }
+            else
+                ;
+
             m_objQueueMessage = new object ();
 
             m_threadPost = new Thread (new ParameterizedThreadStart (threadPost));
             m_threadPost.Name = @"Логгирование приложения..." + AppName;
             m_threadPost.IsBackground = true;
             m_threadPost.Start();
-
-            if (s_mode == LOG_MODE.DB) {
-                m_evtConnSett = new ManualResetEvent(false);
-                m_timerConnSett =
-                    //new System.Threading.Timer (TimerConnSett_Tick, null, 0, 6666)
-                    new System.Windows.Forms.Timer ()
-                    ;
-                m_timerConnSett.Interval = 6666;
-                m_timerConnSett.Tick += new EventHandler(TimerConnSett_Tick);
-                m_timerConnSett.Start ();
-            }
-            else
-                ;
 
             for (int i = (int)INDEX_MESSAGE.A_001; i < (int)INDEX_MESSAGE.COUNT_INDEX_MESSAGE; i ++)
                 UnLink((INDEX_MESSAGE)i);
@@ -267,8 +267,8 @@ namespace HClassLibrary
                 ;
 
             if ((s_mode == LOG_MODE.DB) && (! (m_timerConnSett == null))) {
-                //m_timerConnSett.Change (System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
-                m_timerConnSett.Stop ();
+                m_timerConnSett.Change (System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+                //m_timerConnSett.Stop ();
                 m_timerConnSett.Dispose ();
                 m_timerConnSett = null;
 
@@ -304,6 +304,8 @@ namespace HClassLibrary
         }
 
         private void threadPost (object par) {
+            m_evtConnSett.WaitOne ();
+
             while (true) {
                 INDEX_SEMATHREAD indx_semathread = (INDEX_SEMATHREAD)WaitHandle.WaitAny(m_arEvtThread);
 
@@ -523,12 +525,15 @@ namespace HClassLibrary
             }
         }
 
-        //private void TimerConnSett_Tick (object par)
-        private void TimerConnSett_Tick(object par, EventArgs ev)
+        private void TimerConnSett_Tick (object par)
+        //private void TimerConnSett_Tick(object par, EventArgs ev)
         {
             if (m_evtConnSett.WaitOne (0, true) == false)
                 if (connect() == 0)
+                {
                     m_evtConnSett.Set();
+                    m_arEvtThread[(int)INDEX_SEMATHREAD.MSG].Set ();
+                }
                 else {
                     disconnect();
                     m_evtConnSett.Reset();
