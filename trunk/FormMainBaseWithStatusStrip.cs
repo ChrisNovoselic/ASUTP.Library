@@ -214,8 +214,9 @@ namespace HClassLibrary
         {
             lock (lockEvent)
             {
-                m_lblDescMessage.Invalidate();
-                m_lblDateMessage.Invalidate();
+                //??? «десь происходит увеличение 'Page Faults'
+                //m_lblDescMessage.Invalidate();
+                //m_lblDateMessage.Invalidate();
 
                 int type = UpdateStatusString();
                 switch (type)
@@ -288,7 +289,7 @@ namespace HClassLibrary
         //private void timer_Tick(object obj)
         {
             //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
-            
+
             if (m_timer.Interval == ProgramBase.TIMER_START_INTERVAL)
             //if (obj == null)
             {
@@ -304,7 +305,7 @@ namespace HClassLibrary
             lock (lockEvent)
             {
                 //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - перед UpdateStatusString () ...", Logging.INDEX_MESSAGE.NOT_SET);
-                
+
                 int have_msg = UpdateStatusString();
 
                 if (have_msg == -1)
@@ -317,15 +318,15 @@ namespace HClassLibrary
 
                 if ((have_msg == 0) || (show_error_alert == false))
                 {
-                    string str = (string)DateTime.Now.ToLongTimeString();
-                    m_lblMainState.Text = "";
+                    m_lblMainState.Text = string.Empty;
                 }
                 else
                     ;
 
                 show_error_alert = !show_error_alert;
-                m_lblDescMessage.Invalidate();
-                m_lblDateMessage.Invalidate();
+                //??? «десь происходит увеличение 'Page Faults'
+                //m_lblDescMessage.Invalidate();
+                //m_lblDateMessage.Invalidate();
             }
 
             //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - вџход ...", Logging.INDEX_MESSAGE.NOT_SET);
