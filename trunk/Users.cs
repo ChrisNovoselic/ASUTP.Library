@@ -9,7 +9,7 @@ using System.IO; //File
 
 namespace HClassLibrary
 {    
-    public class HUsers : object
+    public class HUsers : object, IDisposable
     {
         private class DbTable_dictionary
         {
@@ -30,6 +30,10 @@ namespace HClassLibrary
             public void WriteString(string[] opt, string[] val)
             {
             }
+        }
+
+        public void Dispose ()
+        {
         }
 
         private class HProfiles
