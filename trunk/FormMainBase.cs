@@ -105,8 +105,10 @@ namespace HClassLibrary
             else
                 ;
 
-            MessageBox.Show(this, msgThrow, "Ошибка в работе программы!", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-            if (bThrow == true) Abort(msgThrow); else ;
+            if (bThrow == true)
+                Abort(msgThrow);
+            else
+                MessageBox.Show(this, msgThrow, "Ошибка в работе программы!", MessageBoxButtons.OK, MessageBoxIcon.Stop);
         }
         /// <summary>
         /// Запустить (отобразить) форму 'FormWait'
