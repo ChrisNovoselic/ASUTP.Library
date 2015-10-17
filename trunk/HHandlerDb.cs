@@ -195,7 +195,7 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="typeDB">Тип СУБД</param>
         /// <param name="idListatener">Активный идентификатор соединения с БД</param>
-        protected void GetCurrentTimeRequest(DbInterface.DB_TSQL_INTERFACE_TYPE typeDB, int idListatener)
+        protected void GetCurrentTimeRequest(DbInterface.DB_TSQL_INTERFACE_TYPE typeDB, int idListener)
         {
             string query = string.Empty;
 
@@ -215,7 +215,7 @@ namespace HClassLibrary
             }
 
             if (query.Equals(string.Empty) == false)
-                Request(idListatener, query);
+                Request(idListener, query);
             else
                 ;
         }
