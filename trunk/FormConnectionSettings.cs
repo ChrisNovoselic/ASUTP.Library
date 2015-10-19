@@ -276,7 +276,9 @@ namespace HClassLibrary
                 cbxIgnore.Checked = false; //value.ignore;
             }
         }
-
+        /// <summary>
+        /// Индекс выбранного элемента - объекта с параметрами соединения
+        /// </summary>
         public int SelectedIndex
         {
             get
@@ -325,7 +327,9 @@ namespace HClassLibrary
             else
                 closing = false;
         }
-
+        /// <summary>
+        /// Количество объектов с параметрами соединения
+        /// </summary>
         public int Count
         {
             get { return m_connectionSettings.Count; }
@@ -335,7 +339,9 @@ namespace HClassLibrary
         private void component_Changed(object sender, EventArgs e)
         {
         }
-
+        /// <summary>
+        /// Признак состояния объекта (0 - без ошибок: файл считан, параметры соединения распознаны И интерпретированы)
+        /// </summary>
         public int Ready
         {
             get { return m_iReady; }
