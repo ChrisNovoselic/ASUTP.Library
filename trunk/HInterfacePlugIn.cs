@@ -53,7 +53,7 @@ namespace HClassLibrary
         /// <summary>
         /// Отиравить запрос на получение данных
         /// </summary>
-        /// <param name="par"></param>
+        /// <param name="par">Аргумент с детализацией запрашиваемых данных</param>
         void DataAskedHost(object par);
         /// <summary>
         /// Обработчик события ответа от главной формы
