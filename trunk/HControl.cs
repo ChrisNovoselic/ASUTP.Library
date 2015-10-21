@@ -13,6 +13,9 @@ using System.Runtime.Remoting.Messaging; //AsyncResult...
 
 namespace HClassLibrary
 {    
+    /// <summary>
+    /// Класс панели с макетом размещения дочерних элементов управления
+    /// </summary>
     public abstract class HPanelCommon : TableLayoutPanel//, IDisposable
     {
         public HPanelCommon(int iColumnCount/* = 16*/, int iRowCount/* = 16*/)
@@ -36,26 +39,42 @@ namespace HClassLibrary
 
             iActive = -1;
         }
-
-        //-1 - исходное, 0 - старт, 1 - активная
+        /// <summary>
+        /// Признак активности панели
+        ///  (-1 - исходное, 0 - старт, 1 - активная)
+        /// </summary>
         private int iActive;
-
+        /// <summary>
+        /// Признак активности панели
+        /// </summary>
         public bool Actived { get { return (iActive > 0) && (iActive % 2 == 1); } }
-
+        /// <summary>
+        /// Признак выполнения запуска (вызов метода 'Start')
+        /// </summary>
         public bool Started { get { return ! (iActive < 0); } }
-
+        /// <summary>
+        /// Признак 
+        /// </summary>
         public bool IsFirstActivated { get { return iActive == 1; } }
-
+        /// <summary>
+        /// Запустить на выполнение панель
+        /// </summary>
         public virtual void Start()
         {
             iActive = 0;
         }
-
+        /// <summary>
+        /// Остановить панель
+        /// </summary>
         public virtual void Stop()
         {
             iActive = -1;
         }
-
+        /// <summary>
+        /// Активировать/деактивировать панель
+        /// </summary>
+        /// <param name="active">Признак активации/деактивации</param>
+        /// <returns></returns>
         public virtual bool Activate(bool active)
         {
             bool bRes = false;
@@ -133,9 +152,16 @@ namespace HClassLibrary
         }
         #endregion
     }
-
+    /// <summary>
+    /// Класс панели-клиента для отправки_запросов/получения_значений от 
+    /// </summary>
     public class PanelCommonDataHost : HPanelCommon, IDataHost
     {
+        /// <summary>
+        /// Конструктор - основной (с параметрами по умолчанию)
+        /// </summary>
+        /// <param name="iColumnCount">Количество столбцов в макете панели</param>
+        /// <param name="iRowCount">Количество строк в макете панели</param>
         public PanelCommonDataHost(int iColumnCount = 16, int iRowCount = 16)
             : base(iColumnCount, iRowCount)
         {
@@ -143,7 +169,12 @@ namespace HClassLibrary
 
             initialize();
         }
-
+        /// <summary>
+        /// Конструктор - допоплнительный (с параметрами по умолчанию)
+        /// </summary>
+        /// <param name="container">Контэйнер для панели</param>
+        /// <param name="iColumnCount">Количество столбцов в макете панели</param>
+        /// <param name="iRowCount">Количество строк в макете панели</param>
         public PanelCommonDataHost(IContainer container, int iColumnCount = 16, int iRowCount = 16)
             : base (container, iColumnCount, iRowCount)
         {
@@ -158,9 +189,10 @@ namespace HClassLibrary
         {
             initializeLayoutStyle ();
         }
-        
+        /// <summary>
+        /// Событие для запроса значений из объекта сервера
+        /// </summary>
         public event DelegateObjectFunc EvtDataAskedHost;
-
         /// <summary>
         /// Отправить запрос главной форме
         /// </summary>
@@ -170,7 +202,6 @@ namespace HClassLibrary
         {
             EvtDataAskedHost.BeginInvoke(new EventArgsDataHost(-1, new object[] { par }), new AsyncCallback(this.dataRecievedHost), new Random());
         }
-
         /// <summary>
         /// Обработчик события ответа от главной формы
         /// </summary>
@@ -178,7 +209,10 @@ namespace HClassLibrary
         public virtual void OnEvtDataRecievedHost(object res)
         {
         }
-
+        /// <summary>
+        /// Метод обратного вызова при окончании обработки события 'EvtDataAskedHost'
+        /// </summary>
+        /// <param name="res">Результат выполнения асинхронной операции обработки события</param>
         private void dataRecievedHost(object res)
         {
             if ((res as AsyncResult).EndInvokeCalled == false)

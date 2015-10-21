@@ -10,17 +10,51 @@ using System.Windows.Forms; //Control
 
 namespace HClassLibrary
 {
+    /// <summary>
+    /// Класс для обмена данными между объектами клиент-сервер
+    /// </summary>
     public class EventArgsDataHost {
+        /// <summary>
+        /// Идентификатор объекта-клиента, отправляющего сообщение
+        ///  , сервер обязательно должен "знать" этот идентификатор
+        ///  , а по нему определить объект-клиент для отправления ответа
+        /// </summary>
         public int id;
+        /// <summary>
+        /// Объект-клиент, получатель запрашиваемых данных
+        /// </summary>
+        public IDataHost reciever;
+        /// <summary>
+        /// Массив аргументов, детализирующие сообщение
+        /// </summary>
         public object [] par;
-
+        /// <summary>
+        /// Конструктор - основной (с параметрами)
+        /// </summary>
+        /// <param name="id_">Идентификатор объекта</param>
+        /// <param name="arObj">Массив аргументов сообщения</param>
         public EventArgsDataHost (int id_, object [] arObj) {
             id = id_;
+            reciever = null;
             par = new object [arObj.Length];
             arObj.CopyTo(par, 0);
         }
+        /// <summary>
+        /// Конструктор - дополнительный (с параметрами)
+        /// </summary>
+        /// <param name="objReciever">Объект-клиент, получатель запрашиваемых данных</param>
+        /// <param name="arObj">Массив аргументов сообщения</param>
+        public EventArgsDataHost(IDataHost objReciever, object[] arObj)
+        {
+            id = -1;
+            reciever = objReciever;
+            par = new object[arObj.Length];
+            arObj.CopyTo(par, 0);
+        }
     }
-
+    /// <summary>
+    /// Перечисление идентификаторов-типов сообщений
+    /// </summary>
     public enum ID_DATA_ASKED_HOST {
         UNKNOWN = -1
         , INIT_SOURCE, INIT_SIGNALS
@@ -29,7 +63,11 @@ namespace HClassLibrary
         , TO_INSERT
         , ERROR
     }
-
+    /// <summary>
+    /// Перечисление дополнительных идентификаторов-типов сообщений
+    ///  , передавать в том же массиве аргументов для указания направления сообщения
+    ///  (запросить, подтвердить получение)
+    /// </summary>
     public enum ID_HEAD_ASKED_HOST
     {
         GET, CONFIRM
@@ -98,7 +136,6 @@ namespace HClassLibrary
             else
                 ;
         }
-
         /// <summary>
         /// Обработчик события ответа от главной формы
         /// </summary>

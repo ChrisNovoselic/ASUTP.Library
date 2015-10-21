@@ -93,7 +93,7 @@ namespace HClassLibrary
             //Name = name;
             dbThread.IsBackground = true;
 
-            sem = new Semaphore(1, 1);
+            sem = new Semaphore(0, 1);
         }
 
         public bool Connected
@@ -135,7 +135,7 @@ namespace HClassLibrary
         public void Start()
         {
             threadIsWorking = true;
-            sem.WaitOne();
+            //sem.WaitOne();
             dbThread.Start();
         }
 
@@ -150,14 +150,15 @@ namespace HClassLibrary
                     pair.Value.requestDB = null;
                 }
             }
-            if (dbThread.IsAlive)
+            if (dbThread.IsAlive == true)
             {
                 try
                 {
-                    sem.Release(1);
+                    if (!(WaitHandle.WaitAny(new WaitHandle[] { sem }, 0) == 0)) sem.Release(1); else ;
                 }
-                catch
+                catch (Exception e)
                 {
+                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbInterface::Stop () - ...");
                 }
 
                 joined = dbThread.Join(6666);

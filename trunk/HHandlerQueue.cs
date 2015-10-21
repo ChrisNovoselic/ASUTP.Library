@@ -13,7 +13,7 @@ namespace HClassLibrary
         {
             private HHandler _owner;
 
-            public IDataHost m_objRecieved;
+            public IDataHost m_dataHostRecieved;
             public List<int> m_states; //??? Дублирование _owner.states
             private object[] m_pars;
             //public object [] Pars (int state)
@@ -48,7 +48,7 @@ namespace HClassLibrary
 
             public ItemQueue(IDataHost obj, object[] objPars)
             {
-                m_objRecieved = obj;
+                m_dataHostRecieved = obj;
                 object []pars = (objPars as object[])[0] as object[];
                 m_states = new List <int>();
                 m_pars = new object[pars.Length];
@@ -98,7 +98,6 @@ namespace HClassLibrary
         {
             m_queue = new Queue<ItemQueue>();
         }
-
         /// <summary>
         /// Инициализация
         /// </summary>
