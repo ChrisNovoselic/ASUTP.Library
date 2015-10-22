@@ -84,5 +84,16 @@ namespace HClassLibrary
                     ;
             }
         }
+
+        //Function to get random number
+        private static readonly Random random = new Random();
+        private static readonly object syncLock = new object();
+        public static int GetRandomNumber(int min = 1, int max = Int32.MaxValue)
+        {
+            lock (syncLock)
+            { // synchronize
+                return random.Next(min, max);
+            }
+        }
     }
 }

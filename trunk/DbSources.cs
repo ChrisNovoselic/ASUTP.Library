@@ -330,20 +330,9 @@ namespace HClassLibrary
                 ;
         }
 
-        //Function to get random number
-        private static readonly Random getrandom = new Random();
-        private static readonly object syncLock = new object();
-        public static int GetRandomNumber()
-        {
-            lock (syncLock)
-            { // synchronize
-                return getrandom.Next(1, Int32.MaxValue);
-            }
-        }
-
         protected int ListenerIdLocal
         {
-            get { return GetRandomNumber() /*Int32.Parse(DateTime.UtcNow.ToString (@"mmssfffff"))*/; }
+            get { return HMath.GetRandomNumber() /*Int32.Parse(DateTime.UtcNow.ToString (@"mmssfffff"))*/; }
         }
         ///// <summary>
         ///// Регистрировать подписчика на установленное соединение - получить идентификатор для передачи во-вне
