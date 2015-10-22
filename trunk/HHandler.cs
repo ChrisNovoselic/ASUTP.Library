@@ -328,7 +328,7 @@ namespace HClassLibrary
                                 responseIsOk = -1;
 
                             if (responseIsOk == -102)
-                                //Для алгоритма сигнализации 'TecView::SuccessThreadRDGValues () - ...'
+                                //Для алгоритма сигнализации 'TecView::AlarmEventRegistred () - ...'
                                 reason = INDEX_WAITHANDLE_REASON.BREAK;
                             else
                                 if (((!(responseIsOk == 0)) || (!(dataPresent == 0)) || (error == true)) && (newState == false))
