@@ -198,10 +198,10 @@ namespace HClassLibrary
             }
         }
         /// <summary>
-        /// Проверить 
+        /// Проверить является ли указанное состояние последним в очереди
         /// </summary>
-        /// <param name="state"></param>
-        /// <returns></returns>
+        /// <param name="state">Состояние для проверки</param>
+        /// <returns>Признак выполнения условия</returns>
         protected bool isLastState (int state)
         {
             return states.IndexOf(state) == (states.Count - 1);
