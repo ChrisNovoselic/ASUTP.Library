@@ -397,8 +397,7 @@ namespace HClassLibrary
 
             if (err == 0)
             {
-                Console.WriteLine(@"DbSources::registerListener (id=" + id + @", idReg=" + idReg);
-                
+                //Console.WriteLine(@"DbSources::registerListener (id=" + id + @", idReg=" + idReg + @") - ...");                
                 m_dictListeners.Add(idReg, new DbSourceListener(id, idListener, dbConn));
             }
             else
@@ -470,6 +469,7 @@ namespace HClassLibrary
                     else
                         ;
 
+                    //Console.WriteLine(@"DbSources::UnregisterListener (idReg=" + id + @") - ...");
                     m_dictListeners.Remove(id);
                 }
                 else
