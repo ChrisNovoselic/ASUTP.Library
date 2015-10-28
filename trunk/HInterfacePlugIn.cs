@@ -180,7 +180,7 @@ namespace HClassLibrary
         public PlugInBase()
             : base()
         {
-            m_markDataHost = new HMark ();
+            m_markDataHost = new HMark (0);
             _MarkReversed = false;
             m_evObjectHandleCreated = new ManualResetEvent (false);
             //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);

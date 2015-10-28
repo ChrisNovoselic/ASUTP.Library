@@ -10,14 +10,16 @@ namespace HClassLibrary
     public class HMark
     {
         private Int32 m_mark;
-        
-        public HMark () {
-            m_mark = 0;
-        }
 
         public HMark(int val)
         {
             m_mark = val;
+        }
+
+        public HMark(/*params */int []arNumBits)
+        {
+            foreach (int bit in arNumBits)
+                marked (true, bit);
         }
 
         public static Int32 Pow2Bit (int bit, int offset = 0) {

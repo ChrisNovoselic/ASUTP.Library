@@ -112,7 +112,7 @@ namespace HClassLibrary
         private ManualResetEvent m_evtConnSett;
 
         private static int[] s_arDebugLogMessageIds = new int [(int)INDEX_MESSAGE.COUNT_INDEX_MESSAGE];
-        private static HMark s_markDebugLog = new HMark();
+        private static HMark s_markDebugLog = new HMark(0);
         public static StringDelegateIntFunc DelegateGetINIParametersOfID;
         public static StringDelegateStringFunc DelegateGetINIParametersOfKEY;
 
