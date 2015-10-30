@@ -49,6 +49,11 @@ namespace HClassLibrary
             /// </summary>
             public HProfiles(int iListenerId, int id_role, int id_user)
             {
+                Update (iListenerId, id_role, id_user);
+            }
+
+            public void  Update (int iListenerId, int id_role, int id_user)
+            {
                 int err = -1;
                 string query = string.Empty
                     , errMsg = string.Empty;
@@ -191,7 +196,7 @@ namespace HClassLibrary
             }
         }
 
-        static HProfiles m_profiles;
+        private static HProfiles m_profiles;
 
         //Идентификаторы из БД
         //public enum ID_ROLES { ...
@@ -287,6 +292,11 @@ namespace HClassLibrary
             for (int i = 0; i < (int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION; i++)
                 if (i == (int)STATE_REGISTRATION.ENV) f_arRegistration[i](iListenerId); else f_arRegistration[i](null);
         }
+
+        public static void Update (int iListenerId)
+        {
+            m_profiles.Update(iListenerId, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID]);
+        } 
 
         protected void ClearValues () {
             int i = -1;

@@ -76,7 +76,9 @@ namespace HClassLibrary
         /// <param name="name">Наименование источника информации</param>
         protected virtual void register(int id, int indx, ConnectionSettings connSett, string name)
         {
-            m_dictIdListeners[id][indx] = DbSources.Sources().Register(connSett, true, @"ИстчнкИнфо=" + name + @", DESC=" + indx.ToString());
+            string strDesc = @"ИстчнкИнфо=" + name + @", DESC=" + indx.ToString();
+            m_dictIdListeners[id][indx] = DbSources.Sources().Register(connSett, true, strDesc);
+            Console.WriteLine (@"HHandlerDb::register (" + strDesc + @") - iListenerId=" + m_dictIdListeners[id][indx]);
         }
         /// <summary>
         /// Старт обработки запросов
