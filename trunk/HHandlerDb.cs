@@ -78,7 +78,7 @@ namespace HClassLibrary
         {
             string strDesc = @"ИстчнкИнфо=" + name + @", DESC=" + indx.ToString();
             m_dictIdListeners[id][indx] = DbSources.Sources().Register(connSett, true, strDesc);
-            Console.WriteLine (@"HHandlerDb::register (" + strDesc + @") - iListenerId=" + m_dictIdListeners[id][indx]);
+            //Console.WriteLine (@"HHandlerDb::register (" + strDesc + @") - iListenerId=" + m_dictIdListeners[id][indx]);
         }
         /// <summary>
         /// Старт обработки запросов
