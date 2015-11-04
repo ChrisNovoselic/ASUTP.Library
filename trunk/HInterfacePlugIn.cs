@@ -267,7 +267,7 @@ namespace HClassLibrary
         /// </summary>
         public Type TypeOfObject {
             get {
-                return _object.GetType ();
+                return ((_object == null) ? Type.EmptyTypes[0] : _object.GetType());
             }
         }
         /// <summary>

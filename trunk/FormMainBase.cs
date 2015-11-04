@@ -158,8 +158,15 @@ namespace HClassLibrary
                         else
                             //Проверить наличие подменю
                             if (((ToolStripMenuItem)mi).DropDownItems.Count > 0)
+                            {
                                 //Искать элемент в подменю
-                                findMainMenuItemOfText(mi as ToolStripMenuItem, text);
+                                itemRes = findMainMenuItemOfText(mi as ToolStripMenuItem, text);
+
+                                if (!(itemRes == null))
+                                    break;
+                                else
+                                    ;
+                            }
                             else
                                 ;
                     else
