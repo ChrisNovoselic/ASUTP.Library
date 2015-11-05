@@ -49,10 +49,10 @@ namespace HClassLibrary
             /// </summary>
             public HProfiles(int iListenerId, int id_role, int id_user)
             {
-                Update (iListenerId, id_role, id_user);
+                Update (iListenerId, id_role, id_user, true);
             }
 
-            public void  Update (int iListenerId, int id_role, int id_user)
+            public void  Update (int iListenerId, int id_role, int id_user, bool bThrow)
             {
                 int err = -1;
                 string query = string.Empty
@@ -81,7 +81,10 @@ namespace HClassLibrary
                     }
                 }
 
-                if (!(err == 0))
+                if (
+                    (!(err == 0))
+                    && (bThrow == true)
+                    )
                     throw new Exception(@"HProfiles::HProfiles () - " + errMsg + @"...");
                 else
                     ;
@@ -295,7 +298,7 @@ namespace HClassLibrary
 
         public static void Update (int iListenerId)
         {
-            m_profiles.Update(iListenerId, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID]);
+            m_profiles.Update(iListenerId, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID], false);
         } 
 
         protected void ClearValues () {
