@@ -306,6 +306,6 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="plug">Регистрируемый 'плюгин'</param>
         /// <returns>Результат регистрации</returns>
-        bool Register(IPlugIn plug);
+        int Register(IPlugIn plug);
     }
 }
