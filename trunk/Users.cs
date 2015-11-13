@@ -287,7 +287,7 @@ namespace HClassLibrary
 
                 ClearValues();
             } catch (Exception e) {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HUsers::HUsers ()...");
+                Logging.Logg().Exception(e, @"HUsers::HUsers ()...", Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             Logging.Logg().Debug(@"HUsers::HUsers () - ... очистили значения ...", Logging.INDEX_MESSAGE.NOT_SET);
@@ -402,7 +402,7 @@ namespace HClassLibrary
                     } 
                     catch (Exception e)
                     {
-                        Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HUsers::HUsers () - ... registrationINI () - параметр не обработан [" + i + @"]");
+                        Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationINI () - параметр не обработан [" + i + @"]", Logging.INDEX_MESSAGE.NOT_SET);
                     }
                 }
             }
@@ -437,7 +437,7 @@ namespace HClassLibrary
                     else {
                     }
                 } catch (Exception e) {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HUsers::HUsers () - ... registrationEnv () ... Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ ... ");
+                    Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationEnv () ... Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ ... ", Logging.INDEX_MESSAGE.NOT_SET);
                     throw e;                    
                 }
 

@@ -129,7 +129,7 @@ namespace HClassLibrary
             if (s_iMessageShowUnhandledException > 0) MessageBox.Show((IWin32Window)null, e.Exception.Message + Environment.NewLine + MessageAppAbort, strHeader); else ;
 
             // here you can log the exception ...
-            Logging.Logg().Exception(e.Exception, Logging.INDEX_MESSAGE.NOT_SET, strHeader);
+            Logging.Logg().Exception(e.Exception, strHeader, Logging.INDEX_MESSAGE.NOT_SET);
 
             Exit ();            
         }
@@ -151,7 +151,7 @@ namespace HClassLibrary
             MessageBox.Show((IWin32Window)null, strBody + Environment.NewLine + MessageAppAbort, strHeader);
 
             // here you can log the exception ...
-            Logging.Logg().Exception(e.ExceptionObject as Exception, Logging.INDEX_MESSAGE.NOT_SET, strHeader);
+            Logging.Logg().Exception(e.ExceptionObject as Exception, strHeader, Logging.INDEX_MESSAGE.NOT_SET);
 
             Exit ();
         }

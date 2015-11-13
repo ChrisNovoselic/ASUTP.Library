@@ -33,7 +33,7 @@ namespace HClassLibrary
                     }
                     catch (Exception e)
                     {
-                        Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HHandlerQueue.ItemQueue::Pars - ...");
+                        Logging.Logg().Exception(e, @"HHandlerQueue.ItemQueue::Pars - ...", Logging.INDEX_MESSAGE.NOT_SET);
                     }
 
                     return arObjRes;
@@ -167,7 +167,7 @@ namespace HClassLibrary
                 try { semaQueue.Release(1); }
                 catch (Exception e)
                 {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::Stop () - semaState.Release(1)");
+                    Logging.Logg().Exception(e, "HHandler::Stop () - semaState.Release(1)", Logging.INDEX_MESSAGE.NOT_SET);
                 }
                 //Ожидать завершения потоковой функции
                 joined = taskThreadQueue.Join(666);
@@ -274,7 +274,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 { //System.Threading.SemaphoreFullException
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadQueue () - semaState.Release(1)");
+                    Logging.Logg().Exception(e, "HHandler::ThreadQueue () - semaState.Release(1)", Logging.INDEX_MESSAGE.NOT_SET);
                 }
             else
                 ;

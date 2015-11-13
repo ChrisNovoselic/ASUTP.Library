@@ -300,7 +300,12 @@ namespace HClassLibrary
 
                             id = m_dictDbInterfaces[((ConnectionSettings)connSett).id].ListenerRegister();
                         }
-                        catch (Exception e) { Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbSources::register () - ListenerRegister () - ConnectionSettings.ID=" + (connSett as ConnectionSettings).id); err = -1; }
+                        catch (Exception e) {
+                            Logging.Logg().Exception(e
+                                , @"DbSources::register () - ListenerRegister () - ConnectionSettings.ID=" + (connSett as ConnectionSettings).id
+                                , Logging.INDEX_MESSAGE.NOT_SET);
+                            err = -1;
+                        }
                     }
                     else
                         ; // m_dictDbInterfaces[((ConnectionSettings)connSett).id].Name = desc;
@@ -390,7 +395,7 @@ namespace HClassLibrary
                 try {
                     dbConn = ((DbTSQLInterface)m_dictDbInterfaces[id]).GetConnection(out err);
                 }
-                catch (Exception e) { Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbSources::register () - GetConnection () - ..."); err = -1; }
+                catch (Exception e) { Logging.Logg().Exception(e, @"DbSources::register () - GetConnection () - ...", Logging.INDEX_MESSAGE.NOT_SET); err = -1; }
             }
             else
                 ;

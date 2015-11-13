@@ -192,7 +192,7 @@ namespace HClassLibrary
                 try { networkStream = m_tcpClient.GetStream(); }
                 catch (Exception e)
                 {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "TCPClientAsync::Write(byte[] ) - ...");
+                    Logging.Logg().Exception(e, "TCPClientAsync::Write(byte[] ) - ...", Logging.INDEX_MESSAGE.NOT_SET);
                 }
                 //Начало операции асинхронной записи
                 networkStream.BeginWrite(bytes, 0, bytes.Length, WriteCallback, null);
@@ -360,7 +360,7 @@ namespace HClassLibrary
                     try { m_tcpClient.Close(); }
                     catch (Exception e)
                     {
-                        //Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "TCPClientAsync::Disconnect () - tcpClient.Close()");
+                        //Logging.Logg().Exception(e, "TCPClientAsync::Disconnect () - tcpClient.Close()", Logging.INDEX_MESSAGE.NOT_SET);
                         Console.WriteLine("TCPClientAsync::Disconnect () - tcpClient.Close () - An error has occured when call this methode...type exception: " + e.GetType().FullName);
                     }
 

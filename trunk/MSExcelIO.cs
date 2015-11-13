@@ -343,7 +343,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::CloseExcelDoc () - ...");
+                Logging.Logg().Exception(e, @"MSExcelIO::CloseExcelDoc () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
             }
@@ -381,7 +381,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::CloseExcelAllDocs () - ...");
+                Logging.Logg().Exception(e, @"MSExcelIO::CloseExcelAllDocs () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
             }
@@ -414,7 +414,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::SaveExcel () - ...");
+                Logging.Logg().Exception(e, @"MSExcelIO::SaveExcel () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
             }
@@ -468,7 +468,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+                Logging.Logg().Exception(e, @"MSExcelIO::WriteValue () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
             }
@@ -494,7 +494,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+                Logging.Logg().Exception(e, @"MSExcelIO::WriteValue () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
             }
@@ -519,7 +519,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+                Logging.Logg().Exception(e, @"MSExcelIO::WriteValue () - ...", Logging.INDEX_MESSAGE.NOT_SET);
                 
                 bRes = false;
             }
@@ -544,7 +544,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"MSExcelIO::WriteValue () - ...");
+                Logging.Logg().Exception(e, @"MSExcelIO::WriteValue () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
             }

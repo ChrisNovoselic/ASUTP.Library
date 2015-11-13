@@ -245,7 +245,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbTSQLInterface::CloseConnection () - ...");
+                Logging.Logg().Exception(e, @"DbTSQLInterface::CloseConnection () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 er = (int)Error.CATCH_DBCONN;
             }

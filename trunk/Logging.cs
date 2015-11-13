@@ -964,7 +964,7 @@ namespace HClassLibrary
                 ;
         }
 
-        public void Exception(Exception e, INDEX_MESSAGE indx, string message, bool bLock = true)
+        public void Exception(Exception e, string message, INDEX_MESSAGE indx, bool bLock = true)
         {
             if (post (indx) == true)
             {

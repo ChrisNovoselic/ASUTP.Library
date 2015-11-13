@@ -214,7 +214,7 @@ namespace HClassLibrary
                 }
             }
             catch (Exception e) {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"ConnectionSettings::Validate() - ...");
+                Logging.Logg().Exception(e, @"ConnectionSettings::Validate() - ...", Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             if (port > 65535)

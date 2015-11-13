@@ -194,7 +194,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, throwMes + @" - semaState.Release(1)");
+                Logging.Logg().Exception(e, throwMes + @" - semaState.Release(1)", Logging.INDEX_MESSAGE.NOT_SET);
             }
         }
         /// <summary>
@@ -394,7 +394,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 {
-                    Logging.Logg().Exception (e, Logging.INDEX_MESSAGE.NOT_SET, @"HHandler::ThreadStates () - ...");
+                    Logging.Logg().Exception(e, @"HHandler::ThreadStates () - ...", Logging.INDEX_MESSAGE.NOT_SET);
                 }
             }
             //Освободить ресурс ядра ОС
@@ -405,7 +405,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 { //System.Threading.SemaphoreFullException
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadStates () - semaState.Release(1)");
+                    Logging.Logg().Exception(e, "HHandler::ThreadStates () - semaState.Release(1)", Logging.INDEX_MESSAGE.NOT_SET);
                 }
             else
                 ;
@@ -427,7 +427,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "HHandler::ThreadFunction () - m_waitHandleState[0]).Set()");
+                Logging.Logg().Exception(e, "HHandler::ThreadFunction () - m_waitHandleState[0]).Set()", Logging.INDEX_MESSAGE.NOT_SET);
             }
         }
 

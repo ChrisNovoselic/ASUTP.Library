@@ -88,7 +88,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"FileINI::isSecApp() - ошибка разбора секции...");
+                Logging.Logg().Exception(e, @"FileINI::isSecApp() - ошибка разбора секции...", Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             return bRes;
@@ -253,7 +253,7 @@ namespace HClassLibrary
                     }
                     catch (Exception e)
                     {
-                        Logging.Logg ().Exception (e, Logging.INDEX_MESSAGE.NOT_SET, @"FileINI::ctor () - ...");
+                        Logging.Logg().Exception(e, @"FileINI::ctor () - ...", Logging.INDEX_MESSAGE.NOT_SET);
                     }
                 }
                 else

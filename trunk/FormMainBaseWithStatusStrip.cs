@@ -244,7 +244,7 @@ namespace HClassLibrary
             {
                 m_statusStripMain.BeginInvoke(delegateEvent);
             } catch (Exception e) {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.D_001, @"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
+                Logging.Logg().Exception(e, @"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...", Logging.INDEX_MESSAGE.D_001);
             }
             //else
             //    Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ErrorReport () - ... BeginInvoke (delegateEvent) - ...");
@@ -272,7 +272,7 @@ namespace HClassLibrary
                     Logging.Logg().Error(@"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...", Logging.INDEX_MESSAGE.D_001);
             }
             catch (Exception e) {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.D_001, @"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...");
+                Logging.Logg().Exception(e, @"FormMainBaseWithStatusStrip::ActionReport () - ... BeginInvoke (delegateEvent) - ...", Logging.INDEX_MESSAGE.D_001);
             }
         }
 

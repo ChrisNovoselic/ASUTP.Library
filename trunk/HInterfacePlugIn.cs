@@ -120,7 +120,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"HDataHost::DataAskedHost () - ...");
+                Logging.Logg().Exception(e, @"HDataHost::DataAskedHost () - ...", Logging.INDEX_MESSAGE.NOT_SET);
             }
         }
 

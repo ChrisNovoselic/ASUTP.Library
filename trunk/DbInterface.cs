@@ -158,7 +158,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbInterface::Stop () - ...");
+                    Logging.Logg().Exception(e, @"DbInterface::Stop () - ...", Logging.INDEX_MESSAGE.NOT_SET);
                 }
 
                 joined = dbThread.Join(6666);
@@ -192,7 +192,7 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 {
-                    Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, @"DbInterface::Request (int, string)");
+                    Logging.Logg().Exception(e, @"DbInterface::Request (int, string)", Logging.INDEX_MESSAGE.NOT_SET);
                 }
             }
 
@@ -233,7 +233,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "DbInterface::SetConnectionSettings () - обращение к переменной sem (вызов: sem.Release ())");
+                Logging.Logg().Exception(e, "DbInterface::SetConnectionSettings () - обращение к переменной sem (вызов: sem.Release ())", Logging.INDEX_MESSAGE.NOT_SET);
             }
         }
 
@@ -303,7 +303,7 @@ namespace HClassLibrary
                         }
                         catch (DbException e)
                         {
-                            Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - request = " + request);
+                            Logging.Logg().Exception(e, "DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - request = " + request, Logging.INDEX_MESSAGE.NOT_SET);
                         
                             result = false;
                         }
@@ -349,7 +349,7 @@ namespace HClassLibrary
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, Logging.INDEX_MESSAGE.NOT_SET, "DbInterface::DbInterface_ThreadFunction () - выход...");
+                Logging.Logg().Exception(e, "DbInterface::DbInterface_ThreadFunction () - выход...", Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             Disconnect();
