@@ -398,6 +398,7 @@ namespace HClassLibrary
                 }
             }
             //Освободить ресурс ядра ОС
+            //??? "везде" 'true'
             if (bRes == false)
                 try
                 {

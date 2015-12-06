@@ -267,7 +267,8 @@ namespace HClassLibrary
                 }
             }
             //Освободить ресурс ядра ОС
-            if (bRes == true)
+            //??? "везде" 'true'
+            if (bRes == false)
                 try
                 {
                     semaQueue.Release(1);
