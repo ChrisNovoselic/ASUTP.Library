@@ -60,7 +60,7 @@ namespace HClassLibrary
         , INIT_SOURCE, INIT_SIGNALS
         , START, STOP, ACTIVATE
         , TABLE_RES
-        , TO_INSERT, TO_CLEAR
+        , TO_INSERT, TO_START, TO_STOP
         , ERROR
     }
     /// <summary>
