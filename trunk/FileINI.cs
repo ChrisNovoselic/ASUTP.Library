@@ -317,7 +317,7 @@ namespace HClassLibrary
             return isSec (sec_shr) == true ? m_values[sec].ContainsKey(key) == true ? m_values[sec][key] : string.Empty : string.Empty;
         }
         /// <summary>
-        /// Возвраить словарь всех значений для секции
+        /// Возвратить словарь всех значений для секции
         /// </summary>
         /// <param name="sec_shr"></param>
         /// <returns></returns>
