@@ -189,6 +189,7 @@
     <Compile Include="FormMainFloat.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="HDateTime.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FormConnectionSettings.resx">

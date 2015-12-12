@@ -713,7 +713,7 @@ namespace HClassLibrary
                 else
                     ;
 
-                m_listQueueMessage.Add(new MESSAGE((int)id_msg, HHandlerDb.ToMoscowTimeZone (DateTime.Now), msg, bSep, bDatetime, bLock));
+                m_listQueueMessage.Add(new MESSAGE((int)id_msg, HDateTime.ToMoscowTimeZone (DateTime.Now), msg, bSep, bDatetime, bLock));
             }
         }
 
