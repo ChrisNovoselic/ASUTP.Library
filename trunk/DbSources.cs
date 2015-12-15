@@ -535,7 +535,8 @@ namespace HClassLibrary
                 if ((m_dictListeners.ContainsKey (id) == true) && (! (m_dictListeners [id].dbConn == null)))
                 {
                     res = m_dictListeners[id].dbConn;
-                    err = 0;
+
+                    err = (res.State == ConnectionState.Broken) || (res.State == ConnectionState.Closed) ? -2 : 0;
                 }
                 else
                     ;
