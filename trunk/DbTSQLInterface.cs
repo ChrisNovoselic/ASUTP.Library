@@ -484,12 +484,28 @@ namespace HClassLibrary
         /// <returns>строка - значение из таблицы с одинарными кавычками или без них</returns>
         public static string valueForQuery(DataTable table, int row, int col)
         {
-            string strRes = string.Empty;
+            string strRes = string.Empty
+                , strVal = string.Empty;
             bool bQuote =
                 //table.Columns[col].DataType.IsByRef;
                 !table.Columns[col].DataType.IsPrimitive;
 
-            strRes = (bQuote ? "'" : string.Empty) + (table.Rows[row][col].ToString().Length > 0 ? table.Rows[row][col] : "NULL") + (bQuote ? "'" : string.Empty);
+            switch (table.Columns[col].DataType.Name)
+            {
+                case "DateTime":
+                    strVal = ((DateTime)table.Rows[row][col]).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                default:
+                    //??? не учитывается может поле принимать значение NULL
+                    strVal = table.Rows[row][col].ToString();
+                    if (strVal.Length == 0)
+                        strVal = "NULL";
+                    else
+                        ;
+                    break;
+            }
+
+            strRes = (bQuote ? "'" : string.Empty) + strVal + (bQuote ? "'" : string.Empty);
 
             return strRes;
         }
