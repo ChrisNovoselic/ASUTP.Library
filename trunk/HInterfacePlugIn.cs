@@ -240,7 +240,11 @@ namespace HClassLibrary
                 bRes = true; //Объект только создан
             }
             else
-                ;
+                //if (((Control)_object).Visible == true)
+                //    ((Control)_object).Close();
+                //else
+                //    ((Control)_object).Open()
+                        ;
 
             return bRes;
         }
