@@ -145,7 +145,11 @@ namespace HClassLibrary
 
     public abstract class PlugInMenuItem : PlugInBase
     {
-        //Int16 IdOwnerMenuItem { get; }
+        public PlugInMenuItem() : base ()
+        {
+            _MarkReversed = true;
+        }
+
         public abstract string NameOwnerMenuItem { get; }
 
         public abstract string NameMenuItem { get; }
@@ -233,18 +237,33 @@ namespace HClassLibrary
                 _object = Activator.CreateInstance(type, this);
 
                 if (_object is Control)
+                {
                     ((Control)_object).HandleCreated += new EventHandler(plugInObject_HandleCreated);
+                    //((Control)_object).HandleDestroyed += new EventHandler(plugInObject_HandleDestroyed);
+                }
                 else
                     ;
 
                 bRes = true; //Объект только создан
             }
             else
-                //if (((Control)_object).Visible == true)
-                //    ((Control)_object).Close();
-                //else
-                //    ((Control)_object).Open()
+            {
+                if (_object is Control)
+                {
+                    if (_object is HPanelCommon)
+                        if ((_object as HPanelCommon).Started == false)
+                            (_object as HPanelCommon).Start();
+                        else
+                            (_object as HPanelCommon).Stop();
+                    else
                         ;
+                    //(_object as Control).
+                }
+                else
+                    ;
+
+                //_object = null;
+            }
 
             return bRes;
         }
@@ -255,6 +274,10 @@ namespace HClassLibrary
         /// <param name="ev">Аргумент для сопровождения события</param>
         private void plugInObject_HandleCreated (object obj, EventArgs ev) {
             m_evObjectHandleCreated.Set ();
+        }
+        private void plugInObject_HandleDestroyed(object obj, EventArgs ev)
+        {
+            //m_evObjectHandleCreated.Reset();
         }
         /// <summary>
         /// Возвратить объект 'плюгина'
