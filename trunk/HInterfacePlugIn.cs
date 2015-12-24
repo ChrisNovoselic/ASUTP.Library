@@ -147,7 +147,7 @@ namespace HClassLibrary
     {
         public PlugInMenuItem() : base ()
         {
-            _MarkReversed = true;
+            //_MarkReversed = true;
         }
 
         public abstract string NameOwnerMenuItem { get; }
@@ -168,7 +168,7 @@ namespace HClassLibrary
         //protected Type _type;
         protected object _object;
         public int _Id;
-        protected HMark m_markDataHost;
+        protected Dictionary<int,uint> m_dictDataHostCounter;
         private ManualResetEvent m_evObjectHandleCreated;
 
         public IPlugInHost Host
@@ -184,8 +184,8 @@ namespace HClassLibrary
         public PlugInBase()
             : base()
         {
-            m_markDataHost = new HMark (0);
-            _MarkReversed = false;
+            m_dictDataHostCounter = new Dictionary<int,uint> ();
+            //_MarkReversed = false;
             m_evObjectHandleCreated = new ManualResetEvent (false);
             //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);
         }
@@ -306,7 +306,7 @@ namespace HClassLibrary
             base.DataAskedHost(new object [] {_Id, par});
         }
         
-        protected bool _MarkReversed;
+        //protected bool _MarkReversed;
         /// <summary>
         /// Обработчик события ответа от главной формы
         /// </summary>
@@ -317,10 +317,10 @@ namespace HClassLibrary
             else
                 ;
 
-            if (_MarkReversed == false)
-                m_markDataHost.Marked(((EventArgsDataHost)obj).id);
+            if (m_dictDataHostCounter.ContainsKey(((EventArgsDataHost)obj).id) == true)
+                m_dictDataHostCounter[((EventArgsDataHost)obj).id]++;
             else
-                m_markDataHost.Set(((EventArgsDataHost)obj).id, m_markDataHost.IsMarked(((EventArgsDataHost)obj).id));
+                m_dictDataHostCounter.Add(((EventArgsDataHost)obj).id, 1);
         }
     }
     /// <summary>
