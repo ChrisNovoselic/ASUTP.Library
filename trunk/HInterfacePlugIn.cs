@@ -275,6 +275,7 @@ namespace HClassLibrary
         private void plugInObject_HandleCreated (object obj, EventArgs ev) {
             m_evObjectHandleCreated.Set ();
         }
+
         private void plugInObject_HandleDestroyed(object obj, EventArgs ev)
         {
             //m_evObjectHandleCreated.Reset();

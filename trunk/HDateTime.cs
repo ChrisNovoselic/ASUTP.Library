@@ -99,6 +99,21 @@ namespace HClassLibrary
                 //    TimeSpan.FromHours(TimeZone.CurrentTimeZone.GetUtcOffset(dtNow).Hours - TimeZoneInfo.FindSystemTimeZoneById(HHandlerDb.s_Name_Moscow_TimeZone).GetUtcOffset(dtNow).Hours)
                 ;
         }
+
+        public static bool IsMonthBoundary(DateTime dt)
+        {
+            bool bRes = false;
+
+            if ((dt.Day == 1)
+                && (dt.Hour == 0)
+                && (dt.Minute == 0)
+                && (dt.Second == 0))
+                bRes = true;
+            else
+                ;
+
+            return bRes;
+        }
     }
 
     public class DateTimeRange
