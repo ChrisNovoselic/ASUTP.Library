@@ -114,6 +114,16 @@ namespace HClassLibrary
 
             return bRes;
         }
+
+        public static DateTime ToCurrentMonthBoundary(DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0);
+        }
+
+        public static DateTime ToNextMonthBoundary(DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0).AddMonths(1);
+        }
     }
 
     public class DateTimeRange
