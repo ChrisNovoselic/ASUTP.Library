@@ -899,35 +899,59 @@ namespace HClassLibrary
             else
                 ;
         }
-
-        public static Int32 GetIdNext(ref DbConnection conn, string nameTable, string nameFieldID = @"ID")
+        /// <summary>
+        /// Возвратить идентификатор для очередной записи в диапазоне [min...max]
+        /// </summary>
+        /// <param name="conn">Объект с установленным соединениес с БД</param>
+        /// <param name="nameTable">Наименование таблицы для вставки записи</param>
+        /// <param name="nameFieldID">Наименование целочисленного поля с идентификатором</param>
+        /// <param name="min">Минимальное значение диапазона для поиска идентификатора</param>
+        /// <param name="max">Максимальное значение диапазона для поиска идентификатора</param>
+        /// <returns></returns>
+        public static Int32 GetIdNext(ref DbConnection conn, string nameTable, out int err, string nameFieldID = @"ID", Int32 min = 0, Int32 max = Int32.MaxValue)
         {
-            Int32 idRes = -1,
-                err = (int)Error.NO_ERROR;
+            Int32 idRes = -1;
+            err = (int)Error.NO_ERROR;
 
             lock (lockConn)
             {
-                idRes = Convert.ToInt32(Select(ref conn, "SELECT MAX(" + nameFieldID + @") FROM " + nameTable, null, null, out err).Rows[0][0]);
+                idRes = Convert.ToInt32(Select(ref conn, "SELECT MAX(" + nameFieldID + @") FROM " + nameTable + @" WHERE "
+                        + nameFieldID + @">" + min + @" AND " + nameFieldID + @"<" + max
+                    , null, null, out err).Rows[0][0]);
             }
 
             return ++idRes;
         }
-
-        public static Int32 GetIdNext(DataTable table, string nameFieldID = @"ID")
+        /// <summary>
+        /// Возвратить идентификатор для очередной записи в диапазоне [min...max]
+        /// </summary>
+        /// <param name="table">Таблица для вставки записи</param>
+        /// <param name="nameFieldID">Наименование целочисленного поля</param>
+        /// <param name="min">Минимальное значение диапазона для поиска идентификатора</param>
+        /// <param name="max">Максимальное значение диапазона для поиска идентификатора</param>
+        /// <returns>Целочисленный идентификатор записи в таблице</returns>
+        public static Int32 GetIdNext(DataTable table, out int err, string nameFieldID = @"ID", Int32 min = 0, Int32 max = Int32.MaxValue)
         {
-            Int32 idRes = -1,
-                err = (int)Error.NO_ERROR;
+            Int32 idRes = -1;
+            err = (int)Error.NO_ERROR;
 
             if (table.Rows.Count > 0)
-                idRes = Convert.ToInt32(table.Select(string.Empty, nameFieldID + @" DESC")[0][nameFieldID]);
+                idRes = Convert.ToInt32(table.Select(nameFieldID + @">" + min + @" AND " + nameFieldID + @"<" + max, nameFieldID + @" DESC")[0][nameFieldID]);
             else
                 //err = (int)Error.TABLE_ROWS_0
                 ;
 
             return ++idRes;
         }
-
-        //Изменение (вставка), удаление
+        /// <summary>
+        /// Изменение (вставка), удаление
+        /// </summary>
+        /// <param name="conn">Объект соединения с БД</param>
+        /// <param name="nameTable">Наименование таблицы</param>
+        /// <param name="keyFields">Наименования полей таблицы в составе ключа по поиску записей</param>
+        /// <param name="origin">Таблица со значениями - исходная</param>
+        /// <param name="data">Таблица со значениями - с изменениями</param>
+        /// <param name="err">Признак выполнения функции</param>
         public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, string keyFields, DataTable origin, DataTable data, out int err)
         {
             if (!(data.Rows.Count < origin.Rows.Count))
