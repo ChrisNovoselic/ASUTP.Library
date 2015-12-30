@@ -934,9 +934,17 @@ namespace HClassLibrary
         {
             Int32 idRes = -1;
             err = (int)Error.NO_ERROR;
+            DataRow[] rangeRows = null;
 
             if (table.Rows.Count > 0)
-                idRes = Convert.ToInt32(table.Select(nameFieldID + @">" + min + @" AND " + nameFieldID + @"<" + max, nameFieldID + @" DESC")[0][nameFieldID]);
+            {
+                rangeRows = table.Select(nameFieldID + @">" + min + @" AND " + nameFieldID + @"<" + max, nameFieldID + @" DESC");
+
+                if (rangeRows.Length > 0)
+                    idRes = Convert.ToInt32(rangeRows[0][nameFieldID]);
+                else
+                    ;
+            }
             else
                 //err = (int)Error.TABLE_ROWS_0
                 ;
