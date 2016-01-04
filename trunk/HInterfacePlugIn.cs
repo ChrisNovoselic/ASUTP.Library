@@ -323,6 +323,12 @@ namespace HClassLibrary
             else
                 m_dictDataHostCounter.Add(((EventArgsDataHost)obj).id, 1);
         }
+
+        protected bool isMarked(int indx)
+        {
+            return (m_dictDataHostCounter.ContainsKey(indx) == true)
+                && (m_dictDataHostCounter[indx] % 2 == 1);
+        }
     }
     /// <summary>
     /// Интерфейс для контейнера 'плюгинов'
