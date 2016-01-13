@@ -501,7 +501,7 @@ namespace HClassLibrary
                     if (strVal.Length == 0)
                         strVal = "NULL";
                     else
-                        ;
+                        strVal = strVal.Replace (@"'", @"''");
                     break;
             }
 
