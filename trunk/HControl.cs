@@ -334,16 +334,15 @@ namespace HClassLibrary
             return lblRes;
         }
 
-        public static Font FitFont(Graphics g, string text, SizeF sz)
+        public static Font FitFont(Graphics g, string text, SizeF sz, float fSzStep = 0.05F)
         {
             Font fontRes = null;
             float fSz = -1F,
-                fSzMin = -1F, fSzMax = -1F, fSzStep = float.MinValue;
-            SizeF szTemp = new SizeF (sz.Width *= 0.86f, sz.Height *= 0.86f);
+                fSzMin = -1F, fSzMax = -1F;
+            SizeF szTemp = new SizeF (sz.Width *= 0.95f, sz.Height *= 0.95f);
 
-            fSzMin = szTemp.Height * 0.2F;
-            fSzMax = szTemp.Height * 0.8F;
-            fSzStep = 0.5F;
+            fSzMin = szTemp.Height * 0.25F;
+            fSzMax = szTemp.Height;
 
             //ctrl.Height * 0.29F
             //for (fSz = fSzMin; fSz < fSzMax; fSz += fSzStep)
