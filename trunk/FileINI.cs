@@ -139,7 +139,7 @@ namespace HClassLibrary
                     //Прочитать все строки ??? ProgramBase.ss_MainCultureInfo
                     //EncodingInfo[]arEncInfo = Encoding.GetEncodings();
                     string[] lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
-                    //Ппризнак - строка начало секции
+                    //Признак - строка начало секции
                     bool bSec = false
                     //Признак - следующая строка - продолжение текущей
                         , bNewLine = true;
