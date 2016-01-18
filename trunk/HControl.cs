@@ -333,6 +333,34 @@ namespace HClassLibrary
 
             return lblRes;
         }
+
+        public static Font FitFont(Graphics g, string text, SizeF sz)
+        {
+            Font fontRes = null;
+            float fSz = -1F,
+                fSzMin = -1F, fSzMax = -1F, fSzStep = float.MinValue;
+            SizeF szTemp = new SizeF (sz.Width *= 0.86f, sz.Height *= 0.86f);
+
+            fSzMin = szTemp.Height * 0.2F;
+            fSzMax = szTemp.Height * 0.8F;
+            fSzStep = 0.5F;
+
+            //ctrl.Height * 0.29F
+            //for (fSz = fSzMin; fSz < fSzMax; fSz += fSzStep)
+            for (fSz = fSzMax; fSz > fSzMin; fSz -= fSzStep)
+            {
+                fontRes = new System.Drawing.Font("Microsoft Sans Serif", fSz, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+                sz = g.MeasureString(text, fontRes);
+
+                if ((!(sz.Height > szTemp.Height))
+                    && (!(sz.Width > szTemp.Width)))
+                    break;
+                else
+                    ;
+            }
+
+            return fontRes;
+        }
     }
 
     public class HLabelStyles
