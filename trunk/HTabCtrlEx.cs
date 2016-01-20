@@ -341,6 +341,23 @@ namespace HClassLibrary
             return new string(' ', 1) + text + new string(' ', cntSpace);
         }
 
+        public int IndexOfID(int id)
+        {
+            int iRes = -1;
+
+            foreach (PropertyTab propTab in m_listPropTabs)
+                if (propTab.id == id)
+                {
+                    iRes = m_listPropTabs.IndexOf(propTab);
+
+                    break;
+                }
+                else
+                    ;
+
+            return iRes;
+        }
+
         public string VisibleIDs
         {
             get
