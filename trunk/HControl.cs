@@ -334,25 +334,24 @@ namespace HClassLibrary
             return lblRes;
         }
 
-        public static Font FitFont(Graphics g, string text, SizeF sz, float fSzStep = 0.05F)
+        public static Font FitFont(Graphics g, string text, SizeF szCtrl, SizeF szMargin, float fSzStep)
         {
-            Font fontRes = null;
-            float fSz = -1F,
-                fSzMin = -1F, fSzMax = -1F;
-            SizeF szTemp = new SizeF (sz.Width *= 0.95f, sz.Height *= 0.95f);
-
-            fSzMin = szTemp.Height * 0.25F;
-            fSzMax = szTemp.Height;
+            Font fontRes = null;;
+            SizeF szLimit = new SizeF(szCtrl.Width *= szMargin.Width, szCtrl.Height *= szMargin.Height)
+                , szAttempt;
+            float fHeight
+                , fHeightMin = szLimit.Height * 0.25F
+                , fHeightMax = szLimit.Height;
 
             //ctrl.Height * 0.29F
             //for (fSz = fSzMin; fSz < fSzMax; fSz += fSzStep)
-            for (fSz = fSzMax; fSz > fSzMin; fSz -= fSzStep)
+            for (fHeight = fHeightMax; fHeight > fHeightMin; fHeight -= fSzStep)
             {
-                fontRes = new System.Drawing.Font("Microsoft Sans Serif", fSz, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-                sz = g.MeasureString(text, fontRes);
+                fontRes = new System.Drawing.Font("Microsoft Sans Serif", fHeight, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+                szAttempt = g.MeasureString(text, fontRes);
 
-                if ((!(sz.Height > szTemp.Height))
-                    && (!(sz.Width > szTemp.Width)))
+                if ((!(szAttempt.Height > szLimit.Height))
+                    && (!(szAttempt.Width > szLimit.Width)))
                     break;
                 else
                     ;

@@ -201,7 +201,7 @@ namespace HClassLibrary
             
             if (!(m_label == null))
             {
-                font = HLabel.FitFont(m_label.CreateGraphics(), m_label.Text, m_label.ClientSize);
+                font = HLabel.FitFont(m_label.CreateGraphics(), m_label.Text, m_label.ClientSize, new SizeF (0.95F, 0.95F), 0.05F);
                 m_label.Font = new Font(
                         font.Name
                         , font.Size
