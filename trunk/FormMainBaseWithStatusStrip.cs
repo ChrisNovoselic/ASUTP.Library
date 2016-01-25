@@ -112,7 +112,6 @@ namespace HClassLibrary
         protected object lockEvent; 
         protected
             System.Windows.Forms.Timer
-            //System.Threading.Timer
                 m_timer
                 ;
 
@@ -286,7 +285,6 @@ namespace HClassLibrary
         protected abstract void timer_Start ();
 
         private void timer_Tick(object sender, EventArgs e)
-        //private void timer_Tick(object obj)
         {
             //Logging.Logg().Debug(this.GetType().Name + @"::timer_Tick () - в’од ...", Logging.INDEX_MESSAGE.NOT_SET);
 
@@ -335,9 +333,6 @@ namespace HClassLibrary
         //private void timer_Disposed(object sender, EventArgs e)
         //{
         //    Logging.Logg().Debug(this.GetType().Name + @"::timer_Disposed () - ...", Logging.INDEX_MESSAGE.NOT_SET);
-        //}
-
-        //private void start () {
         //}
 
         protected virtual void Start () {

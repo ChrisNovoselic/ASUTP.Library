@@ -93,6 +93,7 @@ namespace HClassLibrary
 
             return bRes;
         }
+
         /// <summary>
         /// Проверка наличия ключа в главной секции
         /// </summary>
@@ -102,6 +103,7 @@ namespace HClassLibrary
         {
             return isSecKey(SEC_SHR_MAIN, key);
         }
+
         /// <summary>
         /// Проверка наличия ключа в секции
         /// </summary>
@@ -112,6 +114,7 @@ namespace HClassLibrary
         {
             return isSec(sec_shr) == true ? m_values[sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP].ContainsKey(key) : false;
         }
+
         /// <summary>
         /// Конструктор - основной
         /// </summary>
@@ -258,7 +261,8 @@ namespace HClassLibrary
                 }
                 else
                     ;
-        }        
+        }  
+      
         /// <summary>
         /// Получить значение из главной секции по ключу
         /// </summary>
