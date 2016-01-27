@@ -6,9 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Windows.Forms;
-
 using System.Windows.Forms.VisualStyles; //PushButtonState
-
 using System.Runtime.Remoting.Messaging; //AsyncResult...
 
 namespace HClassLibrary
