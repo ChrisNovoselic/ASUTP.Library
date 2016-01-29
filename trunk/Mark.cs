@@ -7,15 +7,28 @@ using System.Windows.Forms; //Для MessageBox
 
 namespace HClassLibrary
 {
+    /// <summary>
+    /// Класс для хранения массива признаков
+    /// Значение каждого признака хранится в одном из битов объекта
+    /// </summary>
     public class HMark
     {
+        /// <summary>
+        /// Совокупность значений признаков
+        /// </summary>
         private Int32 m_mark;
-
+        /// <summary>
+        /// Конструктор объекта
+        /// </summary>
+        /// <param name="val">Совокупность значений признаков</param>
         public HMark(int val)
         {
             m_mark = val;
         }
-
+        /// <summary>
+        /// Конструктор объекта
+        /// </summary>
+        /// <param name="arNumBits">Индексы (номера)</param>
         public HMark(/*params */int []arNumBits)
         {
             foreach (int bit in arNumBits)
