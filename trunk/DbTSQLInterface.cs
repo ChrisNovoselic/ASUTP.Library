@@ -482,26 +482,39 @@ namespace HClassLibrary
         /// <param name="row">номер записи в таблице со значениями</param>
         /// <param name="col">номер столбца в записи таблицы со значениями</param>
         /// <returns>строка - значение из таблицы с одинарными кавычками или без них</returns>
-        public static string valueForQuery(DataTable table, int row, int col)
+        public static string ValueToQuery(DataTable table, int row, int col)
+        {
+            return ValueToQuery(table.Rows[row][col], table.Columns[col].DataType);
+        }
+
+        public static string ValueToQuery(object val, Type type)
         {
             string strRes = string.Empty
                 , strVal = string.Empty;
             bool bQuote =
                 //table.Columns[col].DataType.IsByRef;
-                !table.Columns[col].DataType.IsPrimitive;
+                !type.IsPrimitive;
 
-            switch (table.Columns[col].DataType.Name)
+            switch (type.Name)
             {
                 case "DateTime":
-                    strVal = ((DateTime)table.Rows[row][col]).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    strVal = ((DateTime)val).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                case @"Double":
+                case @"double":
+                    strVal = ((double)val).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                case @"Float":
+                case @"float":
+                    strVal = ((float)val).ToString(System.Globalization.CultureInfo.InvariantCulture);
                     break;
                 default:
                     //??? не учитывается может поле принимать значение NULL
-                    strVal = table.Rows[row][col].ToString();
+                    strVal = val.ToString();
                     if (strVal.Length == 0)
                         strVal = "NULL";
                     else
-                        strVal = strVal.Replace (@"'", @"''");
+                        strVal = strVal.Replace(@"'", @"''");
                     break;
             }
 
@@ -1019,7 +1032,7 @@ namespace HClassLibrary
                     for (k = 0; k < data.Columns.Count; k++)
                     {
                         strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT] += data.Columns[k].ColumnName + ",";
-                        valuesForInsert += DbTSQLInterface.valueForQuery(data, j, k) + ",";
+                        valuesForInsert += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
                     }
                     strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT] = strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT].Substring(0, strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT].Length - 1);
                     valuesForInsert = valuesForInsert.Substring(0, valuesForInsert.Length - 1);
@@ -1042,7 +1055,7 @@ namespace HClassLibrary
 
                             strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += data.Columns[k].ColumnName + "="; // + data.Rows[j][k] + ",";
 
-                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += DbTSQLInterface.valueForQuery(data, j, k) + ",";
+                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
                         }
 
                         if (bUpdate == true)

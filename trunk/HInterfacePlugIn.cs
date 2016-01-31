@@ -238,6 +238,11 @@ namespace HClassLibrary
 
                 if (_object is Control)
                 {
+                    //if (_object is HPanelCommon)
+                    //    (_object as HPanelCommon).Start();
+                    //else
+                    //    ;
+
                     ((Control)_object).HandleCreated += new EventHandler(plugInObject_HandleCreated);
                     //((Control)_object).HandleDestroyed += new EventHandler(plugInObject_HandleDestroyed);
                 }
