@@ -84,10 +84,30 @@ namespace HClassLibrary
                     ;
             }
         }
-
-        //Function to get random number
+        /// <summary>
+        /// Возвести число в степень 2 
+        /// </summary>
+        /// <param name="number">Число, возводимое в степень 2</param>
+        /// <param name="offset">Слагаемое к числу, возводимого в степень (используется для битов)</param>
+        /// <returns>Значение числа в степени 2</returns>
+        public static Int32 Pow2(int number, int offset = 0)
+        {
+            return (Int32)Math.Pow(2, number + offset);
+        }
+        /// <summary>
+        /// Function to get random number
+        /// </summary>
         private static readonly Random random = new Random();
+        /// <summary>
+        /// Объект синхронизации для получения случайного целочисленного значения в диапазоне
+        /// </summary>
         private static readonly object syncLock = new object();
+        /// <summary>
+        /// Возвраить случайное целочисленное значение в диапазоне
+        /// </summary>
+        /// <param name="min">Нижняя (левая) граница диапазона</param>
+        /// <param name="max">Верхняя (правая) граница диапазона</param>
+        /// <returns>Случайное целочисленное значение</returns>
         public static int GetRandomNumber(int min = 1, int max = Int32.MaxValue)
         {
             lock (syncLock)
