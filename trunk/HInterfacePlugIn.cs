@@ -169,7 +169,7 @@ namespace HClassLibrary
         protected object _object;
         public int _Id;
         protected Dictionary<int,uint> m_dictDataHostCounter;
-        private ManualResetEvent m_evObjectHandleCreated;
+        //private ManualResetEvent m_evObjectHandleCreated;
 
         public IPlugInHost Host
         {
@@ -186,7 +186,7 @@ namespace HClassLibrary
         {
             m_dictDataHostCounter = new Dictionary<int,uint> ();
             //_MarkReversed = false;
-            m_evObjectHandleCreated = new ManualResetEvent (false);
+            //m_evObjectHandleCreated = new ManualResetEvent (false);
             //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);
         }
 
@@ -243,7 +243,7 @@ namespace HClassLibrary
                     //else
                     //    ;
 
-                    ((Control)_object).HandleCreated += new EventHandler(plugInObject_HandleCreated);
+                    //((Control)_object).HandleCreated += new EventHandler(plugInObject_HandleCreated);
                     //((Control)_object).HandleDestroyed += new EventHandler(plugInObject_HandleDestroyed);
                 }
                 else
@@ -253,38 +253,38 @@ namespace HClassLibrary
             }
             else
             {
-                if (_object is Control)
-                {
-                    if (_object is HPanelCommon)
-                        if ((_object as HPanelCommon).Started == false)
-                            (_object as HPanelCommon).Start();
-                        else
-                            (_object as HPanelCommon).Stop();
-                    else
-                        ;
-                    //(_object as Control).
-                }
-                else
-                    ;
+                //if (_object is Control)
+                //{
+                //    if (_object is HPanelCommon)
+                //        if ((_object as HPanelCommon).Started == false)
+                //            (_object as HPanelCommon).Start();
+                //        else
+                //            (_object as HPanelCommon).Stop();
+                //    else
+                //        ;
+                //    //(_object as Control).
+                //}
+                //else
+                //    ;
 
-                //_object = null;
+                ////_object = null;
             }
 
             return bRes;
         }
-        /// <summary>
-        /// Обработчик события "завершено создание элемента управления"
-        /// </summary>
-        /// <param name="obj">Элемент управления</param>
-        /// <param name="ev">Аргумент для сопровождения события</param>
-        private void plugInObject_HandleCreated (object obj, EventArgs ev) {
-            m_evObjectHandleCreated.Set ();
-        }
+        ///// <summary>
+        ///// Обработчик события "завершено создание элемента управления"
+        ///// </summary>
+        ///// <param name="obj">Элемент управления</param>
+        ///// <param name="ev">Аргумент для сопровождения события</param>
+        //private void plugInObject_HandleCreated (object obj, EventArgs ev) {
+        //    m_evObjectHandleCreated.Set ();
+        //}
 
-        private void plugInObject_HandleDestroyed(object obj, EventArgs ev)
-        {
-            //m_evObjectHandleCreated.Reset();
-        }
+        //private void plugInObject_HandleDestroyed(object obj, EventArgs ev)
+        //{
+        //    //m_evObjectHandleCreated.Reset();
+        //}
         /// <summary>
         /// Возвратить объект 'плюгина'
         /// </summary>
@@ -318,10 +318,10 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public override void OnEvtDataRecievedHost(object obj) {
-            if (_object is Control)
-                m_evObjectHandleCreated.WaitOne (System.Threading.Timeout.Infinite, true);
-            else
-                ;
+            //if (_object is Control)
+            //    m_evObjectHandleCreated.WaitOne (System.Threading.Timeout.Infinite, true);
+            //else
+            //    ;
 
             if (m_dictDataHostCounter.ContainsKey(((EventArgsDataHost)obj).id) == true)
                 m_dictDataHostCounter[((EventArgsDataHost)obj).id]++;

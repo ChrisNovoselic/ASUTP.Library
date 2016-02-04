@@ -16,13 +16,14 @@ namespace HClassLibrary
     public partial class HTabCtrlEx : System.Windows.Forms.TabControl
     {
         public enum TYPE_TAB { FIXED, FLOAT };
-        private struct PropertyTab {
+        protected struct PropertyTab {
             public PropertyTab(int id, TYPE_TAB type) { this.id = id; this.type = type; }
 
             public int id;
             public TYPE_TAB type;           
         }       
-        private List<PropertyTab> m_listPropTabs;
+
+        protected  List<PropertyTab> m_listPropTabs;
 
         private static RectangleF s_rectPositionImg = new RectangleF (18, 4, 14, 14);
 
