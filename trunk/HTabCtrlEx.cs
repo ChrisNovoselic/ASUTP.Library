@@ -38,9 +38,9 @@ namespace HClassLibrary
         public int PrevSelectedIndex
         {
             get { return iPrevSelectedIndex; }
-            set { if (!(iPrevSelectedIndex == value)) { EventPrevSelectedIndexChanged(this, EventArgs.Empty); iPrevSelectedIndex = value; } else ; }
+            set { if (!(iPrevSelectedIndex == value)) { EventPrevSelectedIndexChanged(iPrevSelectedIndex); iPrevSelectedIndex = value; } else ; }
         }
-        public event EventHandler EventPrevSelectedIndexChanged;
+        public event DelegateIntFunc EventPrevSelectedIndexChanged;
 
         public HTabCtrlEx()
         {
