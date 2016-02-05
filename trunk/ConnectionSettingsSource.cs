@@ -42,7 +42,7 @@ namespace HClassLibrary
         /// <param name="id">идентификатор пользователя(роли) - часть составного ключа</param>
         /// <param name="id_role">роль пользователя (только для 2.Х.Х), "роль" источника данных 501</param>
         /// <returns>текст запроса</returns>
-        private static string PasswordRequest(TYPE_DATABASE_CFG typeDB_CFG, int id, int id_role)
+        private static string PasswordRequest(int id, int id_role)
         {
             string strRes = string.Empty;
 
@@ -52,11 +52,9 @@ namespace HClassLibrary
                 ;
 
             strRes = "SELECT psw.* FROM passwords psw WHERE ";
-            if (typeDB_CFG == TYPE_DATABASE_CFG.CFG_200)
-                strRes += @"psw.ID_EXT = " + id.ToString() + " AND ";
-            else
-                strRes += string.Empty;
 
+            strRes += @"psw.ID_EXT = " + id.ToString() + " AND ";
+            
             strRes += "ID_ROLE = " + id_role.ToString();
 
             return strRes;
@@ -110,21 +108,21 @@ namespace HClassLibrary
             return GetConnectionSettings (ref tableRes, 0, ref tablePsw, 0);
         }*/
 
-        public static DataTable GetConnectionSettings(TYPE_DATABASE_CFG typeDB_CFG, int idListener, int id_ext, int id_role, out int er)
+        public static DataTable GetConnectionSettings(int idListener, int id_ext, int id_role, out int er)
         {
             DbConnection conn = DbSources.Sources ().GetConnection (idListener, out er);
             if (er == 0)
-                return GetConnectionSettings (typeDB_CFG, ref conn, id_ext, id_role, out er);
+                return GetConnectionSettings (ref conn, id_ext, id_role, out er);
             else
                 return null;
         }
 
-        public static DataTable GetConnectionSettings(TYPE_DATABASE_CFG typeDB_CFG, ref DbConnection conn, int id_ext, int id_role, out int er)
+        public static DataTable GetConnectionSettings(ref DbConnection conn, int id_ext, int id_role, out int er)
         {
             er = 0;
 
             DataTable tableRes = DbTSQLInterface.Select(ref conn, ConnectionSettingsRequest(id_ext), null, null, out er),
-                    tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(typeDB_CFG, id_ext, id_role), null, null, out er);
+                    tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(id_ext, id_role), null, null, out er);
 
             if ((tableRes.Rows.Count > 0) && (tablePsw.Rows.Count > 0))
                 tableRes = GetConnectionSettings(ref tableRes, 0, ref tablePsw, 0);
@@ -179,7 +177,7 @@ namespace HClassLibrary
                         listConnSett[i].ignore = tableSource.Columns.IndexOf(@"IGNORE") < 0 ? false : Convert.ToInt32(tableSource.Rows[i]["IGNORE"].ToString()) == 1;
 
                         //TYPE_DATABASE_CFG.CFG_200 = ???
-                        tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(TYPE_DATABASE_CFG.CFG_200, Convert.ToInt32(tableSource.Rows[i]["ID"]), 501), null, null, out err);
+                        tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(Convert.ToInt32(tableSource.Rows[i]["ID"]), 501), null, null, out err);
 
                         tableSource = GetConnectionSettings(ref tableSource, i, ref tablePsw, 0);
                         //Password
@@ -220,7 +218,7 @@ namespace HClassLibrary
                     {
                         tableSource = DbTSQLInterface.Select(ref conn, ConnectionSettingsRequest(listConnSett[i].id), null, null, out err);
                         //TYPE_DATABASE_CFG.CFG_200 = ???
-                        tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(TYPE_DATABASE_CFG.CFG_200, listConnSett[i].id, 501), null, null, out err);
+                        tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(listConnSett[i].id, 501), null, null, out err);
 
                         if (tableSource.Rows.Count == 0)
                         {//INSERT

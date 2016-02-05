@@ -45,8 +45,6 @@ namespace HClassLibrary
         ParseError,
     }
 
-    public enum TYPE_DATABASE_CFG { CFG_190, CFG_200, UNKNOWN };
-
     public static class ProgramBase
     {
         public enum ID_APP { STATISTIC = 1, TRANS_GTP, TRANS_GTP_TO_NE22, TRANS_GTP_FROM_NE22, TRANS_BYISK_GTP_TO_NE22, TRANS_MODES_CENTRE, TRANS_MODES_CENTRE_GUI, TRANS_MODES_CENTRE_CMD, TRANS_MODES_TERMINALE, TRANS_TG }
