@@ -190,6 +190,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="HDateTime.cs" />
+    <Compile Include="HPlugInMenuItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FormConnectionSettings.resx">

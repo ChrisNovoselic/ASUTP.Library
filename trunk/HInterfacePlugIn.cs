@@ -77,9 +77,9 @@ namespace HClassLibrary
     {
         IPlugInHost Host { get; set; }
 
-        object Object { get; }
+        object GetObject(int key);
 
-        Type TypeOfObject { get ; }
+        Type GetTypeObject(int key);
     }
 
     public interface IDataHost
@@ -143,34 +143,29 @@ namespace HClassLibrary
         public abstract void OnEvtDataRecievedHost(object obj);
     }
 
-    public abstract class PlugInMenuItem : PlugInBase
-    {
-        public PlugInMenuItem() : base ()
-        {
-            //_MarkReversed = true;
-        }
-
-        public abstract string NameOwnerMenuItem { get; }
-
-        public abstract string NameMenuItem { get; }
-
-        /// <summary>
-        /// Обработчик выбора пункта меню для плюг'ина
-        /// </summary>
-        /// <param name="obj">объект-инициатор события</param>
-        /// <param name="ev">параметры события</param>
-        public abstract void OnClickMenuItem(object obj, EventArgs ev);
-    }
-
     public abstract class PlugInBase : HDataHost, IPlugIn
     {
+        /// <summary>
+        /// Объект интерфейса подписчика
+        /// </summary>
         IPlugInHost _host;
-        //protected Type _type;
-        protected object _object;
+        /// <summary>
+        /// Массив зарегистрированных типов плюгИна
+        /// </summary>
+        protected Dictionary <int, Type> _types;
+        /// <summary>
+        /// Массив созданных
+        /// </summary>
+        protected Dictionary<int, object> _objects;
+        /// <summary>
+        /// Идентификатор плюгина
+        /// </summary>
         public int _Id;
+        /// <summary>
+        /// Счетчик полученных команд/сообщений от подписчика по индексу
+        /// </summary>
         protected Dictionary<int,uint> m_dictDataHostCounter;
-        //private ManualResetEvent m_evObjectHandleCreated;
-
+        
         public IPlugInHost Host
         {
             get { return _host; }
@@ -185,9 +180,17 @@ namespace HClassLibrary
             : base()
         {
             m_dictDataHostCounter = new Dictionary<int,uint> ();
-            //_MarkReversed = false;
-            //m_evObjectHandleCreated = new ManualResetEvent (false);
-            //EvtDataRecievedHost += new DelegateObjectFunc(OnEvtDataRecievedHost);
+            _types = new Dictionary<int, Type>();
+            _objects = new Dictionary<int, object>();
+        }
+        /// <summary>
+        /// Зарегистрировать тип объекта библиотеки
+        /// </summary>
+        /// <param name="key">Ключ регистрируемого типа объекиа</param>
+        /// <param name="type">Регистрируемый тип</param>
+        protected void registerType(int key, Type type)
+        {
+            _types.Add (key, type);
         }
 
         ////Вариант №1 - создание объекта по шаблону
@@ -228,15 +231,15 @@ namespace HClassLibrary
         /// Создание объекта(объектов) библиотеки
         /// </summary>
         /// <returns>признак создания</returns>
-        protected bool createObject (Type type)
+        protected bool createObject (int key)
         {
             bool bRes = false;
 
-            if (_object == null)
+            if (_objects.ContainsKey(key) == false)
             {
-                _object = Activator.CreateInstance(type, this);
+                _objects.Add(key, Activator.CreateInstance(_types[key], this));
 
-                if (_object is Control)
+                if (_objects[key] is Control)
                 {
                     //if (_object is HPanelCommon)
                     //    (_object as HPanelCommon).Start();
@@ -288,20 +291,15 @@ namespace HClassLibrary
         /// <summary>
         /// Возвратить объект 'плюгина'
         /// </summary>
-        public object Object
+        public object GetObject (int key)
         {
-            get
-            {
-                return _object;
-            }
+            return _objects[key];
         }
         /// <summary>
         /// Возвратить тип объекта 'плюгина'
         /// </summary>
-        public Type TypeOfObject {
-            get {
-                return ((_object == null) ? Type.EmptyTypes[0] : _object.GetType());
-            }
+        public Type GetTypeObject (int key) {
+            return ((_types.ContainsKey(key) == false) ? Type.EmptyTypes[0] : _types[key]);
         }
         /// <summary>
         /// Отправить данные получателю (подписчику)
@@ -329,7 +327,7 @@ namespace HClassLibrary
                 m_dictDataHostCounter.Add(((EventArgsDataHost)obj).id, 1);
         }
 
-        protected bool isMarked(int indx)
+        protected bool isDataHostMarked(int indx)
         {
             return (m_dictDataHostCounter.ContainsKey(indx) == true)
                 && (m_dictDataHostCounter[indx] % 2 == 1);
