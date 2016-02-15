@@ -22,7 +22,7 @@ namespace HClassLibrary
     public delegate int IntDelegateIntFunc(int param);
 
     public delegate string StringDelegateFunc();
-    public delegate string StringDelegateIntFunc (int param);
+    public delegate string StringDelegateIntFunc(int param);
     public delegate string StringDelegateStringFunc(string keyParam);
 
     public class HException : Exception
@@ -90,9 +90,9 @@ namespace HClassLibrary
         //Журналирование завершения приложения
         public static void Exit()
         {
-            List <Form> listApplicationOpenForms = new List<Form> ();
+            List<Form> listApplicationOpenForms = new List<Form>();
             foreach (Form f in Application.OpenForms)
-                listApplicationOpenForms.Add (f);
+                listApplicationOpenForms.Add(f);
 
             foreach (Form f in listApplicationOpenForms)
             {
@@ -110,11 +110,11 @@ namespace HClassLibrary
             }
 
             Logging.Logg().PostStop(MessageExit);
-            Logging.Logg().Stop ();
+            Logging.Logg().Stop();
 
             DbSources.Sources().UnRegister();
 
-            System.ComponentModel.CancelEventArgs cancelEvtArgs = new System.ComponentModel.CancelEventArgs (true);
+            System.ComponentModel.CancelEventArgs cancelEvtArgs = new System.ComponentModel.CancelEventArgs(true);
             Application.Exit(cancelEvtArgs);
         }
 
@@ -129,7 +129,12 @@ namespace HClassLibrary
             // here you can log the exception ...
             Logging.Logg().Exception(e.Exception, strHeader, Logging.INDEX_MESSAGE.NOT_SET);
 
-            Exit ();            
+            Exit();
+        }
+
+        static void Application_ExceptionSingleInstance(object sender)
+        {
+
         }
 
         /// <summary>
@@ -141,7 +146,7 @@ namespace HClassLibrary
                 , strBody = string.Empty;
             if (s_iMessageShowUnhandledException > 0)
                 if (s_iMessageShowUnhandledExceptionDetail > 0)
-                    strBody = (e.ExceptionObject as Exception).ToString ();
+                    strBody = (e.ExceptionObject as Exception).ToString();
                 else
                     strBody = (e.ExceptionObject as Exception).Message;
             else ;
@@ -151,7 +156,7 @@ namespace HClassLibrary
             // here you can log the exception ...
             Logging.Logg().Exception(e.ExceptionObject as Exception, strHeader, Logging.INDEX_MESSAGE.NOT_SET);
 
-            Exit ();
+            Exit();
         }
 
         //???
@@ -179,7 +184,7 @@ namespace HClassLibrary
         {
             get
             {
-                return Application.ProductVersion.ToString ()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/
+                return Application.ProductVersion.ToString()/*StatisticCommon.Properties.Resources.TradeMarkVersion*/
                     + @" (" + File.GetLastWriteTime(Application.ExecutablePath).ToString(@"dd.MM.yyyy HH:mm:ss") + @")";
             }
         }
