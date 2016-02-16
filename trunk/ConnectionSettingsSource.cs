@@ -108,7 +108,7 @@ namespace HClassLibrary
             return GetConnectionSettings (ref tableRes, 0, ref tablePsw, 0);
         }*/
 
-        public static DataTable GetConnectionSettings(int idListener, int id_ext, int id_role, out int er)
+        public static DataTable GetConnectionSettings(TYPE_DATABASE_CFG typeCfg, int idListener, int id_ext, int id_role, out int er)
         {
             DbConnection conn = DbSources.Sources ().GetConnection (idListener, out er);
             if (er == 0)
