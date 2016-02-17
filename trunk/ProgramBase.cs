@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Reflection;
 
 using System.Threading;
 using System.Diagnostics; //Process
@@ -45,7 +47,7 @@ namespace HClassLibrary
         ParseError,
     }
 
-    public enum TYPE_DATABASE_CFG { CFG_190, CFG_200, COUNT };
+    //public enum TYPE_DATABASE_CFG { CFG_190, CFG_200, COUNT };
 
     public static class ProgramBase
     {
@@ -248,6 +250,333 @@ namespace HClassLibrary
             {
                 Application.DoEvents();
             } while (start.Subtract(DateTime.Now).TotalMilliseconds > durationMS);
+        }
+    }
+
+    /// <summary>
+    /// Класс обработки камандной строки
+    /// </summary>
+    public class HCmd_Arg : IDisposable
+    {
+        /// <summary>
+        /// значения командной строки
+        /// </summary>
+        static public string cmd;
+        /// <summary>
+        /// параметр командной строки
+        /// </summary>
+        static public string param;
+
+        /// <summary>
+        /// Основной конструктор класса
+        /// </summary>
+        /// <param name="args">параметры командной строки</param>
+        public HCmd_Arg(string[] args)
+        {
+            handlerArgs(args);
+            if (!SingleInstance.IsOnlyInstance)
+                execCmdLine(cmd);
+            else
+                if (cmd == "stop")
+                    execCmdLine(cmd);
+                else ;
+        }
+
+        /// <summary>
+        /// обработка CommandLine
+        /// </summary>
+        /// <param name="cmdLine">командная строка</param>
+        static private void handlerArgs(string[] cmdLine)
+        {
+            string[] m_cmd = new string[cmdLine.Length];
+
+            if (m_cmd.Length > 1)
+            {
+                m_cmd = cmdLine[1].Split('/', '=');
+
+                if (m_cmd.Length > 2)
+                {
+                    cmd = m_cmd[1];
+                    param = m_cmd[2];
+                }
+                else
+                    cmd = m_cmd[1];
+            }
+        }
+
+        /// <summary>
+        /// Класс для создания спец имени для мьютекса
+        /// </summary>
+        static public class ProgramInfo
+        {
+            /// <summary>
+            /// Создание GUID для приложения
+            /// </summary>
+            /// <returns></returns>
+            static public string NewGuid()
+            {
+                Guid guid = Guid.NewGuid();
+                return guid.ToString();
+            }
+
+            /// <summary>
+            /// создвет имя мьютекса по пути запускаемого приложения
+            /// </summary>
+            static public string NameMtx
+            {
+                get
+                {
+                    string nameGUID;
+
+                    //object[] attributes = Assembly.GetEntryAssembly().GetCustomAttributes((typeof(System.Runtime.InteropServices.GuidAttribute)), false);
+                    //if (attributes.Length == 0)
+                    //    return String.Empty;
+
+                    //nameGUID = ((System.Runtime.InteropServices.GuidAttribute)attributes[0]).Value;
+
+                    object[] attributesTitle = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+                    //if (attributesTitle.Length > 0)
+                    //{
+                    //    AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)attributesTitle[0];
+                    //    if (titleAttribute.Title != "")
+                    //        nameGUID = nameGUID + " " + titleAttribute.Title;
+                    //}
+                    //else
+                    nameGUID = Assembly.GetEntryAssembly().CodeBase;
+
+                    return nameGUID;
+                }
+            }
+
+            /// <summary>
+            /// Получение имени запускаемого файла
+            /// </summary>
+            static public string AssemblyTitle
+            {
+                get
+                {
+                    object[] attributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+                    if (attributes.Length > 0)
+                    {
+                        AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)attributes[0];
+                        if (titleAttribute.Title != "")
+                            return titleAttribute.Title;
+                    }
+                    return System.IO.Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().CodeBase);
+                }
+            }
+        }
+
+        /// <summary>
+        /// класс по работе с запущенным приложением
+        /// </summary>
+        static public class SingleInstance
+        {
+            static private string m_mtxName = ProgramInfo.NameMtx.ToString();
+            static Mutex m_mtx;
+
+            /// <summary>
+            /// Проверка на повторный запуск
+            /// </summary>
+            static public bool IsOnlyInstance
+            {
+                get
+                {
+                    bool onlyInstance;
+                    m_mtx = new Mutex(true, m_mtxName, out onlyInstance);
+                    return onlyInstance;
+                }
+            }
+
+            /// <summary>
+            /// Отправка сообщения приложению
+            /// для его активации
+            /// </summary>
+            /// <param name="hWnd">дескриптор окна</param>
+            static private void sendMsg(IntPtr hWnd)
+            {
+                WinApi.SendMessage(hWnd, WinApi.SW_RESTORE, IntPtr.Zero, IntPtr.Zero);
+            }
+
+            /// <summary>
+            /// освобождение мьютекса
+            /// </summary>
+            static public void ReleaseMtx()
+            {
+                m_mtx.ReleaseMutex();
+            }
+
+            /// <summary>
+            /// Остановка работы основного приложения
+            /// </summary>
+            static public void StopApp()
+            {
+                WinApi.SendMessage(mainhWnd, WinApi.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            }
+
+            /// <summary>
+            /// Прерывание запуска дублирующего приложения
+            /// </summary>
+            static public void InterruptReApp()
+            {
+                Environment.Exit(0);
+            }
+
+            /// <summary>
+            /// поиск дескриптора по процессу
+            /// </summary>
+            /// <returns>дескриптор окна</returns>
+            static public IntPtr mainhWnd
+            {
+                get
+                {
+                    IntPtr m_hWnd = IntPtr.Zero;
+                    Process process = Process.GetCurrentProcess();
+                    Process[] processes = Process.GetProcessesByName(process.ProcessName);
+                    foreach (Process _process in processes)
+                    {
+                        // Get the first instance that is not this instance, has the
+                        // same process name and was started from the same file name
+                        // and location. Also check that the process has a valid
+                        // window handle in this session to filter out other user's
+                        // processes.
+                        if (_process.Id != process.Id &&
+                            _process.MainModule.FileName == process.MainModule.FileName &&
+                            _process.Handle != IntPtr.Zero)
+                        {
+                            m_hWnd = _process.MainWindowHandle;
+
+                            if (m_hWnd == IntPtr.Zero)
+                                m_hWnd = enumID(_process.Id);
+                            else ;
+                            break;
+                        }
+                    }
+                    return m_hWnd;
+                }
+            }
+
+            /// <summary>
+            /// выборка всех запущенных приложений
+            /// </summary>
+            /// <param name="id">ид процесса приложения</param>
+            /// <returns>дескриптор окна</returns>
+            static private IntPtr enumID(int id)
+            {
+                IntPtr hwnd = IntPtr.Zero;
+                bool flg = true;
+                WinApi.EnumWindows((hWnd, lParam) =>
+                {
+                    if (WinApi.IsWindowVisible(hWnd) && (WinApi.GetWindowTextLength(hWnd) != 0))
+                    {
+                        if (WinApi.IsIconic(hWnd) != 0 &&
+                            WinApi.GetPlacement(hWnd).showCmd == WinApi.ShowWindowCommands.Minimized
+                            && flg)
+                            hwnd = findCurProc(id, hWnd, out flg);
+                        else ;
+                    }
+                    return true;
+                }, IntPtr.Zero);
+
+                return hwnd;
+            }
+
+            ///// <summary>
+            ///// Получение заголовка окна
+            ///// </summary>
+            ///// <param name="hWnd">дескриптор приложения</param>
+            ///// <returns>заголовок окна</returns>
+            //private static string getWindowText(IntPtr hWnd)
+            //{
+            //    int len = WinApi.GetWindowTextLength(hWnd) + 1;
+            //    StringBuilder sb = new StringBuilder(len);
+            //    len = WinApi.GetWindowText(hWnd, sb, len);
+            //    return sb.ToString(0, len);
+            //}
+
+            /// <summary>
+            /// Активация окна
+            /// </summary>
+            static public void SwitchToCurrentInstance()
+            {
+                IntPtr hWnd = mainhWnd;
+                sendMsg(hWnd);
+
+                if (hWnd != IntPtr.Zero)
+                {
+                    // Restore window if minimised. Do not restore if already in
+                    // normal or maximised window state, since we don't want to
+                    // change the current state of the window.
+                    if (WinApi.IsIconic(hWnd) != 0)
+                        WinApi.ShowWindow(hWnd, WinApi.SW_RESTORE);
+                    else
+                        ;
+                    // Set foreground window.
+                    WinApi.SetForegroundWindow(hWnd);
+                }
+            }
+
+            /// <summary>
+            /// поиск нужного процесса
+            /// </summary>
+            /// <param name="id">идентификатор приложения</param>
+            /// <param name="hwd">дескриптор окна</param>
+            ///  <param name="flg">флаг остановки посика хандлера</param>
+            /// <returns>дескриптор окна</returns>
+            static private IntPtr findCurProc(int id, IntPtr hwd, out bool flg)
+            {
+                int _ProcessId;
+                WinApi.GetWindowThreadProcessId(hwd, out _ProcessId);
+
+                if (id == _ProcessId)
+                {
+                    flg = false;
+                    return hwd;
+                }
+                else
+                {
+                    flg = true;
+                    return IntPtr.Zero;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Обработка команды старт/стоп
+        /// </summary>
+        /// <param name="CmdStr">команда приложению</param>
+        static public void execCmdLine(string CmdStr)
+        {
+            switch (CmdStr)
+            {
+                case "start":
+                    if (!(SingleInstance.IsOnlyInstance))
+                    {
+                        SingleInstance.SwitchToCurrentInstance();
+                        SingleInstance.InterruptReApp();
+                    }
+                    break;
+                case "stop":
+                    if (!(SingleInstance.IsOnlyInstance))
+                    {
+                        SingleInstance.StopApp();
+                        SingleInstance.InterruptReApp();
+                    }
+                    else
+                        SingleInstance.InterruptReApp();
+                    break;
+                default:
+                    if (!(SingleInstance.IsOnlyInstance))
+                    {
+                        SingleInstance.SwitchToCurrentInstance();
+                        SingleInstance.InterruptReApp();
+                    }
+                    break;
+            }
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

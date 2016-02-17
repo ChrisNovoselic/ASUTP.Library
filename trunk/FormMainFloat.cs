@@ -5,7 +5,7 @@ using System.Drawing;
 
 namespace HClassLibrary
 {    
-    public class FormMainFloat : FormMainBaseWithStatusStrip
+    public class FormMainFloatBase : FormMainBaseWithStatusStrip
     {
         private const int ROW_COUNT = 22;
         
@@ -14,7 +14,7 @@ namespace HClassLibrary
         private TableLayoutPanel m_container;
         private Label m_label;
 
-        public FormMainFloat(string text, Panel child, bool bLabel = true)
+        public FormMainFloatBase(string text, Panel child, bool bLabel = true)
         {
             Text = text;
             
@@ -92,6 +92,7 @@ namespace HClassLibrary
         }
 
         protected override void UpdateActiveGui(int type) { }
+
         protected override void HideGraphicsSettings() { }
 
         protected override void timer_Start()

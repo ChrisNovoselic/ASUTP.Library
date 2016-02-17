@@ -191,6 +191,7 @@
     </Compile>
     <Compile Include="HDateTime.cs" />
     <Compile Include="HPlugInMenuItem.cs" />
+    <Compile Include="WinApi.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="FormConnectionSettings.resx">
