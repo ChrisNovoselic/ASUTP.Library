@@ -188,7 +188,7 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="key">Ключ регистрируемого типа объекиа</param>
         /// <param name="type">Регистрируемый тип</param>
-        protected void registerType(int key, Type type)
+        protected virtual void registerType(int key, Type type)
         {
             _types.Add (key, type);
         }
