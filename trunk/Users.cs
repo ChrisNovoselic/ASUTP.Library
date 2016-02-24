@@ -36,13 +36,20 @@ namespace HClassLibrary
         {
         }
 
-        private class HProfiles
+        protected virtual HProfiles createProfiles(int iListenerId, int id_role, int id_user)
+        {
+            return new HProfiles(iListenerId, id_role, id_user);
+        }
+
+        protected class HProfiles
         {
             public static string m_nameTableProfilesData = @"profiles"
                 , m_nameTableProfilesUnit = @"profiles_unit";
             
             static DataTable m_tblValues;
             static DataTable m_tblTypes;
+
+            public static DataTable GetTableUnits { get { return m_tblTypes; } }
 
             /// <summary>
             /// Функция подключения пользователя
@@ -506,7 +513,7 @@ namespace HClassLibrary
             }
 
             try {
-                m_profiles = new HProfiles (idListener, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID]);
+                m_profiles = createProfiles (idListener, (int)m_DataRegistration[(int)INDEX_REGISTRATION.ROLE], (int)m_DataRegistration[(int)INDEX_REGISTRATION.ID]);
             } catch (Exception e) {
                 throw new HException(-6, e.Message);
             }
@@ -645,8 +652,9 @@ namespace HClassLibrary
             }
         }
 
-        public static bool IsAllowed (int id) { return bool.Parse(GetAllowed (id)); }
 
+        public static bool IsAllowed (int id) { return bool.Parse(GetAllowed (id)); }
+        public static DataTable GetTableProfileUnits { get { return HProfiles.GetTableUnits; } }
         public static string GetAllowed(int id) { return (string)HProfiles.GetAllowed(id); }
         public static void SetAllowed(int iListenerId, int id, string val) { HProfiles.SetAllowed(iListenerId, id, val); }
     }
