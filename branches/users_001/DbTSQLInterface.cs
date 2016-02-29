@@ -9,7 +9,7 @@ using System.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using System.Data.OracleClient;
 
-using System.IO; //StreamReader
+using GemBox.Spreadsheet;
 
 //namespace HClassLibrary
 namespace HClassLibrary
@@ -532,40 +532,38 @@ namespace HClassLibrary
         /// <returns></returns>
         public static DataTable CSVImport(string path, string fields, out int er)
         {
-            er = (int)Error.NO_ERROR;
+            er = 0;
 
             DataTable dataTableRes = new DataTable();
 
-            string [] data;
             //Открыть поток чтения файла...
             try
             {
-                StreamReader sr = new StreamReader(path);
-                //Из 1-ой строки сформировать столбцы...
-                data = sr.ReadLine().Split(';');
-                foreach (string field in data)
-                    dataTableRes.Columns.Add(field, typeof(string));
-                //Из остальных строк сформировать записи...
-                while (sr.EndOfStream == false)
+                ExcelFile ef = new ExcelFile();
+                ef.LoadCsv(path, ';');
+                for (int i = 0; i < ef.Worksheets[0].Rows[0].Cells.LastColumnIndex; i++)
                 {
-                    try
-                    {
-                        data = sr.ReadLine().Split(';');
-                        dataTableRes.Rows.Add(data);
-                    }
-                    catch (Exception e)
-                    {
-                        er = (int)Error.CATCH_CSV_ROWREAD;
+                    if (ef.Worksheets[0].Rows[0].Cells[i].Value != null)
+                        dataTableRes.Columns.Add(ef.Worksheets[0].Rows[0].Cells[i].Value.ToString());
+                    else
                         break;
-                    }
                 }
-
-                //Закрыть поток чтения файла
-                sr.Close();
+                for (int r = 1; r < ef.Worksheets[0].Rows.Count; r++)
+                {
+                    object[] obj = new object[dataTableRes.Columns.Count];
+                    for (int i = 0; i < dataTableRes.Columns.Count; i++)
+                    {
+                        if (ef.Worksheets[0].Rows[r].Cells[i].Value == null)
+                            obj[i] = string.Empty;
+                        else
+                            obj[i] = ef.Worksheets[0].Rows[r].Cells[i].Value.ToString();
+                    }
+                    dataTableRes.Rows.Add(obj);
+                }
             }
             catch (Exception e)
             {
-                er = (int)Error.CATCH_CSV_READ;
+                er = -1;
             }
 
             return dataTableRes;
