@@ -104,51 +104,61 @@ namespace HClassLibrary
             {
                 object objRes = false;
                 bool bValidate = false;
-                Int16 val = -1;
+                int indxRowAllowed = -1;
+                Int16 val = -1
+                   ,  type = -1;
                 string strVal = string.Empty;
 
                 DataRow [] rowsAllowed = m_tblValues.Select (@"ID_UNIT=" + id);
                 switch (rowsAllowed.Length)
                 {
                     case 1:
-                        strVal = rowsAllowed[0][@"VALUE"].ToString().Trim ();
+                        indxRowAllowed = 0;
                         break;
                     case 2:
                         //В табл. с настройками возможность 'id' определена как для "роли", так и для "пользователя"
                         // требуется выбрать строку с 'IS_ROLE' == 0 (пользователя)
                         // ...
                         foreach (DataRow r in rowsAllowed)
+                        {
+                            indxRowAllowed++;
                             if (Int16.Parse(r[@"IS_ROLE"].ToString()) == 0)
-                            {
-                                strVal = r [@"VALUE"].ToString ().Trim ();
                                 break;
-                            }
                             else
                                 ;
+                        }
                         break;
                     default: //Ошибка - исключение
                         throw new Exception(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найдено ни одной записи...");
                 }
 
-                //По идкнтификатору параметра должны знать тип...
-                int type = Int32.Parse (m_tblTypes.Select (@"ID=" + id)[0][@"ID_UNIT"].ToString ());
-                switch (type) {
-                    case 8: //bool
-                        bValidate = Int16.TryParse(strVal, out val);
-                        if (bValidate == true)
-                            objRes = val == 1;
-                        else
-                            objRes = false;
+                // проверка не нужна, т.к. вызывается исключение
+                //if ((!(indxRowAllowed < 0))
+                //    && (indxRowAllowed < rowsAllowed.Length))
+                //{
+                    strVal = rowsAllowed[indxRowAllowed][@"VALUE"].ToString().Trim();
 
-                        objRes = objRes.ToString();
-                        break;
-                    case 9: //string
-                    case 10: //int
-                        objRes = strVal;
-                        break;
-                    default:
-                        throw new Exception(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найден тип параметра...");
-                }
+                    //По идкнтификатору параметра должны знать тип...
+                    Int16.TryParse(m_tblTypes.Select(@"ID=" + id)[0][@"ID_UNIT"].ToString(), out type);
+                    switch (type)
+                    {
+                        case 8: //bool
+                            bValidate = Int16.TryParse(strVal, out val);
+                            if (bValidate == true)
+                                objRes = val == 1;
+                            else
+                                objRes = false;
+
+                            objRes = objRes.ToString();
+                            break;
+                        case 9: //string
+                        case 10: //int
+                            objRes = strVal;
+                            break;
+                        default:
+                            throw new Exception(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найден тип параметра...");
+                    }
+                //} else ;
 
                 return objRes;
             }
