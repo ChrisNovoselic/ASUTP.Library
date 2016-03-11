@@ -7,8 +7,13 @@ namespace HClassLibrary
 {
     public class HDateTime
     {
+        /// <summary>
+        /// Перечисление - идентификаторы периодов времени
+        /// </summary>
         public enum INTERVAL : short { UNKNOWN = -1, MINUTES, HOURS, COUNT_ID_TIME }
-
+        /// <summary>
+        /// Массив со строковыми наименованиями месяцев а году
+        /// </summary>
         public readonly static string[] NameMonths = { @"январь", @"февраль", @"март"
             , @"апрель", @"май", @"июнь"
             , @"июль", @"август", @"сентябрь"
