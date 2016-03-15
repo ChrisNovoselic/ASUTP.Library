@@ -15,11 +15,11 @@ namespace HClassLibrary
             InitializeComponent();
         }
 
-        public void SetIdPass(int idListener, int id_ext, Passwords.ID_ROLES id_role)
+        public void SetIdPass(int idListener, int id_ext, Passwords.INDEX_ROLES indx_role)
         {
-            base.SetIdPass(id_ext, id_role);
+            base.SetIdPass(id_ext, indx_role);
 
-            this.Text = Passwords.getOwnerPass ((int)m_idRolePassword);
+            this.Text = Passwords.getOwnerPass ((int)m_indexRolePassword);
             this.Text = this.Text.Substring (0, this.Text.Length - 1);
         }
 
@@ -29,7 +29,7 @@ namespace HClassLibrary
             {
                 delegateStartWait ();
                 //StartWait();
-                m_pass.SetPassword(tbxNewPassword.Text, (uint)m_idExtPassword, (uint)m_idRolePassword);
+                m_pass.SetPassword(tbxNewPassword.Text, (uint)m_idExtPassword, (uint)m_indexRolePassword);
                 delegateStopWait();
                 //StopWait ();
                 

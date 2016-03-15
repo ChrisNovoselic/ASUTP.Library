@@ -17,21 +17,21 @@ namespace HClassLibrary
     {
         MD5CryptoServiceProvider md5;
 
-        public enum ID_ROLES : uint { COM_DISP = 1, ADMIN, NSS };
+        public enum INDEX_ROLES : uint { COM_DISP = 1, ADMIN, NSS, LK_DISP };
 
         /// <summary>
         /// Наименование пользователя
         /// </summary>
-        public static string getOwnerPass(int id_role)
+        public static string getOwnerPass(int indx_role)
         {
-            string[] ownersPass = { "диспетчера", "администратора", "НССа" };
+            string[] ownersPass = { "диспетчера", "администратора", "НССа", "ЛК-диспетчера" };
 
-            return ownersPass[id_role - 1];
+            return ownersPass[indx_role - 1];
         }
 
         //private volatile Errors passResult;
         private volatile string passReceive;
-        private volatile uint m_idRolePass;
+        private volatile uint m_indxRolePass;
         private volatile uint m_idExtPass;
         private Object m_lockObj;
 
@@ -88,13 +88,13 @@ namespace HClassLibrary
         /// <summary>
         /// Функция проверки установки пароля для пользователя
         /// </summary>
-        public bool SetPassword(string password, uint idExtPass, uint idRolePass)
+        public bool SetPassword(string password, uint idExtPass, uint indxRolePass)
         {
             int err = -1;
             Errors passResult = Errors.NoError;
 
             m_idExtPass = idExtPass;
-            m_idRolePass = idRolePass;
+            m_indxRolePass = indxRolePass;
 
             byte[] hash = md5.ComputeHash(Encoding.ASCII.GetBytes(password));
 
@@ -108,7 +108,7 @@ namespace HClassLibrary
             if (!(passResult == Errors.NoError))
             {
                 //MessageBox.Show(this, "Ошибка получения пароля " + getOwnerPass () + ". Пароль не сохранён.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                MessageBox("Ошибка получения пароля " + getOwnerPass((int)m_idRolePass) + ". Пароль не сохранён.");
+                MessageBox("Ошибка получения пароля " + getOwnerPass((int)m_indxRolePass) + ". Пароль не сохранён.");
 
                 return false;
             }
@@ -124,7 +124,7 @@ namespace HClassLibrary
             if (passResult != Errors.NoError)
             {
                 //MessageBox.Show(this, "Ошибка сохранения пароля " + getOwnerPass () + ". Пароль не сохранён.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                MessageBox("Ошибка сохранения пароля " + getOwnerPass((int)m_idRolePass) + ". Пароль не сохранён.");
+                MessageBox("Ошибка сохранения пароля " + getOwnerPass((int)m_indxRolePass) + ". Пароль не сохранён.");
                 return false;
             }
 
@@ -134,7 +134,7 @@ namespace HClassLibrary
         /// <summary>
         /// Функция проверки пароля пользователя
         /// </summary>
-        public Errors ComparePassword(string password, uint id_ext, uint id_role)
+        public Errors ComparePassword(string password, uint id_ext, uint indx_role)
         {
             int err = -1;
             Errors errRes = Errors.NoError;
@@ -146,7 +146,7 @@ namespace HClassLibrary
             //    ;
 
             m_idExtPass = id_ext;
-            m_idRolePass = id_role;
+            m_indxRolePass = indx_role;
 
             if (password.Length < 1)
             {
@@ -171,7 +171,7 @@ namespace HClassLibrary
             if (!(errRes == Errors.NoError))
             {
                 //MessageBox.Show(this, "Ошибка получения пароля " + getOwnerPass () + ".", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                MessageBox("Ошибка получения пароля " + getOwnerPass((int)m_idRolePass) + ".");
+                MessageBox("Ошибка получения пароля " + getOwnerPass((int)m_indxRolePass) + ".");
 
                 return errRes;
             }
@@ -207,7 +207,7 @@ namespace HClassLibrary
         private string GetPassRequest()
         {
             string strRes = string.Empty;
-            strRes = "SELECT HASH FROM passwords WHERE ID_ROLE=" + m_idRolePass;
+            strRes = "SELECT HASH FROM passwords WHERE ID_ROLE=" + m_indxRolePass;
 
             if (! (m_idExtPass < 0))
                 strRes += " AND ID_EXT =" + m_idExtPass;
@@ -249,11 +249,11 @@ namespace HClassLibrary
             string query = string.Empty;
 
             if (insert)
-                query = "INSERT INTO passwords (ID_EXT, ID_ROLE, HASH) VALUES (" + m_idExtPass +  ", " + m_idRolePass + ", '" + password + "')";
+                query = "INSERT INTO passwords (ID_EXT, ID_ROLE, HASH) VALUES (" + m_idExtPass +  ", " + m_indxRolePass + ", '" + password + "')";
             else
             {
                 query = "UPDATE passwords SET HASH='" + password + "'";
-                query += " WHERE ID_EXT=" + m_idExtPass + " AND ID_ROLE=" + m_idRolePass;
+                query += " WHERE ID_EXT=" + m_idExtPass + " AND ID_ROLE=" + m_indxRolePass;
             }
 
             return query;

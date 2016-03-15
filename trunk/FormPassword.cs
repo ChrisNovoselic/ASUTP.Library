@@ -16,13 +16,13 @@ namespace HClassLibrary
             InitializeComponent();
         }
 
-        public void SetIdPass(int idListener, int id_ext, Passwords.ID_ROLES id_role)
+        public void SetIdPass(int idListener, int id_ext, Passwords.INDEX_ROLES indx_role)
         {
-            SetIdPass (id_ext, id_role);
+            SetIdPass(id_ext, indx_role);
 
             m_pass.SetIdListener(idListener);
 
-            labelOwnerPassword.Text = Passwords.getOwnerPass((int)m_idRolePassword);
+            labelOwnerPassword.Text = Passwords.getOwnerPass((int)m_indexRolePassword);
         }
 
         private void tbxPassword_KeyDown(object sender, KeyEventArgs e)
@@ -31,7 +31,7 @@ namespace HClassLibrary
             {
                 delegateStartWait();
                 //StartWait();
-                Errors errRes = m_pass.ComparePassword(tbxPassword.Text, (uint)m_idExtPassword, (uint)m_idRolePassword);
+                Errors errRes = m_pass.ComparePassword(tbxPassword.Text, (uint)m_idExtPassword, (uint)m_indexRolePassword);
                 delegateStopWait();
                 //StopWait ();
                 tbxPassword.Clear ();

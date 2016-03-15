@@ -11,7 +11,7 @@ namespace HClassLibrary
     public abstract partial class FormPasswordBase : FormMainBase
     {
         protected int m_idExtPassword;
-        protected Passwords.ID_ROLES m_idRolePassword;
+        protected Passwords.INDEX_ROLES m_indexRolePassword;
 
         protected Passwords m_pass;
         protected bool closing;
@@ -30,13 +30,13 @@ namespace HClassLibrary
         //    delegateStopWait = stop;
         //}
 
-        protected void SetIdPass(int id_ext, Passwords.ID_ROLES id_role)
+        protected void SetIdPass(int id_ext, Passwords.INDEX_ROLES indx_role)
         {
             m_idExtPassword = id_ext;
-            m_idRolePassword = id_role;
+            m_indexRolePassword = indx_role;
         }
 
-        public Passwords.ID_ROLES GetIdRolePassword() { return m_idRolePassword; }
+        public Passwords.INDEX_ROLES GetIdRolePassword() { return m_indexRolePassword; }
 
         protected virtual void FormPasswordBase_FormClosing(object sender, FormClosingEventArgs e)
         {
