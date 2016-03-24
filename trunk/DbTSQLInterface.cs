@@ -498,7 +498,7 @@ namespace HClassLibrary
             switch (type.Name)
             {
                 case "DateTime":
-                    strVal = ((DateTime)val).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    strVal = ((DateTime)val).ToString(@"yyyyMMdd HH:mmss.fff"); //System.Globalization.CultureInfo.InvariantCulture
                     break;
                 case @"Double":
                 case @"double":
