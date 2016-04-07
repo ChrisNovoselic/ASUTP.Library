@@ -193,6 +193,18 @@ namespace HClassLibrary
             _types.Add (key, type);
         }
 
+        public List<string> GetListRegisterNameTypes()
+        {
+            List<string> listRes = new List<string> ();
+
+            return listRes;
+        }
+
+        public Dictionary<int, Type> GetRegisterTypes()
+        {
+            return _types;
+        }
+
         ////Вариант №1 - создание объекта по шаблону
         //private static T CreateType<T>() where T : new()
         //{
