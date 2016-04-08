@@ -70,7 +70,7 @@ namespace HClassLibrary
         /// <param name="ev">параметры события</param>
         public virtual void OnClickMenuItem(object obj, /*PlugInMenuItem*/EventArgs ev)
         {
-            int id = _Id;
+            int id = (int)(obj as ToolStripMenuItem).Tag; //_Id;
             
             createObject(id);
         }

@@ -205,6 +205,11 @@ namespace HClassLibrary
             return _types;
         }
 
+        public bool IsRegistred(int key)
+        {
+            return _types.Keys.Contains(key);
+        }
+
         ////Вариант №1 - создание объекта по шаблону
         //private static T CreateType<T>() where T : new()
         //{
