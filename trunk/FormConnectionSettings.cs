@@ -221,7 +221,7 @@ namespace HClassLibrary
                     return;
                 }
 
-                m_connectionSettings[i].id = m_connectionSettingsEdit[i].id;
+                m_connectionSettings[i].id = Math.Abs(m_connectionSettingsEdit[i].id) > 1 ? m_connectionSettingsEdit[i].id : (int)ConnectionSettings.UN_ENUMERABLE_ID;
                 m_connectionSettings[i].server = m_connectionSettingsEdit[i].server;
                 m_connectionSettings[i].port = m_connectionSettingsEdit[i].port;
                 m_connectionSettings[i].dbName = m_connectionSettingsEdit[i].dbName;
