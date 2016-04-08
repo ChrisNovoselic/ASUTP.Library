@@ -198,7 +198,7 @@ namespace HClassLibrary
         /// <param name="par"></param>
         public void DataAskedHost(object par)
         {
-            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost(-1, new object[] { par }), new AsyncCallback(this.dataRecievedHost), new Random());
+            EvtDataAskedHost.BeginInvoke(new EventArgsDataHost(-1, -1, new object[] { par }), new AsyncCallback(this.dataRecievedHost), new Random());
         }
         /// <summary>
         /// Обработчик события ответа от главной формы

@@ -19,7 +19,9 @@ namespace HClassLibrary
         ///  , сервер обязательно должен "знать" этот идентификатор
         ///  , а по нему определить объект-клиент для отправления ответа
         /// </summary>
-        public int id;
+        public int id_main;
+
+        public int id_detail;
         /// <summary>
         /// Объект-клиент, получатель запрашиваемых данных
         /// </summary>
@@ -33,8 +35,9 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="id_">Идентификатор объекта</param>
         /// <param name="arObj">Массив аргументов сообщения</param>
-        public EventArgsDataHost (int id_, object [] arObj) {
-            id = id_;
+        public EventArgsDataHost (int id_main_, int id_detail_, object [] arObj) {
+            id_main = id_main_;
+            id_detail = id_detail_;
             reciever = null;
             par = new object [arObj.Length];
             arObj.CopyTo(par, 0);
@@ -46,7 +49,7 @@ namespace HClassLibrary
         /// <param name="arObj">Массив аргументов сообщения</param>
         public EventArgsDataHost(IDataHost objReciever, object[] arObj)
         {
-            id = -1;
+            id_detail = -1;
             reciever = objReciever;
             par = new object[arObj.Length];
             arObj.CopyTo(par, 0);
@@ -112,7 +115,7 @@ namespace HClassLibrary
                 //EvtDataAskedHost.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], new object[] { (par as object[])[1] }), new AsyncCallback(this.dataRecievedHost), new Random());
                 var arHandlers = EvtDataAskedHost.GetInvocationList();
                 foreach (var handler in arHandlers.OfType<DelegateObjectFunc>())
-                    handler.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], new object[] { (par as object[])[1] }), new AsyncCallback(this.dataRecievedHost), new Random());
+                    handler.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], (int)(par as object[])[1], new object[] { (par as object[])[2] }), new AsyncCallback(this.dataRecievedHost), new Random());
 
                 ////Вариант №2 - с потоком
                 //Thread thread = new Thread (new ParameterizedThreadStart (dataAskedHost));
@@ -124,6 +127,7 @@ namespace HClassLibrary
             }
         }
 
+        public bool IsEvtDataAskedHostHandled { get { return ! (EvtDataAskedHost == null); } }
         ////Потоковая функция для вар.№2
         //private void dataAskedHost (object obj) {
         //    IAsyncResult res = EvtDataAskedHost.BeginInvoke(obj, new AsyncCallback(this.dataRecievedHost), null);
@@ -164,7 +168,7 @@ namespace HClassLibrary
         /// <summary>
         /// Счетчик полученных команд/сообщений от подписчика по индексу
         /// </summary>
-        protected Dictionary<int,uint> m_dictDataHostCounter;
+        protected Dictionary<KeyValuePair <int, int>, uint> m_dictDataHostCounter;
         
         public IPlugInHost Host
         {
@@ -179,7 +183,7 @@ namespace HClassLibrary
         public PlugInBase()
             : base()
         {
-            m_dictDataHostCounter = new Dictionary<int,uint> ();
+            m_dictDataHostCounter = new Dictionary<KeyValuePair<int, int>, uint>();
             _types = new Dictionary<int, Type>();
             _objects = new Dictionary<int, object>();
         }
@@ -324,7 +328,7 @@ namespace HClassLibrary
         /// <param name="par">Объект с передаваемыми данными (может быть массивом объектов)</param>
         public override void DataAskedHost(object par)
         {
-            base.DataAskedHost(new object [] {_Id, par});
+            base.DataAskedHost(new object[] { _Id, (par as object[])[0], (par as object[])[1] });
         }
         
         //protected bool _MarkReversed;
@@ -333,21 +337,20 @@ namespace HClassLibrary
         /// </summary>
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public override void OnEvtDataRecievedHost(object obj) {
-            //if (_object is Control)
-            //    m_evObjectHandleCreated.WaitOne (System.Threading.Timeout.Infinite, true);
-            //else
-            //    ;
+            KeyValuePair<int, int> pair = new KeyValuePair<int, int>(((EventArgsDataHost)obj).id_main, ((EventArgsDataHost)obj).id_detail);
 
-            if (m_dictDataHostCounter.ContainsKey(((EventArgsDataHost)obj).id) == true)
-                m_dictDataHostCounter[((EventArgsDataHost)obj).id]++;
+            if (m_dictDataHostCounter.ContainsKey(pair) == true)
+                m_dictDataHostCounter[pair]++;
             else
-                m_dictDataHostCounter.Add(((EventArgsDataHost)obj).id, 1);
+                m_dictDataHostCounter.Add(pair, 1);
         }
 
-        protected bool isDataHostMarked(int indx)
+        protected bool isDataHostMarked(int id_main, int id_detail)
         {
-            return (m_dictDataHostCounter.ContainsKey(indx) == true)
-                && (m_dictDataHostCounter[indx] % 2 == 1);
+            KeyValuePair<int, int> pair = new KeyValuePair<int, int>(id_main, id_detail);
+
+            return (m_dictDataHostCounter.ContainsKey(pair) == true)
+                && (m_dictDataHostCounter[pair] % 2 == 1);
         }
     }
     /// <summary>
