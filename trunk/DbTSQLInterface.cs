@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Text;
 using System.Data;
@@ -498,7 +499,8 @@ namespace HClassLibrary
             switch (type.Name)
             {
                 case "DateTime":
-                    strVal = ((DateTime)val).ToString(@"yyyyMMdd HH:mm:ss.fff"); //System.Globalization.CultureInfo.InvariantCulture
+                    strVal = Convert.ToDateTime(val).ToString(@"yyyyMMdd HH:mm:ss.fff");//(@"yyyyMMdd HH:mm:ss.fff"); //System.Globalization.CultureInfo.InvariantCulture
+                    //strVal.Replace('.','/');
                     break;
                 case @"Double":
                 case @"double":
@@ -951,7 +953,7 @@ namespace HClassLibrary
 
             if (table.Rows.Count > 0)
             {
-                rangeRows = table.Select(nameFieldID + @">" + min + @" AND " + nameFieldID + @"<" + max, nameFieldID + @" DESC");
+                rangeRows = table.Select(nameFieldID + @">=" + min + @" AND " + nameFieldID + @"<" + max, nameFieldID + @" DESC");
 
                 if (rangeRows.Length > 0)
                     idRes = Convert.ToInt32(rangeRows[0][nameFieldID]);
@@ -996,7 +998,7 @@ namespace HClassLibrary
             for (int i = 0; i < arFields.Length; i++)
             {
                 arFields[i] = arFields[i].Trim();
-                strRes += arFields[i] + @"=" + r[arFields[i]] + @" AND ";
+                strRes += arFields[i] + @"=" + DbTSQLInterface.ValueToQuery(r[arFields[i]],r[arFields[i]].GetType()) + @" AND ";
             }
 
             if (strRes.Equals(string.Empty) == false)
@@ -1023,6 +1025,7 @@ namespace HClassLibrary
             {
                 strWhere = getWhereSelect(keyFields, data.Rows[j]);
                 dataRows = origin.Select(strWhere);
+
                 if (dataRows.Length == 0)
                 {
                     //INSERT
