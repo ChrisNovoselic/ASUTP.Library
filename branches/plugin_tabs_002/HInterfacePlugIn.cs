@@ -78,7 +78,7 @@ namespace HClassLibrary
 
     public interface IPlugIn
     {
-        IPlugInHost Host { get; set; }
+        IPlugInHost Host { get; set; }        
 
         object GetObject(int key);
 
