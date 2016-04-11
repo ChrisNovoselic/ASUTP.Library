@@ -500,7 +500,6 @@ namespace HClassLibrary
             {
                 case "DateTime":
                     strVal = Convert.ToDateTime(val).ToString(@"yyyyMMdd HH:mm:ss.fff");//(@"yyyyMMdd HH:mm:ss.fff"); //System.Globalization.CultureInfo.InvariantCulture
-                    //strVal.Replace('.','/');
                     break;
                 case @"Double":
                 case @"double":
@@ -1024,7 +1023,9 @@ namespace HClassLibrary
             for (j = 0; j < data.Rows.Count; j++)
             {
                 strWhere = getWhereSelect(keyFields, data.Rows[j]);
+
                 dataRows = origin.Select(strWhere);
+                   
 
                 if (dataRows.Length == 0)
                 {
