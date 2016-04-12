@@ -289,44 +289,54 @@ namespace HClassLibrary
         /// <param name="cmdLine">командная строка</param>
         static private void handlerArgs(string[] cmdLine)
         {
-            string[] args = new string[cmdLine.Length]
+            string[] args = null
                 , arCmdPair = null;
             string key = string.Empty
                 , value = string.Empty
+                , cmd = string.Empty
                 , cmdPair = string.Empty;
 
             m_dictCmdArgs = new Dictionary<string, string>();
 
-            foreach (string cmd in cmdLine)
+            if (cmdLine.Length > 1)
             {
-                if (cmd.IndexOf('/') == 0)
-                {
-                    cmdPair = cmd.Substring(1);
-                    arCmdPair = cmdPair.Split('=');
-                    if (arCmdPair.Length > 0)
-                    {
-                        key = arCmdPair[0];
+                args = new string[cmdLine.Length - 1];
 
-                        if (arCmdPair.Length > 1)
-                            value = arCmdPair[1];
+                for (int i = 1; i < cmdLine.Length; i ++ )
+                {
+                    cmd = cmdLine[i];
+
+                    if (cmd.IndexOf('/') == 0)
+                    {
+                        cmdPair = cmd.Substring(1);
+                        arCmdPair = cmdPair.Split('=');
+                        if (arCmdPair.Length > 0)
+                        {
+                            key = arCmdPair[0];
+
+                            if (arCmdPair.Length > 1)
+                                value = arCmdPair[1];
+                            else
+                                value = string.Empty;
+                        }
                         else
+                        {
+                            key = string.Empty;
                             value = string.Empty;
+                        }
+
+                        m_dictCmdArgs.Add(key, value);
                     }
                     else
-                    {
-                        key = string.Empty;
-                        value = string.Empty;
+                    {//параметр не учитывается
+                        m_dictCmdArgs.Add(@"stop", string.Empty);
+
+                        break;
                     }
-
-                    m_dictCmdArgs.Add(key, value);
-                }
-                else
-                {//параметр не учитывается
-                    m_dictCmdArgs.Add(@"stop", string.Empty);
-
-                    break;
                 }
             }
+            else
+                ; //нет ни одного аргумента
         }
 
         /// <summary>
@@ -418,9 +428,9 @@ namespace HClassLibrary
             /// для его активации
             /// </summary>
             /// <param name="hWnd">дескриптор окна</param>
-            static private void sendMsg(IntPtr hWnd)
+            static private void sendMsg(IntPtr hWnd, int iMsg)
             {
-                WinApi.SendMessage(hWnd, WinApi.SW_RESTORE, IntPtr.Zero, IntPtr.Zero);
+                WinApi.SendMessage(hWnd, iMsg, IntPtr.Zero, IntPtr.Zero);
             }
 
             /// <summary>
@@ -436,7 +446,7 @@ namespace HClassLibrary
             /// </summary>
             static public void StopApp()
             {
-                WinApi.SendMessage(mainhWnd, WinApi.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                sendMsg(mainhWnd, WinApi.WM_CLOSE);
             }
 
             /// <summary>
@@ -525,7 +535,7 @@ namespace HClassLibrary
             static public void SwitchToCurrentInstance()
             {
                 IntPtr hWnd = mainhWnd;
-                sendMsg(hWnd);
+                sendMsg(hWnd, WinApi.SW_RESTORE);
 
                 if (hWnd != IntPtr.Zero)
                 {
@@ -572,9 +582,11 @@ namespace HClassLibrary
         /// <param name="CmdStr">команда приложению</param>
         static public void execCmdLine(bool bIsExecute)
         {
+            bool bIsOnlyInstance = SingleInstance.IsOnlyInstance;
+
             if (bIsExecute == true)
             {
-                if (SingleInstance.IsOnlyInstance == false)
+                if (bIsOnlyInstance == false)
                 {
                     SingleInstance.SwitchToCurrentInstance();
                     SingleInstance.InterruptReApp();
@@ -583,7 +595,7 @@ namespace HClassLibrary
             else
                 if (bIsExecute == false)
                 {
-                    if (SingleInstance.IsOnlyInstance == false)
+                    if (bIsOnlyInstance == false)
                         SingleInstance.StopApp();
                     else
                         ;
