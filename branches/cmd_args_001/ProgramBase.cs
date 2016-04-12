@@ -275,19 +275,20 @@ namespace HClassLibrary
         {
             handlerArgs(args);
 
-            if (SingleInstance.IsOnlyInstance == false)
-                execCmdLine(true);
+            if (m_dictCmdArgs.ContainsKey("stop") == true)
+                execCmdLine(false);
             else
-                if (m_dictCmdArgs.ContainsKey("stop") == true)
-                    execCmdLine(false);
-                else ;
+                if (SingleInstance.IsOnlyInstance == false)
+                    execCmdLine(true);
+                else
+                    ;
         }
 
         /// <summary>
         /// обработка CommandLine
         /// </summary>
         /// <param name="cmdLine">командная строка</param>
-        static private void handlerArgs(string[] cmdLine)
+        protected static void handlerArgs(string[] cmdLine)
         {
             string[] args = null
                 , arCmdPair = null;
@@ -328,7 +329,7 @@ namespace HClassLibrary
                         m_dictCmdArgs.Add(key, value);
                     }
                     else
-                    {//параметр не учитывается
+                    {//параметр не учитывается - ошибка
                         m_dictCmdArgs.Add(@"stop", string.Empty);
 
                         break;
@@ -430,6 +431,8 @@ namespace HClassLibrary
             /// <param name="hWnd">дескриптор окна</param>
             static private void sendMsg(IntPtr hWnd, int iMsg)
             {
+                //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
+
                 WinApi.SendMessage(hWnd, iMsg, IntPtr.Zero, IntPtr.Zero);
             }
 
