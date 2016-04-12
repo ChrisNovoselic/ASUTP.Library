@@ -550,27 +550,19 @@ namespace HClassLibrary
             switch (CmdStr)
             {
                 case "start":
-                    if (!(SingleInstance.IsOnlyInstance))
+                default:
+                    if (SingleInstance.IsOnlyInstance == false)
                     {
                         SingleInstance.SwitchToCurrentInstance();
                         SingleInstance.InterruptReApp();
                     }
                     break;
                 case "stop":
-                    if (!(SingleInstance.IsOnlyInstance))
-                    {
+                    if (SingleInstance.IsOnlyInstance == false)
                         SingleInstance.StopApp();
-                        SingleInstance.InterruptReApp();
-                    }
                     else
-                        SingleInstance.InterruptReApp();
-                    break;
-                default:
-                    if (!(SingleInstance.IsOnlyInstance))
-                    {
-                        SingleInstance.SwitchToCurrentInstance();
-                        SingleInstance.InterruptReApp();
-                    }
+                        ;
+                    SingleInstance.InterruptReApp();
                     break;
             }
         }

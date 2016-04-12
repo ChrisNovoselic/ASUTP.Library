@@ -262,7 +262,10 @@ namespace HClassLibrary
         /// <param name="bClear"></param>
         public void ReportClear (bool bClear)
         {
-            clearReportStates (bClear);
+            if (!(clearReportStates == null))
+                clearReportStates(bClear);
+            else
+                ;
         }
     }
 }

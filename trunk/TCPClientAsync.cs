@@ -12,8 +12,8 @@ namespace HClassLibrary
 
         private IPAddress[] m_addresses;
         private int m_port;
-        private WaitHandle m_addressesSet,
-                m_addressesGet;
+        private WaitHandle m_addressesSet
+            , m_addressesGet;
         private TcpClient m_tcpClient;
         private int m_failedConnectionCount;
 
