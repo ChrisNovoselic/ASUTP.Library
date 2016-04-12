@@ -78,11 +78,15 @@ namespace HClassLibrary
 
     public interface IPlugIn
     {
-        IPlugInHost Host { get; set; }
+        IPlugInHost Host { get; set; }        
 
         object GetObject(int key);
 
         Type GetTypeObject(int key);
+
+        int GetKeyType(Type type);
+
+        int GetKeyType(string typeName);
     }
 
     public interface IDataHost
@@ -109,13 +113,26 @@ namespace HClassLibrary
 
         public virtual void DataAskedHost(object par)
         {
+            // [0] - главный идентификатор
+            // [1][0] - вспомогательный идентификатор
+            // [1][...] - остальные параметры - parToAsked
+            object[] parToAsked = null;
+
             try
             {
+                parToAsked = new object[((par as object[])[1] as object[]).Length - 1];
+                for (int i = 0; i < parToAsked.Length; i ++)
+                    parToAsked[i] = ((par as object[])[1] as object[])[i + 1];
+
                 //Вариант №1 - без потока
                 //EvtDataAskedHost.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], new object[] { (par as object[])[1] }), new AsyncCallback(this.dataRecievedHost), new Random());
                 var arHandlers = EvtDataAskedHost.GetInvocationList();
                 foreach (var handler in arHandlers.OfType<DelegateObjectFunc>())
-                    handler.BeginInvoke(new EventArgsDataHost((int)(par as object[])[0], (int)(par as object[])[1], new object[] { (par as object[])[2] }), new AsyncCallback(this.dataRecievedHost), new Random());
+                    handler.BeginInvoke(new EventArgsDataHost(
+                            (int)(par as object[])[0]
+                            , (int)((par as object[])[1] as object [])[0]
+                            , parToAsked)
+                        , new AsyncCallback(this.dataRecievedHost), new Random());
 
                 ////Вариант №2 - с потоком
                 //Thread thread = new Thread (new ParameterizedThreadStart (dataAskedHost));
@@ -323,12 +340,50 @@ namespace HClassLibrary
             return ((_types.ContainsKey(key) == false) ? Type.EmptyTypes[0] : _types[key]);
         }
         /// <summary>
+        /// Возвратить идентификатор одного из зарегистрированных типов объекта 'плюгина'
+        /// </summary>
+        public int GetKeyType(Type type)
+        {
+            int iRes = -1;
+
+            foreach (KeyValuePair<int, Type> pair in _types)
+                if (pair.Value.Name == type.Name)
+                {
+                    iRes = pair.Key;
+
+                    break;
+                }
+                else
+                    ;
+
+            return iRes;
+        }
+        /// <summary>
+        /// Возвратить идентификатор одного из зарегистрированных типов объекта 'плюгина'
+        /// </summary>
+        public int GetKeyType(string typeName)
+        {
+            int iRes = -1;
+
+            foreach (KeyValuePair<int, Type> pair in _types)
+                if (pair.Value.Name == typeName)
+                {
+                    iRes = pair.Key;
+
+                    break;
+                }
+                else
+                    ;
+
+            return iRes;
+        }
+        /// <summary>
         /// Отправить данные получателю (подписчику)
         /// </summary>
         /// <param name="par">Объект с передаваемыми данными (может быть массивом объектов)</param>
         public override void DataAskedHost(object par)
         {
-            base.DataAskedHost(new object[] { _Id, (par as object[])[0], (par as object[])[1] });
+            base.DataAskedHost(new object[] { _Id, par  });
         }
         
         //protected bool _MarkReversed;
