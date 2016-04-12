@@ -261,11 +261,11 @@ namespace HClassLibrary
         /// <summary>
         /// значения командной строки
         /// </summary>
-        static public string cmd;
-        /// <summary>
-        /// параметр командной строки
-        /// </summary>
-        static public string param;
+        protected static Dictionary <string, string> m_dictCmdArgs;
+        ///// <summary>
+        ///// параметр командной строки
+        ///// </summary>
+        //static public string param;
 
         /// <summary>
         /// Основной конструктор класса
@@ -274,11 +274,12 @@ namespace HClassLibrary
         public HCmd_Arg(string[] args)
         {
             handlerArgs(args);
-            if (!SingleInstance.IsOnlyInstance)
-                execCmdLine(cmd);
+
+            if (SingleInstance.IsOnlyInstance == false)
+                execCmdLine(true);
             else
-                if (cmd == "stop")
-                    execCmdLine(cmd);
+                if (m_dictCmdArgs.ContainsKey("stop") == true)
+                    execCmdLine(false);
                 else ;
         }
 
@@ -288,19 +289,43 @@ namespace HClassLibrary
         /// <param name="cmdLine">командная строка</param>
         static private void handlerArgs(string[] cmdLine)
         {
-            string[] m_cmd = new string[cmdLine.Length];
+            string[] args = new string[cmdLine.Length]
+                , arCmdPair = null;
+            string key = string.Empty
+                , value = string.Empty
+                , cmdPair = string.Empty;
 
-            if (m_cmd.Length > 1)
+            m_dictCmdArgs = new Dictionary<string, string>();
+
+            foreach (string cmd in cmdLine)
             {
-                m_cmd = cmdLine[1].Split('/', '=');
-
-                if (m_cmd.Length > 2)
+                if (cmd.IndexOf('/') == 0)
                 {
-                    cmd = m_cmd[1];
-                    param = m_cmd[2];
+                    cmdPair = cmd.Substring(1);
+                    arCmdPair = cmdPair.Split('=');
+                    if (arCmdPair.Length > 0)
+                    {
+                        key = arCmdPair[0];
+
+                        if (arCmdPair.Length > 1)
+                            value = arCmdPair[1];
+                        else
+                            value = string.Empty;
+                    }
+                    else
+                    {
+                        key = string.Empty;
+                        value = string.Empty;
+                    }
+
+                    m_dictCmdArgs.Add(key, value);
                 }
                 else
-                    cmd = m_cmd[1];
+                {//параметр не учитывается
+                    m_dictCmdArgs.Add(@"stop", string.Empty);
+
+                    break;
+                }
             }
         }
 
@@ -545,26 +570,27 @@ namespace HClassLibrary
         /// Обработка команды старт/стоп
         /// </summary>
         /// <param name="CmdStr">команда приложению</param>
-        static public void execCmdLine(string CmdStr)
+        static public void execCmdLine(bool bIsExecute)
         {
-            switch (CmdStr)
+            if (bIsExecute == true)
             {
-                case "start":
-                default:
-                    if (SingleInstance.IsOnlyInstance == false)
-                    {
-                        SingleInstance.SwitchToCurrentInstance();
-                        SingleInstance.InterruptReApp();
-                    }
-                    break;
-                case "stop":
+                if (SingleInstance.IsOnlyInstance == false)
+                {
+                    SingleInstance.SwitchToCurrentInstance();
+                    SingleInstance.InterruptReApp();
+                }
+            }
+            else
+                if (bIsExecute == false)
+                {
                     if (SingleInstance.IsOnlyInstance == false)
                         SingleInstance.StopApp();
                     else
                         ;
                     SingleInstance.InterruptReApp();
-                    break;
-            }
+                }
+                else
+                    ;
         }
 
         public void Dispose()
