@@ -974,12 +974,12 @@ namespace HClassLibrary
         /// <param name="origin">“аблица со значени€ми - исходна€</param>
         /// <param name="data">“аблица со значени€ми - с изменени€ми</param>
         /// <param name="err">ѕризнак выполнени€ функции</param>
-        public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, string keyFields, DataTable origin, DataTable data, out int err)
+        public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn,DataTable origin, DataTable data, out int err)
         {
             if (!(data.Rows.Count < origin.Rows.Count))
             {
                 //UPDATE, INSERT
-                RecUpdateInsert(ref conn, nameTable, keyFields, origin, data, out err);
+                RecUpdateInsert(ref conn, nameTable, keyFields, unchangeableColumn, origin, data, out err);
             }
             else
             {
@@ -995,8 +995,11 @@ namespace HClassLibrary
             string [] arFields = fields.Split(',');
 
             for (int i = 0; i < arFields.Length; i++)
-            {
+            {             
                 arFields[i] = arFields[i].Trim();
+                if (arFields[i] == "DATE_TIME")
+                    strRes += String.Format(r.Table.Locale,@"DATE_TIME = '{0:o}'" ,r[arFields[i]]) + @" AND ";
+                else
                 strRes += arFields[i] + @"=" + DbTSQLInterface.ValueToQuery(r[arFields[i]],r[arFields[i]].GetType()) + @" AND ";
             }
 
@@ -1009,7 +1012,8 @@ namespace HClassLibrary
         }
 
         //»зменение (вставка) в оригинальную таблицу записей измененных (добавленных) в измененную таблицу (об€зательно наличие пол€: ID)
-        public static void RecUpdateInsert(ref DbConnection conn, string nameTable, string keyFields, DataTable origin, DataTable data, out int err)
+        public static void RecUpdateInsert(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn 
+            , DataTable origin, DataTable data, out int err)
         {
             err = (int)Error.NO_ERROR;
 
@@ -1052,14 +1056,17 @@ namespace HClassLibrary
                         strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = string.Empty;
                         for (k = 0; k < data.Columns.Count; k++)
                         {
-                            if (!(data.Rows[j][k].Equals(origin.Rows[j][k]) == true))
-                                if (bUpdate == false) bUpdate = true; else ;
-                            else
-                                ;
+                            if (data.Columns[k].ColumnName != unchangeableColumn)
+                            {
+                                if (!(data.Rows[j][k].Equals(origin.Rows[j][k]) == true))
+                                    if (bUpdate == false) bUpdate = true; else ;
+                                else
+                                    ;
 
-                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += data.Columns[k].ColumnName + "="; // + data.Rows[j][k] + ",";
+                                strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += data.Columns[k].ColumnName + "="; // + data.Rows[j][k] + ",";
 
-                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
+                                strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
+                            }
                         }
 
                         if (bUpdate == true)
