@@ -1039,8 +1039,11 @@ namespace HClassLibrary
                     strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT] = "INSERT INTO " + nameTable + " (";
                     for (k = 0; k < data.Columns.Count; k++)
                     {
-                        strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT] += data.Columns[k].ColumnName + ",";
-                        valuesForInsert += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
+                        if (data.Columns[k].ColumnName != unchangeableColumn)
+                        {
+                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT] += data.Columns[k].ColumnName + ",";
+                            valuesForInsert += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
+                        }
                     }
                     strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT] = strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT].Substring(0, strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT].Length - 1);
                     valuesForInsert = valuesForInsert.Substring(0, valuesForInsert.Length - 1);
