@@ -1019,7 +1019,7 @@ namespace HClassLibrary
 
             int j = -1, k = -1;
             bool bUpdate = false;
-            DataRow[] dataRows;
+            DataRow[] originRows;
             string[] strQuery = new string[(int)DbTSQLInterface.QUERY_TYPE.COUNT_QUERY_TYPE];
             string valuesForInsert = string.Empty
                 , strWhere = string.Empty;
@@ -1028,10 +1028,10 @@ namespace HClassLibrary
             {
                 strWhere = getWhereSelect(keyFields, data.Rows[j]);
 
-                dataRows = origin.Select(strWhere);
+                originRows = origin.Select(strWhere);
                    
 
-                if (dataRows.Length == 0)
+                if (originRows.Length == 0)
                 {
                     //INSERT
                     strQuery[(int)DbTSQLInterface.QUERY_TYPE.INSERT] = string.Empty;
@@ -1053,7 +1053,7 @@ namespace HClassLibrary
                 }
                 else
                 {
-                    if (dataRows.Length == 1)
+                    if (originRows.Length == 1)
                     {//UPDATE
                         bUpdate = false;
                         strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = string.Empty;
@@ -1061,7 +1061,7 @@ namespace HClassLibrary
                         {
                             if (data.Columns[k].ColumnName != unchangeableColumn)
                             {
-                                if (!(data.Rows[j][k].Equals(origin.Rows[j][k]) == true))
+                                if (!(data.Rows[j][k].Equals(originRows[0][k]) == true))
                                     if (bUpdate == false) bUpdate = true; else ;
                                 else
                                     ;
