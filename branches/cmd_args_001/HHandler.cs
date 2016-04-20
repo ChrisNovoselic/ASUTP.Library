@@ -59,7 +59,11 @@ namespace HClassLibrary
         /// <summary>
         /// Свойство - Признак активности потока
         /// </summary>
-        public bool Actived { get { return actived; } }
+        public bool Actived {
+            get {
+                return actived;
+            }
+        }
         /// <summary>
         /// Конструктор - основной
         /// </summary>
