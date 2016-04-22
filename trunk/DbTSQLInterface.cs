@@ -402,6 +402,10 @@ namespace HClassLibrary
             }
         }
 
+        public static bool IsNameField(DataTable data, string nameField) { return data.Columns.IndexOf(nameField) > -1 ? true : false; }
+
+        public static bool IsNameField(DataRow data, string nameField) { return IsNameField(data.Table, nameField); }
+
         ////public static DbConnection getConnection (ConnectionSettings connSett, out int er)
         //public DbConnection getConnection(ConnectionSettings connSett, out int er)
         //{

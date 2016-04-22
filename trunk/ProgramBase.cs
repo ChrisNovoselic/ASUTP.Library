@@ -261,11 +261,11 @@ namespace HClassLibrary
         /// <summary>
         /// значения командной строки
         /// </summary>
-        static public string cmd;
-        /// <summary>
-        /// параметр командной строки
-        /// </summary>
-        static public string param;
+        protected static Dictionary <string, string> m_dictCmdArgs;
+        ///// <summary>
+        ///// параметр командной строки
+        ///// </summary>
+        //static public string param;
 
         /// <summary>
         /// Основной конструктор класса
@@ -274,34 +274,70 @@ namespace HClassLibrary
         public HCmd_Arg(string[] args)
         {
             handlerArgs(args);
-            if (!SingleInstance.IsOnlyInstance)
-                execCmdLine(cmd);
+
+            if (m_dictCmdArgs.ContainsKey("stop") == true)
+                execCmdLine(false);
             else
-                if (cmd == "stop")
-                    execCmdLine(cmd);
-                else ;
+                if (SingleInstance.IsOnlyInstance == false)
+                    execCmdLine(true);
+                else
+                    ;
         }
 
         /// <summary>
         /// обработка CommandLine
         /// </summary>
         /// <param name="cmdLine">командная строка</param>
-        static private void handlerArgs(string[] cmdLine)
+        protected static void handlerArgs(string[] cmdLine)
         {
-            string[] m_cmd = new string[cmdLine.Length];
+            string[] args = null
+                , arCmdPair = null;
+            string key = string.Empty
+                , value = string.Empty
+                , cmd = string.Empty
+                , cmdPair = string.Empty;
 
-            if (m_cmd.Length > 1)
+            m_dictCmdArgs = new Dictionary<string, string>();
+
+            if (cmdLine.Length > 1)
             {
-                m_cmd = cmdLine[1].Split('/', '=');
+                args = new string[cmdLine.Length - 1];
 
-                if (m_cmd.Length > 2)
+                for (int i = 1; i < cmdLine.Length; i ++ )
                 {
-                    cmd = m_cmd[1];
-                    param = m_cmd[2];
+                    cmd = cmdLine[i];
+
+                    if (cmd.IndexOf('/') == 0)
+                    {
+                        cmdPair = cmd.Substring(1);
+                        arCmdPair = cmdPair.Split('=');
+                        if (arCmdPair.Length > 0)
+                        {
+                            key = arCmdPair[0];
+
+                            if (arCmdPair.Length > 1)
+                                value = arCmdPair[1];
+                            else
+                                value = string.Empty;
+                        }
+                        else
+                        {
+                            key = string.Empty;
+                            value = string.Empty;
+                        }
+
+                        m_dictCmdArgs.Add(key, value);
+                    }
+                    else
+                    {//параметр не учитывается - ошибка
+                        m_dictCmdArgs.Add(@"stop", string.Empty);
+
+                        break;
+                    }
                 }
-                else
-                    cmd = m_cmd[1];
             }
+            else
+                ; //нет ни одного аргумента
         }
 
         /// <summary>
@@ -393,9 +429,11 @@ namespace HClassLibrary
             /// для его активации
             /// </summary>
             /// <param name="hWnd">дескриптор окна</param>
-            static private void sendMsg(IntPtr hWnd)
+            static private void sendMsg(IntPtr hWnd, int iMsg)
             {
-                WinApi.SendMessage(hWnd, WinApi.SW_RESTORE, IntPtr.Zero, IntPtr.Zero);
+                //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
+
+                WinApi.SendMessage(hWnd, iMsg, IntPtr.Zero, IntPtr.Zero);
             }
 
             /// <summary>
@@ -411,7 +449,7 @@ namespace HClassLibrary
             /// </summary>
             static public void StopApp()
             {
-                WinApi.SendMessage(mainhWnd, WinApi.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                sendMsg(mainhWnd, WinApi.WM_CLOSE);
             }
 
             /// <summary>
@@ -500,7 +538,7 @@ namespace HClassLibrary
             static public void SwitchToCurrentInstance()
             {
                 IntPtr hWnd = mainhWnd;
-                sendMsg(hWnd);
+                sendMsg(hWnd, WinApi.SW_RESTORE);
 
                 if (hWnd != IntPtr.Zero)
                 {
@@ -545,26 +583,29 @@ namespace HClassLibrary
         /// Обработка команды старт/стоп
         /// </summary>
         /// <param name="CmdStr">команда приложению</param>
-        static public void execCmdLine(string CmdStr)
+        static public void execCmdLine(bool bIsExecute)
         {
-            switch (CmdStr)
+            bool bIsOnlyInstance = SingleInstance.IsOnlyInstance;
+
+            if (bIsExecute == true)
             {
-                case "start":
-                default:
-                    if (SingleInstance.IsOnlyInstance == false)
-                    {
-                        SingleInstance.SwitchToCurrentInstance();
-                        SingleInstance.InterruptReApp();
-                    }
-                    break;
-                case "stop":
-                    if (SingleInstance.IsOnlyInstance == false)
+                if (bIsOnlyInstance == false)
+                {
+                    SingleInstance.SwitchToCurrentInstance();
+                    SingleInstance.InterruptReApp();
+                }
+            }
+            else
+                if (bIsExecute == false)
+                {
+                    if (bIsOnlyInstance == false)
                         SingleInstance.StopApp();
                     else
                         ;
                     SingleInstance.InterruptReApp();
-                    break;
-            }
+                }
+                else
+                    ;
         }
 
         public void Dispose()
