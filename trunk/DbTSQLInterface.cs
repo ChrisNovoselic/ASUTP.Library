@@ -975,6 +975,7 @@ namespace HClassLibrary
         /// <param name="conn">Объект соединения с БД</param>
         /// <param name="nameTable">Наименование таблицы</param>
         /// <param name="keyFields">Наименования полей таблицы в составе ключа по поиску записей</param>
+        /// <param name="unchangeableColumn">Наименования полей таблицы не подлежащие изменению</param>
         /// <param name="origin">Таблица со значениями - исходная</param>
         /// <param name="data">Таблица со значениями - с изменениями</param>
         /// <param name="err">Признак выполнения функции</param>
