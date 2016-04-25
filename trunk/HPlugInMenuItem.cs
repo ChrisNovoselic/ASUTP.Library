@@ -55,12 +55,44 @@ namespace HClassLibrary
 
         public string GetNameOwnerMenuItem(int key)
         {
-            return m_Items[key]._nameOwner;
+            string strRes = string.Empty;
+
+            try
+            {
+                strRes = m_Items[key]._nameOwner;
+            }
+            catch (Exception e)
+            {
+                Logging.Logg().Exception(e, @"PluginMenuItem::GetNameMenuItem (key=" + key + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return strRes;
         }
 
         public string GetNameMenuItem(int key)
         {
-            return m_Items[key]._name;
+            string strRes = string.Empty;
+
+            try
+            {
+                strRes = m_Items[key]._name;
+            }
+            catch (Exception e)
+            {
+                Logging.Logg().Exception(e, @"PluginMenuItem::GetNameMenuItem (key=" + key + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return strRes;
+        }
+
+        public List<string> GetNameMenuItems()
+        {
+            List<string> listRes = new List<string>();
+
+            foreach (MenuItem item in m_Items.Values)
+                listRes.Add (item._name);
+
+            return listRes;
         }
 
         /// <summary>

@@ -195,6 +195,53 @@ namespace HClassLibrary
 
             return itemRes;
         }
+
+        private void removeMainMenuItem(ToolStripMenuItem findItem)
+        {
+            ToolStripMenuItem ownerItem = null;
+
+            ownerItem = findItem.OwnerItem as ToolStripMenuItem;
+
+            if (!(ownerItem == null))
+            {
+                ownerItem.DropDownItems.Remove(findItem);
+
+                if (ownerItem.DropDownItems.Count == 0)
+                    removeMainMenuItem(ownerItem);
+                else
+                    ;
+            }
+            else
+                if (ownerItem == null)
+                    MainMenuStrip.Items.Remove(findItem);
+                else
+                    ;
+        }
+
+        public int RemoveMainMenuItemOfText(string text)
+        {
+            int iRes = 0; //-1 - ошибка, 0 - элемент не найден, 1 - пункт меню удален
+            ToolStripMenuItem findItem = null;            
+
+            foreach (ToolStripMenuItem mi in MainMenuStrip.Items)
+            {
+                findItem = findMainMenuItemOfText(mi, text);
+
+                if (!(findItem == null))
+                    break;
+                else
+                    ;
+            }
+
+            if (!(findItem == null))
+            {
+                removeMainMenuItem(findItem);
+            }
+            else
+                ;
+
+            return iRes;
+        }
         /// <summary>
         /// Закрыть окно
         /// </summary>
