@@ -425,6 +425,10 @@ namespace HClassLibrary
     public abstract class HPlugIns : Dictionary<int, PlugInBase>, IPlugInHost
     //, IEnumerable <IPlugIn>
     {
+        /// <summary>
+        /// Перечисление состояний библиотеки
+        /// </summary>
+        public enum STATE_DLL { UNKNOWN = -3, NOT_LOAD, TYPE_MISMATCH, LOADED, }
         //http://stackoverflow.com/questions/658498/how-to-load-an-assembly-to-appdomain-with-all-references-recursively
         //http://lsd.luminis.eu/load-and-unload-assembly-in-appdomains/
         //http://www.codeproject.com/Articles/453778/Loading-Assemblies-from-Anywhere-into-a-New-AppDom
@@ -551,7 +555,7 @@ namespace HClassLibrary
             if (!(objType == null))
                 try
                 {
-                    plugInRes = ((PlugInMenuItem)Activator.CreateInstance(objType));
+                    plugInRes = ((PlugInBase)Activator.CreateInstance(objType));
                     plugInRes.Host = (IPlugInHost)this; //Вызов 'Register'
 
                     iRes = 0;
