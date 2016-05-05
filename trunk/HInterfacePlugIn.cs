@@ -422,7 +422,7 @@ namespace HClassLibrary
         int Register(IPlugIn plug);
     }
 
-    public abstract class HPlugIns : Dictionary<int, PlugInMenuItem>, IPlugInHost
+    public abstract class HPlugIns : Dictionary<int, PlugInBase>, IPlugInHost
     //, IEnumerable <IPlugIn>
     {
         //http://stackoverflow.com/questions/658498/how-to-load-an-assembly-to-appdomain-with-all-references-recursively
@@ -516,9 +516,9 @@ namespace HClassLibrary
         /// <param name="name">Наименование плюгИна</param>
         /// <param name="iRes">Результат загрузки (код ошибки)</param>
         /// <returns>Загруженный плюгИн</returns>
-        protected PlugInMenuItem load(string name, out int iRes)
+        protected PlugInBase load(string name, out int iRes)
         {
-            PlugInMenuItem plugInRes = null;
+            PlugInBase plugInRes = null;
             iRes = -1;
 
             Type objType = null;
