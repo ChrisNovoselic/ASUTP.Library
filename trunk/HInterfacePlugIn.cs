@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection; //Assembly
 
 using System.Threading;
 using System.Runtime.Remoting.Messaging;
@@ -419,5 +420,150 @@ namespace HClassLibrary
         /// <param name="plug">Регистрируемый 'плюгин'</param>
         /// <returns>Результат регистрации</returns>
         int Register(IPlugIn plug);
+    }
+
+    public abstract class HPlugIns : Dictionary<int, PlugInMenuItem>, IPlugInHost
+    //, IEnumerable <IPlugIn>
+    {
+        //http://stackoverflow.com/questions/658498/how-to-load-an-assembly-to-appdomain-with-all-references-recursively
+        //http://lsd.luminis.eu/load-and-unload-assembly-in-appdomains/
+        //http://www.codeproject.com/Articles/453778/Loading-Assemblies-from-Anywhere-into-a-New-AppDom
+        private class ProxyAppDomain : MarshalByRefObject
+        {
+            public Assembly GetAssembly(string AssemblyPath)
+            {
+                try
+                {
+                    return Assembly.LoadFrom(AssemblyPath);
+                    //If you want to do anything further to that assembly, you need to do it here.
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException(ex.Message, ex);
+                }
+            }
+        }
+        /// <summary>
+        /// Домен для загрузки плюгИнов
+        /// </summary>
+        private AppDomain m_appDomain;
+        /// <summary>
+        /// Домен-посредник для загрузки плюгИнов
+        /// </summary>
+        private ProxyAppDomain m_proxyAppDomain;
+        /// <summary>
+        /// Объект с параметрами безопасности для создания домена (для загрузки плюгИнов)
+        /// </summary>
+        private static System.Security.Policy.Evidence s_domEvidence = AppDomain.CurrentDomain.Evidence;
+        /// <summary>
+        /// Объект с параметрами среды окружения для создания домена (для загрузки плюгИнов)
+        /// </summary>
+        private static AppDomainSetup s_domSetup = new AppDomainSetup();
+        /// <summary>
+        /// Конструктор - основной (без параметров)
+        /// </summary>
+        /// <param name="fClickMenuItem">Делегат обработки сообщения - ваыбор п. меню</param>
+        public HPlugIns()
+        {
+            s_domSetup = new AppDomainSetup();
+            s_domSetup.ApplicationBase = System.Environment.CurrentDirectory;
+            s_domEvidence = AppDomain.CurrentDomain.Evidence;
+        }
+        /// <summary>
+        /// Установить взамосвязь
+        /// </summary>
+        /// <param name="plug">Загружаемый плюгИн</param>
+        /// <returns>Признак успешности загрузки</returns>
+        public int Register(IPlugIn plug)
+        {
+            //??? важная функция для взимного обмена сообщенями
+            return 0;
+        }
+        /// <summary>
+        /// Признак инициализации домена для загрузки в него плюгИнов
+        /// </summary>
+        protected bool isInitPluginAppDomain { get { return (!(m_appDomain == null)) && (!(m_proxyAppDomain == null)); } }
+        /// <summary>
+        /// Инициализация домена для загрузки в него плюгИнов
+        /// </summary>
+        private void initPluginDomain()
+        {
+            m_appDomain = AppDomain.CreateDomain("pluginDomain", s_domEvidence, s_domSetup);
+
+            Type type = typeof(ProxyAppDomain);
+            m_proxyAppDomain = (ProxyAppDomain)m_appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
+        }
+        /// <summary>
+        /// Выгрузить из памяти загруженные плюгИны
+        /// </summary>
+        public void Unload()
+        {
+            if (isInitPluginAppDomain == true)
+            {
+                AppDomain.Unload(m_appDomain);
+
+                m_appDomain = null;
+                m_proxyAppDomain = null;
+            }
+            else
+                ;
+
+            Clear();
+        }
+        /// <summary>
+        /// Загрузить плюгИн с указанным наименованием
+        /// </summary>
+        /// <param name="name">Наименование плюгИна</param>
+        /// <param name="iRes">Результат загрузки (код ошибки)</param>
+        /// <returns>Загруженный плюгИн</returns>
+        protected PlugInMenuItem load(string name, out int iRes)
+        {
+            PlugInMenuItem plugInRes = null;
+            iRes = -1;
+
+            Type objType = null;
+            try
+            {
+                if (isInitPluginAppDomain == false)
+                    initPluginDomain();
+                else
+                    ;
+
+                Assembly ass = null;
+                ass =
+                    m_proxyAppDomain.GetAssembly
+                    //Assembly.LoadFrom
+                    //m_appDomain.Load
+                        (Environment.CurrentDirectory + @"\" + name + @".dll");
+
+                if (!(ass == null))
+                {
+                    objType = ass.GetType(name + ".PlugIn");
+                }
+                else
+                    ;
+            }
+            catch (Exception e)
+            {
+                Logging.Logg().Exception(e, @"FormMain::loadPlugin () ... LoadFrom () ... plugIn.Name = " + name, Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            if (!(objType == null))
+                try
+                {
+                    plugInRes = ((PlugInMenuItem)Activator.CreateInstance(objType));
+                    plugInRes.Host = (IPlugInHost)this; //Вызов 'Register'
+
+                    iRes = 0;
+                }
+                catch (Exception e)
+                {
+                    Logging.Logg().Exception(e, @"FormMain::loadPlugin () ... CreateInstance ... plugIn.Name = " + name, Logging.INDEX_MESSAGE.NOT_SET);
+                }
+            else
+                Logging.Logg().Error(@"FormMain::loadPlugin () ... Assembly.GetType()=null ... plugIn.Name = " + name, Logging.INDEX_MESSAGE.NOT_SET);
+
+            return plugInRes;
+        }
     }
 }
