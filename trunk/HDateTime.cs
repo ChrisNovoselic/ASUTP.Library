@@ -134,7 +134,7 @@ namespace HClassLibrary
 
         public static DateTime ToNextMonthBoundary(DateTime dt)
         {
-            return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0).AddMonths(1);
+            return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0).AddMonths(1);//??? обнуляет время перед.суток
         }
     }
 
