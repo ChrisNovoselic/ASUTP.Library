@@ -500,7 +500,7 @@ namespace HClassLibrary
         /// <summary>
         /// Выгрузить из памяти загруженные плюгИны
         /// </summary>
-        public void Unload()
+        public void UnloadPlugIn()
         {
             if (isInitPluginAppDomain == true)
             {
@@ -562,6 +562,8 @@ namespace HClassLibrary
                 }
                 catch (Exception e)
                 {
+                    iRes = -2;
+
                     Logging.Logg().Exception(e, @"FormMain::loadPlugin () ... CreateInstance ... plugIn.Name = " + name, Logging.INDEX_MESSAGE.NOT_SET);
                 }
             else
