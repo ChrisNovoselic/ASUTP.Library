@@ -19,10 +19,13 @@ namespace HClassLibrary
     {
         public enum Error
         {
-            NO_ERROR = 0, DBCONN_NOT_OPEN = -1, DBCONN_NULL = -2, DBADAPTER_NULL = -3, PARAMQUERY_NULL = -4, PARAMQUERY_LENGTH = -5
-                            , CATCH_DBCONN = -11
-                            , CATCH_CSV_READ = -21, CATCH_CSV_ROWREAD = -22
-                            , TABLE_NULL = -31, TABLE_ROWS_0 = -32
+            NO_ERROR = 0, DBCONN_NOT_OPEN = -1, DBCONN_NULL = -2, DBADAPTER_NULL = -3, PARAMQUERY_NULL = -4,
+            PARAMQUERY_LENGTH = -5
+                ,
+            CATCH_DBCONN = -11
+                , CATCH_CSV_READ = -21,
+            CATCH_CSV_ROWREAD = -22
+                , TABLE_NULL = -31, TABLE_ROWS_0 = -32
         };
         public enum QUERY_TYPE { UPDATE, INSERT, DELETE, COUNT_QUERY_TYPE };
 
@@ -33,7 +36,7 @@ namespace HClassLibrary
         private DbConnection m_dbConnection;
         private DbCommand m_dbCommand;
         private DbDataAdapter m_dbAdapter;
-        private static object lockConn = new object ();
+        private static object lockConn = new object();
 
         private DB_TSQL_INTERFACE_TYPE m_connectionType;
 
@@ -164,7 +167,7 @@ namespace HClassLibrary
             {
                 m_dbConnection.Open();
                 result = true;
-                if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_open_db(m_dbConnection); } else ;                
+                if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_open_db(m_dbConnection); } else ;
             }
             catch (Exception e)
             {
@@ -278,7 +281,7 @@ namespace HClassLibrary
             catch (DbException e)
             {
                 needReconnect = true;
-                logging_catch_db (m_dbConnection, e);
+                logging_catch_db(m_dbConnection, e);
             }
             catch (Exception e)
             {
@@ -294,7 +297,7 @@ namespace HClassLibrary
             return result;
         }
 
-        private static string ConnectionStringToLog (string strConnSett)
+        private static string ConnectionStringToLog(string strConnSett)
         {
             string strRes = string.Empty;
             int pos = -1;
@@ -312,7 +315,7 @@ namespace HClassLibrary
         {
             string s = string.Empty, log = string.Empty;
             if (!(conn == null))
-                s = ConnectionStringToLog (conn.ConnectionString);
+                s = ConnectionStringToLog(conn.ConnectionString);
             else
                 s = @"Объект 'DbConnection' = null";
 
@@ -328,15 +331,15 @@ namespace HClassLibrary
             Logging.Logg().ExceptionDB(log);
         }
 
-        private static void logging_close_db (DbConnection conn)
+        private static void logging_close_db(DbConnection conn)
         {
             string s = ConnectionStringToLog(conn.ConnectionString);
 
             Logging.Logg().Debug(MessageDbClose + " (" + s + ")", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
-        private static void logging_open_db (DbConnection conn)
-        {            
+        private static void logging_open_db(DbConnection conn)
+        {
             string s = ConnectionStringToLog(conn.ConnectionString);
 
             Logging.Logg().Debug(MessageDbOpen + " (" + s + ")", Logging.INDEX_MESSAGE.NOT_SET, true);
@@ -347,17 +350,19 @@ namespace HClassLibrary
             DB_TSQL_INTERFACE_TYPE res = DB_TSQL_INTERFACE_TYPE.MSSQL;
             int port = -1;
             string strMarkPort = @"port="
-                , strPort =  string.Empty;
+                , strPort = string.Empty;
 
-            if (! (strConn.IndexOf (strMarkPort) < 0)) {
-                int iPosPort = strConn.IndexOf (strMarkPort) + strMarkPort.Length;
+            if (!(strConn.IndexOf(strMarkPort) < 0))
+            {
+                int iPosPort = strConn.IndexOf(strMarkPort) + strMarkPort.Length;
                 strPort = strConn.Substring(iPosPort, strConn.IndexOf(';', iPosPort) - iPosPort);
 
                 if (Int32.TryParse(strPort, out port) == true)
-                    res = getTypeDB (port);
+                    res = getTypeDB(port);
                 else
                     ;
-            } else
+            }
+            else
                 ;
 
             return res;
@@ -472,7 +477,7 @@ namespace HClassLibrary
         //    catch (Exception e)
         //    {
         //        logging_catch_db(conn, e);
-                
+
         //        conn = null;
 
         //        er = -1;
@@ -541,7 +546,7 @@ namespace HClassLibrary
 
             DataTable dataTableRes = new DataTable();
 
-            string [] data;
+            string[] data;
             //Открыть поток чтения файла...
             try
             {
@@ -667,12 +672,13 @@ namespace HClassLibrary
 
             if (conn == null)
                 er = (int)Error.DBCONN_NULL;
-            else {
+            else
+            {
                 lock (lockConn)
                 {
                     dataTableRes = new DataTable();
 
-                    queryValidateOfTypeDB (conn.ConnectionString, ref query);
+                    queryValidateOfTypeDB(conn.ConnectionString, ref query);
 
                     ParametrsValidate(types, parametrs, out er);
 
@@ -686,18 +692,21 @@ namespace HClassLibrary
                             cmd = new MySqlCommand();
                             adapter = new MySqlDataAdapter();
                         }
-                        else if (conn is SqlConnection) {
-                                cmd = new SqlCommand();
-                                adapter = new SqlDataAdapter();
-                            }
-                            else if (conn is OracleConnection) {
-                                    cmd = new OracleCommand();
-                                    adapter = new OracleDataAdapter();
-                                }
-                                else
-                                    ;
+                        else if (conn is SqlConnection)
+                        {
+                            cmd = new SqlCommand();
+                            adapter = new SqlDataAdapter();
+                        }
+                        else if (conn is OracleConnection)
+                        {
+                            cmd = new OracleCommand();
+                            adapter = new OracleDataAdapter();
+                        }
+                        else
+                            ;
 
-                        if ((!(cmd == null)) && (!(adapter == null))) {
+                        if ((!(cmd == null)) && (!(adapter == null)))
+                        {
                             cmd.Connection = conn;
                             cmd.CommandType = CommandType.Text;
 
@@ -813,16 +822,19 @@ namespace HClassLibrary
             {
                 lock (lockConn)
                 {
-                    if (conn is MySqlConnection) {
+                    if (conn is MySqlConnection)
+                    {
                         cmd = new MySqlCommand();
                     }
-                    else if (conn is SqlConnection) {
+                    else if (conn is SqlConnection)
+                    {
                         cmd = new SqlCommand();
-                        }
-                        else
-                            ;
-                
-                    if (! (cmd == null)) {
+                    }
+                    else
+                        ;
+
+                    if (!(cmd == null))
+                    {
                         cmd.Connection = conn;
                         cmd.CommandType = CommandType.Text;
 
@@ -979,7 +991,7 @@ namespace HClassLibrary
         /// <param name="origin">Таблица со значениями - исходная</param>
         /// <param name="data">Таблица со значениями - с изменениями</param>
         /// <param name="err">Признак выполнения функции</param>
-        public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn,DataTable origin, DataTable data, out int err)
+        public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn, DataTable origin, DataTable data, out int err)
         {
             if (!(data.Rows.Count < origin.Rows.Count))
             {
@@ -996,16 +1008,16 @@ namespace HClassLibrary
         private static string getWhereSelect(string fields, DataRow r)
         {
             string strRes = string.Empty;
-            
-            string [] arFields = fields.Split(',');
+
+            string[] arFields = fields.Split(',');
 
             for (int i = 0; i < arFields.Length; i++)
-            {             
+            {
                 arFields[i] = arFields[i].Trim();
                 if (arFields[i] == "DATE_TIME")
-                    strRes += String.Format(r.Table.Locale,@"DATE_TIME = '{0:o}'" ,r[arFields[i]]) + @" AND ";
+                    strRes += String.Format(r.Table.Locale, @"DATE_TIME = '{0:o}'", r[arFields[i]]) + @" AND ";
                 else
-                strRes += arFields[i] + @"=" + DbTSQLInterface.ValueToQuery(r[arFields[i]],r[arFields[i]].GetType()) + @" AND ";
+                    strRes += arFields[i] + @"=" + DbTSQLInterface.ValueToQuery(r[arFields[i]], r[arFields[i]].GetType()) + @" AND ";
             }
 
             if (strRes.Equals(string.Empty) == false)
@@ -1017,7 +1029,7 @@ namespace HClassLibrary
         }
 
         //Изменение (вставка) в оригинальную таблицу записей измененных (добавленных) в измененную таблицу (обязательно наличие поля: ID)
-        public static void RecUpdateInsert(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn 
+        public static void RecUpdateInsert(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn
             , DataTable origin, DataTable data, out int err)
         {
             err = (int)Error.NO_ERROR;
@@ -1032,9 +1044,7 @@ namespace HClassLibrary
             for (j = 0; j < data.Rows.Count; j++)
             {
                 strWhere = getWhereSelect(keyFields, data.Rows[j]);
-
                 originRows = origin.Select(strWhere);
-                   
 
                 if (originRows.Length == 0)
                 {
@@ -1080,7 +1090,7 @@ namespace HClassLibrary
                         if (bUpdate == true)
                         {//UPDATE
                             strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE].Substring(0, strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE].Length - 1);
-                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = "UPDATE " + nameTable + " SET " + strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] + " WHERE " + getWhereSelect (keyFields, data.Rows[j]);
+                            strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] = "UPDATE " + nameTable + " SET " + strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] + " WHERE " + getWhereSelect(keyFields, data.Rows[j]);
 
                             DbTSQLInterface.ExecNonQuery(ref conn, strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE], null, null, out err);
                         }
