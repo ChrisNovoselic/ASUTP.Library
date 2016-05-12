@@ -74,7 +74,8 @@ namespace HClassLibrary
     /// </summary>
     public enum ID_HEAD_ASKED_HOST
     {
-        GET, CONFIRM
+        UNKNOWN = -1
+            , GET, CONFIRM
     }
 
     public interface IPlugIn
@@ -399,6 +400,8 @@ namespace HClassLibrary
                 m_dictDataHostCounter[pair]++;
             else
                 m_dictDataHostCounter.Add(pair, 1);
+
+            Console.WriteLine(@"PlugInBase::OnEvtDataRecievedHost (id=" + pair.Key + @", key=" + pair.Value + @") - counter=" + m_dictDataHostCounter[pair]);
         }
 
         protected bool isDataHostMarked(int id_main, int id_detail)
