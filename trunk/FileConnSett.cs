@@ -212,7 +212,7 @@ namespace HClassLibrary
         public void ReadSettingsFile (int notUsed, out List <ConnectionSettings> listConnSett, out int res, out string mes)
         {
             //MessageBox.Show (null, m_mode.ToString (), );
-            Console.WriteLine(@"FileConnSett::ReadSettingsFile () - mode=" + m_mode.ToString());
+            //Console.WriteLine(@"FileConnSett::ReadSettingsFile () - mode=" + m_mode.ToString());
 
             if ((m_mode == MODE.FILE) && (File.Exists(m_arg) == false))
             {//Не найден файл

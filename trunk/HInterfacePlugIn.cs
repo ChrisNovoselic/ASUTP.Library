@@ -401,7 +401,7 @@ namespace HClassLibrary
             else
                 m_dictDataHostCounter.Add(pair, 1);
 
-            Console.WriteLine(@"PlugInBase::OnEvtDataRecievedHost (id=" + pair.Key + @", key=" + pair.Value + @") - counter=" + m_dictDataHostCounter[pair]);
+            //Console.WriteLine(@"PlugInBase::OnEvtDataRecievedHost (id=" + pair.Key + @", key=" + pair.Value + @") - counter=" + m_dictDataHostCounter[pair]);
         }
 
         protected bool isDataHostMarked(int id_main, int id_detail)

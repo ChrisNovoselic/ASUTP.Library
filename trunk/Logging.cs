@@ -161,7 +161,7 @@ namespace HClassLibrary
 
             if (! (s_connSett == null)) {
                 s_iIdListener = DbSources.Sources().Register(s_connSett, false, @"LOGGING_DB");
-                Console.WriteLine(@"Logging::connect (active=false) - s_iIdListener=" + s_iIdListener);
+                //Console.WriteLine(@"Logging::connect (active=false) - s_iIdListener=" + s_iIdListener);
                 if (!(s_iIdListener < 0))
                     s_dbConn = DbSources.Sources().GetConnection(s_iIdListener, out err);
                 else
