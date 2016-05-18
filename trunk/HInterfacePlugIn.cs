@@ -432,6 +432,7 @@ namespace HClassLibrary
         /// Перечисление состояний библиотеки
         /// </summary>
         public enum STATE_DLL { UNKNOWN = -3, NOT_LOAD, TYPE_MISMATCH, LOADED, }
+#if _SEPARATE_APPDOMAIN
         //http://stackoverflow.com/questions/658498/how-to-load-an-assembly-to-appdomain-with-all-references-recursively
         //http://lsd.luminis.eu/load-and-unload-assembly-in-appdomains/
         //http://www.codeproject.com/Articles/453778/Loading-Assemblies-from-Anywhere-into-a-New-AppDom
@@ -466,6 +467,7 @@ namespace HClassLibrary
         /// Объект с параметрами среды окружения для создания домена (для загрузки плюгИнов)
         /// </summary>
         private static AppDomainSetup s_domSetup = new AppDomainSetup();
+#endif
         /// <summary>
         /// Конструктор - основной (без параметров)
         /// </summary>
@@ -486,6 +488,7 @@ namespace HClassLibrary
             //??? важная функция для взимного обмена сообщенями
             return 0;
         }
+#if _SEPARATE_APPDOMAIN
         /// <summary>
         /// Признак инициализации домена для загрузки в него плюгИнов
         /// </summary>
@@ -500,11 +503,13 @@ namespace HClassLibrary
             Type type = typeof(ProxyAppDomain);
             m_proxyAppDomain = (ProxyAppDomain)m_appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
         }
+#endif
         /// <summary>
         /// Выгрузить из памяти загруженные плюгИны
         /// </summary>
         public void UnloadPlugIn()
         {
+#if _SEPARATE_APPDOMAIN
             if (isInitPluginAppDomain == true)
             {
                 AppDomain.Unload(m_appDomain);
@@ -514,7 +519,7 @@ namespace HClassLibrary
             }
             else
                 ;
-
+#endif
             Clear();
         }
         /// <summary>
@@ -526,21 +531,24 @@ namespace HClassLibrary
         protected PlugInBase load(string name, out int iRes)
         {
             PlugInBase plugInRes = null;
+            Assembly ass = null;
             iRes = -1;
 
             Type objType = null;
             try
             {
+#if _SEPARATE_APPDOMAIN
                 if (isInitPluginAppDomain == false)
                     initPluginDomain();
                 else
                     ;
-
-                Assembly ass = null;
+#endif
                 ass =
+#if _SEPARATE_APPDOMAIN
                     m_proxyAppDomain.GetAssembly
-                    //Assembly.LoadFrom
-                    //m_appDomain.Load
+#else
+                    Assembly.LoadFrom
+#endif
                         (Environment.CurrentDirectory + @"\" + name + @".dll");
 
                 if (!(ass == null))
