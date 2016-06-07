@@ -24,6 +24,10 @@ namespace HClassLibrary
         }       
 
         protected  List<PropertyTab> m_listPropTabs;
+        /// <summary>
+        /// Параметры крайней закрытой вкладки
+        /// </summary>
+        protected PropertyTab? _propTabLastRemoved;
 
         private static RectangleF s_rectPositionImg = new RectangleF (18, 4, 14, 14);
 
@@ -38,7 +42,12 @@ namespace HClassLibrary
         public int PrevSelectedIndex
         {
             get { return iPrevSelectedIndex; }
-            set { if (!(iPrevSelectedIndex == value)) { EventPrevSelectedIndexChanged(iPrevSelectedIndex); iPrevSelectedIndex = value; } else ; }
+            set {
+                //if (!(iPrevSelectedIndex == value)) {
+                    EventPrevSelectedIndexChanged(iPrevSelectedIndex);
+                    iPrevSelectedIndex = value;
+                //} else ;
+            }
         }
         public event DelegateIntFunc EventPrevSelectedIndexChanged;
 
@@ -263,7 +272,6 @@ namespace HClassLibrary
                         }
                     } else {
                     }
-
                 }
             }
         }
@@ -300,8 +308,14 @@ namespace HClassLibrary
                 && (indx < this.TabCount)
                 && (indx < m_listPropTabs.Count))
             {
+                _propTabLastRemoved = m_listPropTabs[indx];
                 m_listPropTabs.RemoveAt(indx);
-                this.TabPages.RemoveAt(indx);              
+                this.TabPages.RemoveAt(indx);
+
+                if (this.TabPages.Count == 0)
+                    iPrevSelectedIndex = -1;
+                else
+                    ;
             }
             else
                 bRes = false;

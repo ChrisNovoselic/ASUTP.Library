@@ -72,7 +72,7 @@ namespace HClassLibrary
         /// Активировать/деактивировать панель
         /// </summary>
         /// <param name="active">Признак активации/деактивации</param>
-        /// <returns></returns>
+        /// <returns>Признак изменения состояния элемента управления</returns>
         public virtual bool Activate(bool active)
         {
             bool bRes = false;
