@@ -474,9 +474,12 @@ namespace HClassLibrary
         /// <param name="fClickMenuItem">Делегат обработки сообщения - ваыбор п. меню</param>
         public HPlugIns()
         {
+#if _SEPARATE_APPDOMAIN
             s_domSetup = new AppDomainSetup();
             s_domSetup.ApplicationBase = System.Environment.CurrentDirectory;
             s_domEvidence = AppDomain.CurrentDomain.Evidence;
+#else
+#endif
         }
         /// <summary>
         /// Установить взамосвязь
