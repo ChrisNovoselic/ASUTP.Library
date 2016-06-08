@@ -283,23 +283,53 @@ namespace HClassLibrary
 
         //    m_listTypeTabs.Clear ();
         //}
-
-        public void AddTabPage (string name, int id, TYPE_TAB typeTab) {
+        /// <summary>
+        /// Добавить вкладку
+        /// </summary>
+        /// <param name="tab">Объект вкладки</param>
+        /// <param name="name">Наименование(заголовок) вкладки</param>
+        /// <param name="id">Идентификатор вкладки</param>
+        /// <param name="typeTab">Тип вкладки</param>
+        public void AddTabPage (Control tab, string name, int id, TYPE_TAB typeTab) {
             m_listPropTabs.Add(new PropertyTab (id, typeTab));
             this.TabPages.Add(name, getNameTab(name, typeTab));
+            this.TabPages[TabCount - 1].Controls.Add(tab);
         }
-
-        public bool RemoveTabPage (string name) {
-            bool bRes = RemoveTabPage (this.TabPages.IndexOfKey (name.Trim ()));
+        /// <summary>
+        /// Удалить активную вкладку
+        /// </summary>
+        /// <returns>Признак выполнения операции удаления вкладки</returns>
+        public bool RemoveTabPage()
+        {
+            bool bRes = RemoveTabPage(this.SelectedIndex);
 
             if (bRes == false)
-                Console.WriteLine (@"Ошибка удаления вкладки [" + name + "]...");
+                Console.WriteLine(@"Ошибка удаления вкладки [" + SelectedTab.Text + "]...");
             else
                 ;
 
             return bRes;
         }
+        ///// <summary>
+        ///// Удалить вкладку по заголовку
+        ///// </summary>
+        ///// <param name="name">Заголовок вкладки</param>
+        ///// <returns>Признак выполнения операции удаления вкладки</returns>
+        //public bool RemoveTabPage (string name) {
+        //    bool bRes = RemoveTabPage (this.TabPages.IndexOfKey (name.Trim ()));
 
+        //    if (bRes == false)
+        //        Console.WriteLine (@"Ошибка удаления вкладки [" + name + "]...");
+        //    else
+        //        ;
+
+        //    return bRes;
+        //}
+        /// <summary>
+        /// Удалить вкладку по индексу
+        /// </summary>
+        /// <param name="indx">Индекс вкладки</param>
+        /// <returns>Признак выполнения операции удаления вкладки</returns>
         public bool RemoveTabPage(int indx)
         {
             bool bRes = true;
