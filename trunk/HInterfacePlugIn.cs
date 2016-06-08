@@ -271,28 +271,39 @@ namespace HClassLibrary
         /// Создание объекта(объектов) библиотеки
         /// </summary>
         /// <returns>признак создания</returns>
-        protected bool createObject (int key)
+        protected int createObject (int key)
         {
-            bool bRes = false;
+            int iRes = 0; // не было выполнено никаких действий
 
             if (_objects.ContainsKey(key) == false)
             {
-                _objects.Add(key, Activator.CreateInstance(_types[key], this));
-
-                if (_objects[key] is Control)
+                try
                 {
-                    //if (_object is HPanelCommon)
-                    //    (_object as HPanelCommon).Start();
-                    //else
-                    //    ;
+                    _objects.Add(key, Activator.CreateInstance(_types[key], this));
 
-                    //((Control)_object).HandleCreated += new EventHandler(plugInObject_HandleCreated);
-                    //((Control)_object).HandleDestroyed += new EventHandler(plugInObject_HandleDestroyed);
+                    if (_objects[key] is Control)
+                    {
+                        //if (_object is HPanelCommon)
+                        //    (_object as HPanelCommon).Start();
+                        //else
+                        //    ;
+
+                        //((Control)_object).HandleCreated += new EventHandler(plugInObject_HandleCreated);
+                        //((Control)_object).HandleDestroyed += new EventHandler(plugInObject_HandleDestroyed);
+                    }
+                    else
+                        ;
+
+                    iRes = 1; //Объект только создан
                 }
-                else
-                    ;
+                catch (Exception e)
+                {
+                    iRes = -1; //Ошибка при создании объекта
 
-                bRes = true; //Объект только создан
+                    Logging.Logg().Exception(e, @"PlugInBase::createObject (ID=" + _Id + @", key=" + key + @") - ...", Logging.INDEX_MESSAGE.NOT_SET);
+                }
+
+                
             }
             else
             {
@@ -313,7 +324,7 @@ namespace HClassLibrary
                 ////_object = null;
             }
 
-            return bRes;
+            return iRes;
         }
         ///// <summary>
         ///// Обработчик события "завершено создание элемента управления"
