@@ -15,30 +15,71 @@ namespace HClassLibrary
 {
     public partial class HTabCtrlEx : System.Windows.Forms.TabControl
     {
+        /// <summary>
+        /// Признак разрешения изменения порядка следования вкладок
+        /// </summary>
+        private const bool ALLOW_DROP = false;
+        /// <summary>
+        /// Перечисление - типы вкладок (фиксированные, плавающие)
+        /// </summary>
         public enum TYPE_TAB { FIXED, FLOAT };
+        /// <summary>
+        /// Структура для хранения свойств вкладки
+        /// </summary>
         protected struct PropertyTab {
             public PropertyTab(int id, TYPE_TAB type) { this.id = id; this.type = type; }
-
+            /// <summary>
+            /// Идентификатор вкладки
+            /// </summary>
             public int id;
+            /// <summary>
+            /// Тип вкладки
+            /// </summary>
             public TYPE_TAB type;           
         }       
-
+        /// <summary>
+        /// Список объектов со свойствами вкладок
+        /// </summary>
         protected  List<PropertyTab> m_listPropTabs;
         /// <summary>
-        /// Параметры крайней закрытой вкладки
+        /// Свойства крайней закрытой вкладки
         /// </summary>
         protected PropertyTab? _propTabLastRemoved;
-
+        /// <summary>
+        /// Параметры для позиционирования пиктогамм на заголовке вкладки
+        /// </summary>
         private static RectangleF s_rectPositionImg = new RectangleF (18, 4, 14, 14);
-
+        /// <summary>
+        /// Перечисление - индексы пиктограмм, размещаемых на заголовкее вкладки
+        /// </summary>
         private enum INDEX_BITMAP {FLOAT, CLOSE, COUNT_BITMAP };
+        /// <summary>
+        /// Перечисление - индексы возможных состояний пиктограмм
+        /// </summary>
         private enum INDEX_STATE_BITMAP { NON_ACTIVE, IN_ACTIVE, COUNT_STATE_BITMAP };
+        /// <summary>
+        /// Массив пиктограмм для отображения на заголовке вкладки
+        /// </summary>
         private Icon [] m_arBitmap;
+        /// <summary>
+        /// Тип делегата для событий/обработки
+        /// </summary>
+        /// <param name="sender">Объект, инициировавший событие</param>
+        /// <param name="e">Аргумент события</param>
         public delegate void DelegateHTabCtrlEx(object sender, HTabCtrlExEventArgs e);
+        /// <summary>
+        /// Событие - закрыть вкладку
+        /// </summary>
         public event DelegateHTabCtrlEx EventHTabCtrlExClose;
+        /// <summary>
+        /// Событие - Отделить вкладку от главного окна
+        /// </summary>
         public event DelegateHTabCtrlEx EventHTabCtrlExFloat;
 
         private int iPrevSelectedIndex;
+        /// <summary>
+        /// Индекс вкладки, бывшей активной, перед текущей активной вкладкой
+        /// </summary>
         public int PrevSelectedIndex
         {
             get { return iPrevSelectedIndex; }
@@ -49,13 +90,19 @@ namespace HClassLibrary
                 //} else ;
             }
         }
+        /// <summary>
+        /// Событие - изменение индекса предыдущей активной вкладки
+        /// </summary>
         public event DelegateIntFunc EventPrevSelectedIndexChanged;
-
+        /// <summary>
+        /// Конструктор - основной (без параметров)
+        /// </summary>
         public HTabCtrlEx()
         {
             InitializeComponent();
 
-            iPrevSelectedIndex = -1;
+            this.AllowDrop = ALLOW_DROP; // установить признак возможности изменения порядка следования вкладок
+            iPrevSelectedIndex = -1; // предыдущей активной вкладки нет
         }
 
         public HTabCtrlEx(IContainer container)
@@ -64,22 +111,15 @@ namespace HClassLibrary
 
             InitializeComponent();
 
+            this.AllowDrop = ALLOW_DROP;
             iPrevSelectedIndex = -1;
         }
-
-        private bool confirmOnClose = true;
-        public bool ConfirmOnClose
-        {
-            get
-            {
-                return this.confirmOnClose;
-            }
-            set
-            {
-                this.confirmOnClose = value;
-            }
-        }
-
+        /// <summary>
+        /// Возвратить пиктограмму для отображения по ее типу и состоянию
+        /// </summary>
+        /// <param name="indx">Тип пиктограммы</param>
+        /// <param name="state">Состояние пиктограммы</param>
+        /// <returns>Пиктограмма для отображения</returns>
         private Bitmap getBitmap (INDEX_BITMAP indx, INDEX_STATE_BITMAP state)
         {
             return m_arBitmap[(int)indx * (int)INDEX_STATE_BITMAP.COUNT_STATE_BITMAP + (int)state].ToBitmap ();
@@ -158,68 +198,61 @@ namespace HClassLibrary
         {
             if (DesignMode == false)
             {
-                Image img;
-                INDEX_STATE_BITMAP state;
-                Graphics g = CreateGraphics();
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                for (int nIndex = 0; nIndex < this.TabCount; nIndex++)
+                if ((e.Button == MouseButtons.Left)
+                    && (!(_draggedTab == null)))
                 {
-                    RectangleF tabTextAreaText = (RectangleF)this.GetTabRect(nIndex)
-                        , tabTextAreaClose = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
-                    //Console.WriteLine(@"OnMouseMove () - " + @"Индекс=" + nIndex + @"; X:" + tabTextArea.X + @"; width:" + tabTextArea.Width);
+                    this.DoDragDrop(_draggedTab, DragDropEffects.Move);
 
-                    Point pt = new Point(e.X, e.Y);
-                    if (tabTextAreaClose.Contains(pt) == true)
-                    {
-                        state = INDEX_STATE_BITMAP.IN_ACTIVE;
-                    }
-                    else
-                    {
-                        if (!(nIndex == this.SelectedIndex))
-                        {
-                            state = INDEX_STATE_BITMAP.NON_ACTIVE;
-                        }
-                        else
-                        {
-                            state = INDEX_STATE_BITMAP.IN_ACTIVE;
-                        }
-                    }
-
-                    img = getBitmap(INDEX_BITMAP.CLOSE, state);
-
-                    using (img)
-                    {
-                        g.DrawImage(img, tabTextAreaClose);
-                    }
-
-                    if (m_listPropTabs[nIndex].type == TYPE_TAB.FLOAT)
-                    {
-                        RectangleF tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
-                        
-                        if (tabTextAreaFloat.Contains(pt))
-                        {
-                            state = INDEX_STATE_BITMAP.IN_ACTIVE;
-                        }
-                        else
-                        {
-                            if (!(nIndex == this.SelectedIndex))
-                            {
-                                state = INDEX_STATE_BITMAP.NON_ACTIVE;
-                            }
-                            else
-                            {
-                                state = INDEX_STATE_BITMAP.IN_ACTIVE;
-                            }
-                        }
-
-                        img = getBitmap(INDEX_BITMAP.FLOAT, state);
-
-                        g.DrawImage(img, tabTextAreaFloat);
-                    }
-                    else
-                        ;
+                    base.OnMouseMove(e);
                 }
-                g.Dispose();
+                else
+                {
+                    Image img;
+                    INDEX_STATE_BITMAP state;
+                    Graphics g = CreateGraphics();
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    for (int nIndex = 0; nIndex < this.TabCount; nIndex++)
+                    {
+                        RectangleF tabTextAreaText = (RectangleF)this.GetTabRect(nIndex)
+                            , tabTextAreaClose = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height)
+                            , tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                        //Console.WriteLine(@"OnMouseMove () - " + @"Индекс=" + nIndex + @"; X:" + tabTextArea.X + @"; width:" + tabTextArea.Width);
+
+                        Point pt = new Point(e.X, e.Y);
+                        if (tabTextAreaClose.Contains(pt) == true)
+                            state = INDEX_STATE_BITMAP.IN_ACTIVE;
+                        else
+                            if (!(nIndex == this.SelectedIndex))
+                                state = INDEX_STATE_BITMAP.NON_ACTIVE;
+                            else
+                                state = INDEX_STATE_BITMAP.IN_ACTIVE;
+
+                        img = getBitmap(INDEX_BITMAP.CLOSE, state);
+
+                        using (img)
+                        {
+                            g.DrawImage(img, tabTextAreaClose);
+                        }
+
+                        if (m_listPropTabs[nIndex].type == TYPE_TAB.FLOAT)
+                        {
+                            if (tabTextAreaFloat.Contains(pt))
+                                state = INDEX_STATE_BITMAP.IN_ACTIVE;
+                            else
+                                if (!(nIndex == this.SelectedIndex))
+                                    state = INDEX_STATE_BITMAP.NON_ACTIVE;
+                                else
+                                    state = INDEX_STATE_BITMAP.IN_ACTIVE;
+
+                            img = getBitmap(INDEX_BITMAP.FLOAT, state);
+
+                            g.DrawImage(img, tabTextAreaFloat);
+                        }
+                        else
+                            ;
+                    }
+                    g.Dispose();
+                }
             }
             else
                 ;
@@ -233,46 +266,39 @@ namespace HClassLibrary
                 )
             {
                 RectangleF tabTextAreaText = (RectangleF)this.GetTabRect(SelectedIndex)
-                    , tabTextAreaClose = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+                    , tabTextAreaClose = new RectangleF(tabTextAreaText.X + tabTextAreaText.Width - s_rectPositionImg.X, s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height)
+                    , tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
+
                 Point pt = new Point(e.X, e.Y);
                 if (tabTextAreaClose.Contains(pt) == true)
                 {
-                    if (confirmOnClose == true)
-                    {
-                        if (MessageBox.Show("Вы закрывайте вкладку с объектом: " + this.TabPages[SelectedIndex].Text.TrimEnd() + ". Продолжить?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.No)
-                            return;
-                        else
-                            ;
-                    }
+                    if (MessageBox.Show("Вы закрывайте вкладку с объектом: " + this.TabPages[SelectedIndex].Text.TrimEnd() + ". Продолжить?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.No)
+                        return;
                     else
                         ;
 
                     //Fire Event to Client
-                    if (! (EventHTabCtrlExClose == null))
-                    {
+                    if (!(EventHTabCtrlExClose == null))
                         EventHTabCtrlExClose(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
-                    }
                     else
                         ;
                 }
-                else {
-                    if (m_listPropTabs[SelectedIndex].type == TYPE_TAB.FLOAT)
-                    {
-                        RectangleF tabTextAreaFloat = new RectangleF(tabTextAreaClose.X - (s_rectPositionImg.Width + 1), s_rectPositionImg.Y, s_rectPositionImg.Width, s_rectPositionImg.Height);
-                        
-                        if (tabTextAreaFloat.Contains(pt) == true)
+                else
+                    if ((m_listPropTabs[SelectedIndex].type == TYPE_TAB.FLOAT)
+                        && (tabTextAreaFloat.Contains(pt) == true))
+                        if (!(EventHTabCtrlExFloat == null))
+                            EventHTabCtrlExFloat(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
+                        else
+                            ;
+                    else
+                        if (this.AllowDrop == true)
                         {
-                            if (!(EventHTabCtrlExFloat == null))
-                            {
-                                EventHTabCtrlExFloat(this, new HTabCtrlExEventArgs(m_listPropTabs[SelectedIndex].id, SelectedIndex, this.TabPages[SelectedIndex].Text.Trim()));
-                            }
-                            else
-                                ;
-                        } else {
+                            _draggedTab = getPointedTab();
+
+                            base.OnMouseDown(e);
                         }
-                    } else {
-                    }
-                }
+                        else
+                            ;
             }
         }
 
@@ -352,29 +378,12 @@ namespace HClassLibrary
 
             return bRes;
         }
-
-        //public string NameOfItemControl (Control ctrl)
-        //{
-        //    return TabPages[IndexOfItemControl (ctrl)].Text;
-        //}
-
-        //public int IndexOfItemControl (Control ctrl) {
-        //    int iRes = -1
-        //        , indx = 0;
-
-        //    while ((indx < TabCount) && (iRes < 0)) {
-        //        //if (TabPages [indx].Controls.Contains (ctrl) == true)                
-        //        if (TabPages[indx].Controls[0].Equals (ctrl) == true) //??? тоже не работает
-        //            iRes = indx;
-        //        else
-        //            ;
-
-        //        indx ++;
-        //    }
-
-        //    return iRes;
-        //}
-
+        /// <summary>
+        /// Возвратить строку для заголовка вкладки с учетом размещения пиктограмм
+        /// </summary>
+        /// <param name="text">Тест для заголовка</param>
+        /// <param name="type">Тип вкладки (количество размещаемых пиктограмм)</param>
+        /// <returns>Строка заголовка вкладки</returns>
         private static string getNameTab (string text, TYPE_TAB type) {
             int cntSpace = 5;
 
@@ -385,7 +394,11 @@ namespace HClassLibrary
 
             return new string(' ', 1) + text + new string(' ', cntSpace);
         }
-
+        /// <summary>
+        /// Возвратить индекс вкладки по ее идентификатору
+        /// </summary>
+        /// <param name="id">Идентификатор вкладки</param>
+        /// <returns>Индекс вкладки</returns>
         public int IndexOfID(int id)
         {
             int iRes = -1;
@@ -402,7 +415,9 @@ namespace HClassLibrary
 
             return iRes;
         }
-
+        /// <summary>
+        /// Возвратить строку-перечисление с идентификаторами отображаемых вкладок через разделитель ','
+        /// </summary>
         public string VisibleIDs
         {
             get
@@ -419,6 +434,65 @@ namespace HClassLibrary
 
                 return strRes;
             }
+        }
+        /// <summary>
+        /// Объект, перемещаемой вкладки
+        /// </summary>
+        private TabPage _draggedTab;
+
+        protected override void OnMouseUp(MouseEventArgs e) {
+            _draggedTab = null;
+
+            base.OnMouseUp(e);
+        }
+
+        protected override void OnDragOver(DragEventArgs drgevent) {
+            TabPage draggedTab = (TabPage) drgevent.Data.GetData(typeof(TabPage));
+            TabPage pointedTab = getPointedTab();
+
+            if((draggedTab == _draggedTab)
+                && (!(pointedTab == null))) {
+                drgevent.Effect = DragDropEffects.Move;
+
+                if (pointedTab != draggedTab)
+                    swapTabPages(draggedTab, pointedTab);
+                else
+                    ;
+            }
+
+            base.OnDragOver(drgevent);
+        }
+        /// <summary>
+        /// Возвратить вкладку по текущей позиции курсора указателя
+        /// </summary>
+        /// <returns>Объект-вкладка</returns>
+        private TabPage getPointedTab() {
+            for (int i = 0; i < this.TabPages.Count; i++)
+                if (this.GetTabRect(i).Contains(this.PointToClient(Cursor.Position)))
+                    return this.TabPages[i];
+                else
+                    ;
+
+            return null;
+        }
+        /// <summary>
+        /// Поменять местами индексы, объекты на вкладках
+        /// </summary>
+        /// <param name="src">Вкладка-источник</param>
+        /// <param name="dst">Вкладка-назначение</param>
+        private void swapTabPages(TabPage src, TabPage dst) {
+            int srci = this.TabPages.IndexOf(src);
+            int dsti = this.TabPages.IndexOf(dst);
+
+            this.TabPages[dsti] = src;
+            this.TabPages[srci] = dst;
+
+            if(this.SelectedIndex == srci)
+                this.SelectedIndex = dsti;
+            else if(this.SelectedIndex == dsti)
+                this.SelectedIndex = srci;
+
+            this.Refresh();
         }
     }
 
