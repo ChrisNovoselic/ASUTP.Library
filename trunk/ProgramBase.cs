@@ -146,7 +146,26 @@ namespace HClassLibrary
         /// </summary>
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            string strHeader = "ProgramBase::CurrentDomain_UnhandledException () - ..."
+            fAppDomain_UnhandledException(sender, e, true, true);
+        }
+
+#if _SEPARATE_APPDOMAIN
+        /// <summary>
+        /// Оборботчик не перехваченного исключения в текущем домене и запись их в лог
+        /// </summary>
+        public static void SeparateAppDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            fAppDomain_UnhandledException(sender, e, false, false);
+        }
+#else
+#endif
+
+        /// <summary>
+        /// Оборботчик не перехваченного исключения в текущем домене и запись их в лог
+        /// </summary>
+        static void fAppDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e, bool bMessageShow, bool bExit)
+        {
+            string strHeader = "ProgramBase::fAppDomain_UnhandledException (AppDomain = " + (sender as AppDomain).FriendlyName + @") - ..."
                 , strBody = string.Empty;
             if (s_iMessageShowUnhandledException > 0)
                 if (s_iMessageShowUnhandledExceptionDetail > 0)
@@ -155,12 +174,18 @@ namespace HClassLibrary
                     strBody = (e.ExceptionObject as Exception).Message;
             else ;
 
-            MessageBox.Show((IWin32Window)null, strBody + Environment.NewLine + MessageAppAbort, strHeader);
+            if (bMessageShow == true)
+                MessageBox.Show((IWin32Window)null, strBody + Environment.NewLine + MessageAppAbort, strHeader);
+            else
+                ;
 
             // here you can log the exception ...
             Logging.Logg().Exception(e.ExceptionObject as Exception, strHeader, Logging.INDEX_MESSAGE.NOT_SET);
 
-            Exit();
+            if (bExit == true)
+                Exit();
+            else
+                ;
         }
 
         //???

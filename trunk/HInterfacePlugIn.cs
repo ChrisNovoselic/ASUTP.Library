@@ -510,9 +510,10 @@ namespace HClassLibrary
         /// <summary>
         /// Инициализация домена для загрузки в него плюгИнов
         /// </summary>
-        private void initPluginDomain()
+        private void initPluginDomain(string name)
         {
-            m_appDomain = AppDomain.CreateDomain("pluginDomain", s_domEvidence, s_domSetup);
+            m_appDomain = AppDomain.CreateDomain("PlugInAppDomain::" + name, s_domEvidence, s_domSetup);
+            m_appDomain.UnhandledException += new UnhandledExceptionEventHandler(ProgramBase.SeparateAppDomain_UnhandledException);
 
             Type type = typeof(ProxyAppDomain);
             m_proxyAppDomain = (ProxyAppDomain)m_appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
@@ -526,6 +527,7 @@ namespace HClassLibrary
 #if _SEPARATE_APPDOMAIN
             if (isInitPluginAppDomain == true)
             {
+                m_appDomain.UnhandledException -= ProgramBase.SeparateAppDomain_UnhandledException;
                 AppDomain.Unload(m_appDomain);
 
                 m_appDomain = null;
@@ -553,7 +555,7 @@ namespace HClassLibrary
             {
 #if _SEPARATE_APPDOMAIN
                 if (isInitPluginAppDomain == false)
-                    initPluginDomain();
+                    initPluginDomain(name);
                 else
                     ;
 #endif
