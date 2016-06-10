@@ -394,8 +394,8 @@ namespace HClassLibrary
                     //    return String.Empty;
 
                     //nameGUID = ((System.Runtime.InteropServices.GuidAttribute)attributes[0]).Value;
-
-                    object[] attributesTitle = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+                    
+                    //object[] attributesTitle = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
                     //if (attributesTitle.Length > 0)
                     //{
                     //    AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)attributesTitle[0];
@@ -403,7 +403,9 @@ namespace HClassLibrary
                     //        nameGUID = nameGUID + " " + titleAttribute.Title;
                     //}
                     //else
-                    nameGUID = Assembly.GetEntryAssembly().CodeBase;
+                        nameGUID = Assembly.GetEntryAssembly().CodeBase;
+                    ////Вариант №2
+                    //nameGUID = Application.ExecutablePath;
 
                     return nameGUID;
                 }
@@ -443,9 +445,10 @@ namespace HClassLibrary
             {
                 get
                 {
-                    bool onlyInstance;
-                    m_mtx = new Mutex(true, m_mtxName, out onlyInstance);
-                    return onlyInstance;
+                    bool bRes;
+                    Logging.Logg().Debug(@"SingleInstance::IsOnlyInstance - m_mtxName = " + m_mtxName, Logging.INDEX_MESSAGE.NOT_SET);
+                    m_mtx = new Mutex(true, m_mtxName, out bRes);
+                    return bRes;
                 }
             }
 
