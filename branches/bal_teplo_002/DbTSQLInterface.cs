@@ -1077,13 +1077,16 @@ namespace HClassLibrary
                             if (data.Columns[k].ColumnName != unchangeableColumn)
                             {
                                 if (!(data.Rows[j][k].Equals(originRows[0][k]) == true))
+                                {
+
+                                    strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += data.Columns[k].ColumnName + "="; // + data.Rows[j][k] + ",";
+
+                                    strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
+
                                     if (bUpdate == false) bUpdate = true; else ;
+                                }
                                 else
                                     ;
-
-                                strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += data.Columns[k].ColumnName + "="; // + data.Rows[j][k] + ",";
-
-                                strQuery[(int)DbTSQLInterface.QUERY_TYPE.UPDATE] += DbTSQLInterface.ValueToQuery(data, j, k) + ",";
                             }
                         }
 
