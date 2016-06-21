@@ -46,8 +46,8 @@ namespace HClassLibrary
             public static string m_nameTableProfilesData = @"profiles"
                 , m_nameTableProfilesUnit = @"profiles_unit";
             
-            static DataTable m_tblValues;
-            static DataTable m_tblTypes;
+            protected static DataTable m_tblValues;
+            protected static DataTable m_tblTypes;
 
             public static DataTable GetTableUnits { get { return m_tblTypes; } }
 
@@ -100,6 +100,8 @@ namespace HClassLibrary
             /// <summary>
             /// Функция получения доступа
             /// </summary>
+            /// <param name="id">ID типа(unit)</param>
+            /// <returns></returns>
             public static object GetAllowed(int id)
             {
                 object objRes = false;
@@ -216,7 +218,7 @@ namespace HClassLibrary
             }
         }
 
-        private static HProfiles m_profiles;
+        protected static HProfiles m_profiles;
 
         //Идентификаторы из БД
         //public enum ID_ROLES { ...
