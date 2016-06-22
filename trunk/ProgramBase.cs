@@ -286,7 +286,7 @@ namespace HClassLibrary
         /// <summary>
         /// значения командной строки
         /// </summary>
-        protected static Dictionary <string, string> m_dictCmdArgs;
+        protected static Dictionary<string, string> m_dictCmdArgs;
         ///// <summary>
         ///// параметр командной строки
         ///// </summary>
@@ -305,8 +305,7 @@ namespace HClassLibrary
             else
                 if (SingleInstance.IsOnlyInstance == false)
                     execCmdLine(true);
-                else
-                    ;
+                else ;
         }
 
         /// <summary>
@@ -328,7 +327,7 @@ namespace HClassLibrary
             {
                 args = new string[cmdLine.Length - 1];
 
-                for (int i = 1; i < cmdLine.Length; i ++ )
+                for (int i = 1; i < cmdLine.Length; i++)
                 {
                     cmd = cmdLine[i];
 
@@ -394,7 +393,7 @@ namespace HClassLibrary
                     //    return String.Empty;
 
                     //nameGUID = ((System.Runtime.InteropServices.GuidAttribute)attributes[0]).Value;
-                    
+
                     //object[] attributesTitle = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
                     //if (attributesTitle.Length > 0)
                     //{
@@ -403,7 +402,7 @@ namespace HClassLibrary
                     //        nameGUID = nameGUID + " " + titleAttribute.Title;
                     //}
                     //else
-                        nameGUID = Assembly.GetEntryAssembly().CodeBase;
+                    nameGUID = Assembly.GetEntryAssembly().CodeBase;
                     ////Вариант №2
                     //nameGUID = Application.ExecutablePath;
 
@@ -457,11 +456,11 @@ namespace HClassLibrary
             /// для его активации
             /// </summary>
             /// <param name="hWnd">дескриптор окна</param>
-            static private void sendMsg(IntPtr hWnd, int iMsg)
+            static private void sendMsg(IntPtr hWnd, IntPtr wParam, int iMsg)
             {
                 //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-                WinApi.SendMessage(hWnd, iMsg, IntPtr.Zero, IntPtr.Zero);
+                WinApi.SendMessage(hWnd, iMsg, wParam, IntPtr.Zero);
             }
 
             /// <summary>
@@ -477,7 +476,7 @@ namespace HClassLibrary
             /// </summary>
             static public void StopApp()
             {
-                sendMsg(mainhWnd, WinApi.WM_CLOSE);
+                sendMsg(mainhWnd, (IntPtr)WinApi.SC_CLOSE, WinApi.WM_CLOSE);
             }
 
             /// <summary>
@@ -566,7 +565,7 @@ namespace HClassLibrary
             static public void SwitchToCurrentInstance()
             {
                 IntPtr hWnd = mainhWnd;
-                sendMsg(hWnd, WinApi.SW_RESTORE);
+                sendMsg(hWnd, IntPtr.Zero, WinApi.SW_RESTORE);
 
                 if (hWnd != IntPtr.Zero)
                 {
@@ -628,12 +627,9 @@ namespace HClassLibrary
                 {
                     if (bIsOnlyInstance == false)
                         SingleInstance.StopApp();
-                    else
-                        ;
+
                     SingleInstance.InterruptReApp();
                 }
-                else
-                    ;
         }
 
         public void Dispose()
