@@ -274,6 +274,9 @@ namespace HClassLibrary
                             case 1521:
                                 dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Oracle;
                                 break;
+                            case -1221:
+                                dbType = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Access;
+                                break;
                             default:
                                 break;
                         }
@@ -287,6 +290,7 @@ namespace HClassLibrary
                             case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
                             case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
                             case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
+                            case DbInterface.DB_TSQL_INTERFACE_TYPE.Access:
                                 m_dictDbInterfaces.Add(((ConnectionSettings)connSett).id, new DbTSQLInterface(dbType, @"Интерфейс: " + dbNameType + @"-БД" + @"; " + desc));
                                 break;
                             default:

@@ -212,6 +212,9 @@ namespace HClassLibrary
                 case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
                     query = @"SELECT SYSTIMESTAMP FROM dual";
                     break;
+                case DbInterface.DB_TSQL_INTERFACE_TYPE.Access:
+                    query = @"SELECT Now()";
+                    break;
                 default:
                     break;
             }

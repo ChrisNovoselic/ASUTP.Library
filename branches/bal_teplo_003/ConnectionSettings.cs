@@ -205,16 +205,21 @@ namespace HClassLibrary
 
         public ConnectionSettingsError Validate()
         {
-            try {
-                IPAddress ip = IPAddress.Parse(server);
-                if (IPAddress.TryParse(server, out ip) == false)
+            if (port > 0)
+            {
+                try
                 {
-                    //MessageBox.Show("Неправильный ip-адрес.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return ConnectionSettingsError.WrongIp;
+                    IPAddress ip = IPAddress.Parse(server);
+                    if (IPAddress.TryParse(server, out ip) == false)
+                    {
+                        //MessageBox.Show("Неправильный ip-адрес.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return ConnectionSettingsError.WrongIp;
+                    }
                 }
-            }
-            catch (Exception e) {
-                Logging.Logg().Exception(e, @"ConnectionSettings::Validate() - ...", Logging.INDEX_MESSAGE.NOT_SET);
+                catch (Exception e)
+                {
+                    Logging.Logg().Exception(e, @"ConnectionSettings::Validate() - ...", Logging.INDEX_MESSAGE.NOT_SET);
+                }
             }
 
             if (port > 65535)
@@ -330,6 +335,17 @@ namespace HClassLibrary
                         //@"Provider=Microsoft.Jet.OLEDB.4.0;Data Source='" + path + @"';Extended Properties='text;HDR=Yes;FMT=CSVDelimited'",
                     var2 = //@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source= " + path + ";Extended Properties='Excel 12.0;HDR=YES;IMEX=1;'";
                             @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source= " + path + ";Extended Properties='text;HDR=YES;IMEX=1;FMT=Delimited'";
+
+            return var1;
+        }
+
+        public string GetConnectionStringAccess()
+        {
+            string var1 = "Provider=Microsoft.Jet.OLEDB.4.0"+
+                        @";Data Source=" +server +
+                        @";User Id=" +
+                        @";Password=;";
+            ;
 
             return var1;
         }

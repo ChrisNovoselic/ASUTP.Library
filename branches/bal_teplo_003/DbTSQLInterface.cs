@@ -85,6 +85,15 @@ namespace HClassLibrary
 
                     m_dbAdapter = new OleDbDataAdapter();
                     break;
+                case DB_TSQL_INTERFACE_TYPE.Access:
+                    m_dbConnection = new OleDbConnection();
+
+                    m_dbCommand = new OleDbCommand();
+                    m_dbCommand.Connection = m_dbConnection;
+                    m_dbCommand.CommandType = CommandType.Text;
+
+                    m_dbAdapter = new OleDbDataAdapter();
+                    break;
                 default:
                     break;
             }
@@ -156,6 +165,9 @@ namespace HClassLibrary
                         break;
                     case DB_TSQL_INTERFACE_TYPE.MSExcel:
                         //((OleDbConnection)m_dbConnection).ConnectionString = ConnectionSettings.GetConnectionStringExcel ();
+                        break;
+                    case DB_TSQL_INTERFACE_TYPE.Access:
+                        ((OleDbConnection)m_dbConnection).ConnectionString = ((ConnectionSettings)m_connectionSettings).GetConnectionStringAccess();
                         break;
                     default:
                         break;
@@ -382,6 +394,9 @@ namespace HClassLibrary
                     break;
                 case 1521:
                     typeDBRes = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Oracle;
+                    break;
+                case -1221:
+                    typeDBRes = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Access;
                     break;
                 default:
                     break;

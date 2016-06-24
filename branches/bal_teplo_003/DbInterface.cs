@@ -20,6 +20,7 @@ namespace HClassLibrary
             , MSExcel
             , ModesCentre
             , Oracle
+            , Access
             , UNKNOWN
         }
 
