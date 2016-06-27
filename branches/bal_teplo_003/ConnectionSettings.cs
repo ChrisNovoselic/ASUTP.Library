@@ -341,10 +341,8 @@ namespace HClassLibrary
 
         public string GetConnectionStringAccess()
         {
-            string var1 = "Provider=Microsoft.Jet.OLEDB.4.0"+
-                        @";Data Source=" +server +
-                        @";User Id=" +
-                        @";Password=;";
+            string var1 = @"Provider=Microsoft.Jet.OLEDB.4.0" +
+                        @";Data Source=" + '"' + @"D:\My Project's\Spbase.mdb" + '"';
             ;
 
             return var1;
