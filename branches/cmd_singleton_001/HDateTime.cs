@@ -126,12 +126,20 @@ namespace HClassLibrary
 
             return bRes;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         public static DateTime ToCurrentMonthBoundary(DateTime dt)
         {
             return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0);
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         public static DateTime ToNextMonthBoundary(DateTime dt)
         {
             return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0).AddMonths(1);//??? обнуляет время перед.суток

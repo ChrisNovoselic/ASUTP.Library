@@ -625,6 +625,7 @@ namespace HClassLibrary
             else
                 if (bIsExecute == false)
                 {
+                    
                     if (bIsOnlyInstance == false)
                         SingleInstance.StopApp();
 

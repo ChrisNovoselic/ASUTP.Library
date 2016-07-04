@@ -330,7 +330,7 @@ namespace HClassLibrary
             bool bRes = RemoveTabPage(this.SelectedIndex);
 
             if (bRes == false)
-                Console.WriteLine(@"Ошибка удаления вкладки [" + SelectedTab.Text + "]...");
+                Console.WriteLine(@"Ошибка удаления вкладки [" + SelectedTab.Text + "]...");//ошибка при вызови окна изменения БД-конфигурации
             else
                 ;
 
