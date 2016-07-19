@@ -239,6 +239,8 @@ namespace HClassLibrary
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
+            int port = -1;
+
             for (int i = 0; i < m_connectionSettingsEdit.Count; i++)
             {
                 m_connectionSettingsEdit[i].id = m_connectionSettings[i].id;
@@ -250,7 +252,12 @@ namespace HClassLibrary
                 m_connectionSettingsEdit[i].ignore = m_connectionSettings[i].ignore;
             }
             tbxServer.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server;
-            nudnPort.Value = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;
+            port = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;
+            if (port < 0)
+                Logging.Logg().Warning(string.Format(@"Для сервера {0} установлен отрицательный №порта {1}", tbxServer.Text, port), Logging.INDEX_MESSAGE.NOT_SET);
+            else
+                ;
+            nudnPort.Value = port;
             tbxDataBase.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].dbName;
             tbxUserId.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].userName;
             mtbxPass.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].password;
@@ -294,6 +301,8 @@ namespace HClassLibrary
 
         private void cbxConnFor_SelectedIndexChanged(object sender, EventArgs e)
         {
+            int port = -1;
+
             m_connectionSettingsEdit[oldSelectedIndex].server = tbxServer.Text;
             m_connectionSettingsEdit[oldSelectedIndex].port = (int)nudnPort.Value;
             m_connectionSettingsEdit[oldSelectedIndex].dbName = tbxDataBase.Text;
@@ -302,7 +311,12 @@ namespace HClassLibrary
             m_connectionSettingsEdit[oldSelectedIndex].ignore = cbxIgnore.Checked;
 
             tbxServer.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server;
-            nudnPort.Value = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;
+            port = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;
+            if (port < 0)
+                Logging.Logg().Warning(string.Format(@"Для сервера {0} установлен отрицательный №порта {1}", tbxServer.Text, port), Logging.INDEX_MESSAGE.NOT_SET);
+            else
+                ;
+            nudnPort.Value = port;
             tbxDataBase.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].dbName;
             tbxUserId.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].userName;
             mtbxPass.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].password;

@@ -160,17 +160,14 @@ namespace HClassLibrary
             // nudnPort
             // 
             this.nudnPort.Location = new System.Drawing.Point(130, 71);
-            this.nudnPort.Maximum = new decimal(new int[] {
-            65535,
-            0,
-            0,
-            0});
+            this.nudnPort.Maximum = 65365; // new decimal(new int[] { 65365, 0, 0, 0 });
+            this.nudnPort.Minimum = -65364; // new decimal(new int[] { -65365, 0, 0, 0 });
             this.nudnPort.Name = "nudnPort";
             this.nudnPort.Size = new System.Drawing.Size(69, 20);
             this.nudnPort.TabIndex = 2;
             this.nudnPort.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.nudnPort.Value = new decimal(new int[] {
-            3306,
+            1433,
             0,
             0,
             0});
