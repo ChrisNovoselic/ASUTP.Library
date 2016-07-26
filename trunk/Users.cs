@@ -132,13 +132,15 @@ namespace HClassLibrary
                         break;
                     default: //Ошибка - исключение
                         throw new Exception(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найдено ни одной записи...");
+                        //Logging.Logg().Error(@"HUsers.HProfiles::GetAllowed (id=" + id + @") - не найдено ни одной записи...", Logging.INDEX_MESSAGE.NOT_SET);
+                        break;
                 }
 
                 // проверка не нужна, т.к. вызывается исключение
                 //if ((!(indxRowAllowed < 0))
                 //    && (indxRowAllowed < rowsAllowed.Length))
                 //{
-                    strVal = rowsAllowed[indxRowAllowed][@"VALUE"].ToString().Trim();
+                    strVal = !(indxRowAllowed < 0) ? rowsAllowed[indxRowAllowed][@"VALUE"].ToString().Trim() : string.Empty;
 
                     //По идкнтификатору параметра должны знать тип...
                     Int16.TryParse(m_tblTypes.Select(@"ID=" + id)[0][@"ID_UNIT"].ToString(), out type);
