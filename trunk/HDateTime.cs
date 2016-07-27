@@ -75,7 +75,7 @@ namespace HClassLibrary
             return dtRes;
         }
 
-        public static TimeSpan TS_NSK_OFFSET_OF_MOSCOWTIMEZONE = new TimeSpan(3, 0, 0);
+        public static TimeSpan TS_NSK_OFFSET_OF_MOSCOWTIMEZONE = new TimeSpan(4, 0, 0);
 
         //public static TimeSpan GetOffsetOfCurrentTimeZone()
         //{
