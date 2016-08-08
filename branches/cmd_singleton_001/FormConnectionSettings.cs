@@ -302,7 +302,7 @@ namespace HClassLibrary
             m_connectionSettingsEdit[oldSelectedIndex].ignore = cbxIgnore.Checked;
 
             tbxServer.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server;
-            nudnPort.Value = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;
+            nudnPort.Value = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;//127.0.0.1 error port = -1
             tbxDataBase.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].dbName;
             tbxUserId.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].userName;
             mtbxPass.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].password;
