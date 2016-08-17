@@ -32,22 +32,27 @@ namespace HClassLibrary
         {
             DateTime dtRes;
 
-            if (!(dt.Kind == DateTimeKind.Local))
+            switch (dt.Kind)
             {
-                //dtRes = TimeZoneInfo.ConvertTimeFromUtc(dt, TimeZoneInfo.FindSystemTimeZoneById(s_Name_Moscow_TimeZone));
-                dtRes = dt.Add(TS_NSK_OFFSET_OF_MOSCOWTIMEZONE);
+                case DateTimeKind.Unspecified: // предполагается UTC
+                    dtRes = dt.Add(TS_MSK_OFFSET_OF_UTCTIMEZONE);
+                    break;
+                case DateTimeKind.Local:
+                    dtRes = dt - TimeZoneInfo.Local.GetUtcOffset(dt); // получить UTC
+                    dtRes = dtRes.Add(TS_MSK_OFFSET_OF_UTCTIMEZONE);
+                    break;
+                default: // предполагается МСК
+                    //dtRes = TimeZoneInfo.ConvertTimeFromUtc(dt, TimeZoneInfo.FindSystemTimeZoneById(s_Name_Moscow_TimeZone));
+                    dtRes = dt; //.Add(TS_NSK_OFFSET_OF_MOSCOWTIMEZONE);
+                    break;
+            }
+
+            if (dtRes.IsDaylightSavingTime() == true)
+            {
+                dtRes = dtRes.AddHours(-1);
             }
             else
             {
-                dtRes = dt - TimeZoneInfo.Local.GetUtcOffset(dt);
-                if (dtRes.IsDaylightSavingTime() == true)
-                {
-                    dtRes = dtRes.AddHours(-1);
-                }
-                else { }
-
-                dtRes = dtRes.Add(TS_NSK_OFFSET_OF_MOSCOWTIMEZONE);
-                ////dtRes = dtRes.Add(GetUTCOffsetOfCurrentTimeZone(offset_msc));
             }
 
             return dtRes;
@@ -69,7 +74,7 @@ namespace HClassLibrary
                 }
                 else { }
 
-                dtRes = dtRes.Add(TS_NSK_OFFSET_OF_MOSCOWTIMEZONE);
+                dtRes = dtRes.Add(TS_MSK_OFFSET_OF_UTCTIMEZONE); //TS_NSK_OFFSET_OF_MOSCOWTIMEZONE
             }
 
             return dtRes;
