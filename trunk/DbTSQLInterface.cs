@@ -135,10 +135,10 @@ namespace HClassLibrary
                 else
                     ;
 
-                if (((ConnectionSettings)m_connectionSettings).ignore == true)
-                    return false;
-                else
-                    ;
+                //if (((ConnectionSettings)m_connectionSettings).ignore == true)
+                //    return false;
+                //else
+                //    ;
 
                 //string connStr = string.Empty;
                 switch (m_connectionType)
@@ -183,11 +183,12 @@ namespace HClassLibrary
             {
                 ((ConnectionSettings)m_connectionSettings).id = ((ConnectionSettings)cs).id;
                 ((ConnectionSettings)m_connectionSettings).server = ((ConnectionSettings)cs).server;
+                ((ConnectionSettings)m_connectionSettings).instance = ((ConnectionSettings)cs).instance;
                 ((ConnectionSettings)m_connectionSettings).port = ((ConnectionSettings)cs).port;
                 ((ConnectionSettings)m_connectionSettings).dbName = ((ConnectionSettings)cs).dbName;
                 ((ConnectionSettings)m_connectionSettings).userName = ((ConnectionSettings)cs).userName;
                 ((ConnectionSettings)m_connectionSettings).password = ((ConnectionSettings)cs).password;
-                ((ConnectionSettings)m_connectionSettings).ignore = ((ConnectionSettings)cs).ignore;
+                //((ConnectionSettings)m_connectionSettings).ignore = ((ConnectionSettings)cs).ignore;
 
                 needReconnect = true;
             }

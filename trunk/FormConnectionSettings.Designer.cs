@@ -30,20 +30,22 @@ namespace HClassLibrary
         {
             this.cbxConnFor = new System.Windows.Forms.ComboBox();
             this.tbxServer = new System.Windows.Forms.TextBox();
+            //this.tbxInstance = new System.Windows.Forms.TextBox();
             this.tbxDataBase = new System.Windows.Forms.TextBox();
             this.tbxUserId = new System.Windows.Forms.TextBox();
             this.mtbxPass = new System.Windows.Forms.MaskedTextBox();
             this.lblConnFor = new System.Windows.Forms.Label();
             this.lblServer = new System.Windows.Forms.Label();
+            //this.lblInstance = new System.Windows.Forms.Label();
             this.lblDataBase = new System.Windows.Forms.Label();
             this.lblUserId = new System.Windows.Forms.Label();
             this.lblPass = new System.Windows.Forms.Label();
             this.btnOk = new System.Windows.Forms.Button();
-            this.параметрыПриложения = new System.Windows.Forms.Button();
+            this.btnCancel = new System.Windows.Forms.Button();
             this.nudnPort = new System.Windows.Forms.NumericUpDown();
             this.lblPort = new System.Windows.Forms.Label();
-            this.cbxIgnore = new System.Windows.Forms.CheckBox();
-            this.lblIgnore = new System.Windows.Forms.Label();
+            //this.cbxIgnore = new System.Windows.Forms.CheckBox();
+            //this.lblIgnore = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.nudnPort)).BeginInit();
             this.SuspendLayout();
             // 
@@ -138,7 +140,7 @@ namespace HClassLibrary
             // 
             // btnOk
             // 
-            this.btnOk.Location = new System.Drawing.Point(89, 204);
+            this.btnOk.Location = new System.Drawing.Point(89, 178);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(75, 23);
             this.btnOk.TabIndex = 7;
@@ -148,14 +150,14 @@ namespace HClassLibrary
             // 
             // параметрыПриложения
             // 
-            this.параметрыПриложения.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.параметрыПриложения.Location = new System.Drawing.Point(170, 204);
-            this.параметрыПриложения.Name = "параметрыПриложения";
-            this.параметрыПриложения.Size = new System.Drawing.Size(75, 23);
-            this.параметрыПриложения.TabIndex = 8;
-            this.параметрыПриложения.Text = "Отмена";
-            this.параметрыПриложения.UseVisualStyleBackColor = true;
-            this.параметрыПриложения.Click += new System.EventHandler(this.btnCancel_Click);
+            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnCancel.Location = new System.Drawing.Point(170, 178);
+            this.btnCancel.Name = "параметрыПриложения";
+            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.TabIndex = 8;
+            this.btnCancel.Text = "Отмена";
+            this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
             // nudnPort
             // 
@@ -181,36 +183,36 @@ namespace HClassLibrary
             this.lblPort.Size = new System.Drawing.Size(32, 13);
             this.lblPort.TabIndex = 11;
             this.lblPort.Text = "Порт";
-            // 
-            // cbxIgnore
-            // 
-            this.cbxIgnore.AutoSize = true;
-            this.cbxIgnore.Location = new System.Drawing.Point(130, 180);
-            this.cbxIgnore.Name = "cbxIgnore";
-            this.cbxIgnore.Size = new System.Drawing.Size(15, 14);
-            this.cbxIgnore.TabIndex = 6;
-            this.cbxIgnore.UseVisualStyleBackColor = true;
-            // 
-            // lblIgnore
-            // 
-            this.lblIgnore.AutoSize = true;
-            this.lblIgnore.Location = new System.Drawing.Point(12, 180);
-            this.lblIgnore.Name = "lblIgnore";
-            this.lblIgnore.Size = new System.Drawing.Size(79, 13);
-            this.lblIgnore.TabIndex = 15;
-            this.lblIgnore.Text = "Игнорировать";
+            //// 
+            //// cbxIgnore
+            //// 
+            //this.cbxIgnore.AutoSize = true;
+            //this.cbxIgnore.Location = new System.Drawing.Point(130, 180);
+            //this.cbxIgnore.Name = "cbxIgnore";
+            //this.cbxIgnore.Size = new System.Drawing.Size(15, 14);
+            //this.cbxIgnore.TabIndex = 6;
+            //this.cbxIgnore.UseVisualStyleBackColor = true;
+            //// 
+            //// lblIgnore
+            //// 
+            //this.lblIgnore.AutoSize = true;
+            //this.lblIgnore.Location = new System.Drawing.Point(12, 180);
+            //this.lblIgnore.Name = "lblIgnore";
+            //this.lblIgnore.Size = new System.Drawing.Size(79, 13);
+            //this.lblIgnore.TabIndex = 15;
+            //this.lblIgnore.Text = "Игнорировать";
             // 
             // FormConnectionSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.параметрыПриложения;
-            this.ClientSize = new System.Drawing.Size(334, 238);
-            this.Controls.Add(this.lblIgnore);
-            this.Controls.Add(this.cbxIgnore);
+            this.CancelButton = this.btnCancel;
+            this.ClientSize = new System.Drawing.Size(334, 208);
+            //this.Controls.Add(this.lblIgnore);
+            //this.Controls.Add(this.cbxIgnore);
             this.Controls.Add(this.lblPort);
             this.Controls.Add(this.nudnPort);
-            this.Controls.Add(this.параметрыПриложения);
+            this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.lblPass);
             this.Controls.Add(this.lblUserId);
@@ -239,19 +241,21 @@ namespace HClassLibrary
 
         private System.Windows.Forms.ComboBox cbxConnFor;
         private System.Windows.Forms.TextBox tbxServer;
+        //private System.Windows.Forms.TextBox tbxInstance;
         private System.Windows.Forms.TextBox tbxDataBase;
         private System.Windows.Forms.TextBox tbxUserId;
         private System.Windows.Forms.MaskedTextBox mtbxPass;
         private System.Windows.Forms.Label lblConnFor;
         private System.Windows.Forms.Label lblServer;
+        //private System.Windows.Forms.Label lblInstance;
         private System.Windows.Forms.Label lblDataBase;
         private System.Windows.Forms.Label lblUserId;
         private System.Windows.Forms.Label lblPass;
         private System.Windows.Forms.Button btnOk;
-        private System.Windows.Forms.Button параметрыПриложения;
+        private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.NumericUpDown nudnPort;
         private System.Windows.Forms.Label lblPort;
-        private System.Windows.Forms.CheckBox cbxIgnore;
-        private System.Windows.Forms.Label lblIgnore;
+        //private System.Windows.Forms.CheckBox cbxIgnore;
+        //private System.Windows.Forms.Label lblIgnore;
     }
 }

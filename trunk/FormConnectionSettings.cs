@@ -64,9 +64,11 @@ namespace HClassLibrary
                         addConnSett (i);
                     }
 
-                    tbxServer.Text =
-                    m_connectionSettings[0].server =
-                    m_connectionSettingsEdit[0].server;
+                    tbxServer.Text = ConnectionSettings.IpInstance(m_connectionSettingsEdit[0].server
+                        , m_connectionSettingsEdit[0].instance);
+                    m_connectionSettings[0].server = m_connectionSettingsEdit[0].server;
+
+                    m_connectionSettings[0].instance = m_connectionSettingsEdit[0].instance;
 
                     nudnPort.Value =
                     m_connectionSettings[0].port =
@@ -84,9 +86,9 @@ namespace HClassLibrary
                     m_connectionSettings[0].password =
                     m_connectionSettingsEdit[0].password;
 
-                    cbxIgnore.Checked =
-                    m_connectionSettings[0].ignore =
-                    m_connectionSettingsEdit[0].ignore;
+                    //cbxIgnore.Checked =
+                    //m_connectionSettings[0].ignore =
+                    //m_connectionSettingsEdit[0].ignore;
                 } else {
                     //Не найдено ни одного источника
                     addConnSett(new ConnectionSettings());
@@ -116,12 +118,12 @@ namespace HClassLibrary
 
             SelectedIndex = indx;
 
-            tbxServer.Text = connSett.server;
+            tbxServer.Text = ConnectionSettings.IpInstance (connSett.server, connSett.instance);
             tbxDataBase.Text = connSett.dbName;
             nudnPort.Value = connSett.port;
             tbxUserId.Text = connSett.userName;
             mtbxPass.Text = connSett.password;
-            cbxIgnore.Checked = connSett.ignore;
+            //cbxIgnore.Checked = connSett.ignore;
         }
 
         private void SetItemText ()
@@ -155,11 +157,12 @@ namespace HClassLibrary
             m_connectionSettings[i].name = m_connectionSettingsEdit[indx].name;
 
             m_connectionSettings[i].server = m_connectionSettingsEdit[indx].server;
+            m_connectionSettings[i].instance = m_connectionSettingsEdit[indx].instance;
             m_connectionSettings[i].port = m_connectionSettingsEdit[indx].port;
             m_connectionSettings[i].dbName = m_connectionSettingsEdit[indx].dbName;
             m_connectionSettings[i].userName = m_connectionSettingsEdit[indx].userName;
             m_connectionSettings[i].password = m_connectionSettingsEdit[indx].password;
-            m_connectionSettings[i].ignore = m_connectionSettingsEdit[indx].ignore;
+            //m_connectionSettings[i].ignore = m_connectionSettingsEdit[indx].ignore;
 
             SetItemText ();
         }
@@ -179,12 +182,13 @@ namespace HClassLibrary
         {
             ConnectionSettings.ConnectionSettingsError error;
 
-            m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server = tbxServer.Text;
+            m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server = ConnectionSettings.IP (tbxServer.Text);
+            m_connectionSettingsEdit[cbxConnFor.SelectedIndex].instance = ConnectionSettings.Instance(tbxServer.Text);
             m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port = (int)nudnPort.Value;
             m_connectionSettingsEdit[cbxConnFor.SelectedIndex].dbName = tbxDataBase.Text;
             m_connectionSettingsEdit[cbxConnFor.SelectedIndex].userName = tbxUserId.Text;
             m_connectionSettingsEdit[cbxConnFor.SelectedIndex].password = mtbxPass.Text;
-            m_connectionSettingsEdit[cbxConnFor.SelectedIndex].ignore = cbxIgnore.Checked;
+            //m_connectionSettingsEdit[cbxConnFor.SelectedIndex].ignore = cbxIgnore.Checked;
 
             for (int i = 0; i < m_connectionSettingsEdit.Count; i++ )
             {
@@ -223,11 +227,12 @@ namespace HClassLibrary
 
                 m_connectionSettings[i].id = Math.Abs(m_connectionSettingsEdit[i].id) > 1 ? m_connectionSettingsEdit[i].id : (int)ConnectionSettings.UN_ENUMERABLE_ID;
                 m_connectionSettings[i].server = m_connectionSettingsEdit[i].server;
+                m_connectionSettings[i].instance = m_connectionSettingsEdit[i].instance;
                 m_connectionSettings[i].port = m_connectionSettingsEdit[i].port;
                 m_connectionSettings[i].dbName = m_connectionSettingsEdit[i].dbName;
                 m_connectionSettings[i].userName = m_connectionSettingsEdit[i].userName;
                 m_connectionSettings[i].password = m_connectionSettingsEdit[i].password;
-                m_connectionSettings[i].ignore = m_connectionSettingsEdit[i].ignore;
+                //m_connectionSettings[i].ignore = m_connectionSettingsEdit[i].ignore;
             }
 
             SaveSettings(m_idListener, m_connectionSettings, out m_iReady);
@@ -245,13 +250,15 @@ namespace HClassLibrary
             {
                 m_connectionSettingsEdit[i].id = m_connectionSettings[i].id;
                 m_connectionSettingsEdit[i].server = m_connectionSettings[i].server;
+                m_connectionSettingsEdit[i].instance = m_connectionSettings[i].instance;
                 m_connectionSettingsEdit[i].port = m_connectionSettings[i].port;
                 m_connectionSettingsEdit[i].dbName = m_connectionSettings[i].dbName;
                 m_connectionSettingsEdit[i].userName = m_connectionSettings[i].userName;
                 m_connectionSettingsEdit[i].password = m_connectionSettings[i].password;
-                m_connectionSettingsEdit[i].ignore = m_connectionSettings[i].ignore;
+                //m_connectionSettingsEdit[i].ignore = m_connectionSettings[i].ignore;
             }
-            tbxServer.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server;
+            tbxServer.Text = ConnectionSettings.IpInstance (m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server
+                , m_connectionSettingsEdit[cbxConnFor.SelectedIndex].instance);
             port = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;
             if (port < 0)
                 Logging.Logg().Warning(string.Format(@"Для сервера {0} установлен отрицательный №порта {1}", tbxServer.Text, port), Logging.INDEX_MESSAGE.NOT_SET);
@@ -261,8 +268,7 @@ namespace HClassLibrary
             tbxDataBase.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].dbName;
             tbxUserId.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].userName;
             mtbxPass.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].password;
-            cbxIgnore.Checked = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].ignore;
-
+            //cbxIgnore.Checked = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].ignore;
             
             closing = true;
             this.DialogResult = DialogResult.No;
@@ -275,12 +281,12 @@ namespace HClassLibrary
             }
 
             set {
-                tbxServer.Text = value.server;
+                tbxServer.Text = ConnectionSettings.IpInstance (value.server, value.instance);
                 nudnPort.Value = value.port;
                 tbxDataBase.Text = value.dbName;
                 tbxUserId.Text = value.userName;
                 mtbxPass.Text = value.password;
-                cbxIgnore.Checked = false; //value.ignore;
+                //cbxIgnore.Checked = false; //value.ignore;
             }
         }
         /// <summary>
@@ -303,14 +309,16 @@ namespace HClassLibrary
         {
             int port = -1;
 
-            m_connectionSettingsEdit[oldSelectedIndex].server = tbxServer.Text;
+            m_connectionSettingsEdit[oldSelectedIndex].server = ConnectionSettings.IP(tbxServer.Text);
+            m_connectionSettingsEdit[oldSelectedIndex].instance = ConnectionSettings.Instance(tbxServer.Text);
             m_connectionSettingsEdit[oldSelectedIndex].port = (int)nudnPort.Value;
             m_connectionSettingsEdit[oldSelectedIndex].dbName = tbxDataBase.Text;
             m_connectionSettingsEdit[oldSelectedIndex].userName = tbxUserId.Text;
             m_connectionSettingsEdit[oldSelectedIndex].password = mtbxPass.Text;
-            m_connectionSettingsEdit[oldSelectedIndex].ignore = cbxIgnore.Checked;
+            //m_connectionSettingsEdit[oldSelectedIndex].ignore = cbxIgnore.Checked;
 
-            tbxServer.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server;
+            tbxServer.Text = ConnectionSettings.IpInstance(m_connectionSettingsEdit[cbxConnFor.SelectedIndex].server
+                , m_connectionSettingsEdit[cbxConnFor.SelectedIndex].instance);
             port = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].port;
             if (port < 0)
                 Logging.Logg().Warning(string.Format(@"Для сервера {0} установлен отрицательный №порта {1}", tbxServer.Text, port), Logging.INDEX_MESSAGE.NOT_SET);
@@ -320,14 +328,14 @@ namespace HClassLibrary
             tbxDataBase.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].dbName;
             tbxUserId.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].userName;
             mtbxPass.Text = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].password;
-            cbxIgnore.Checked = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].ignore;
+            //cbxIgnore.Checked = m_connectionSettingsEdit[cbxConnFor.SelectedIndex].ignore;
 
             oldSelectedIndex = cbxConnFor.SelectedIndex;
 
-            //if (cbxConnFor.SelectedIndex == cbxConnFor.Items.Count - 1)
-                cbxIgnore.Enabled = false;
-            //else
-            //    cbxIgnore.Enabled = true;
+            ////if (cbxConnFor.SelectedIndex == cbxConnFor.Items.Count - 1)
+            //    cbxIgnore.Enabled = false;
+            ////else
+            ////    cbxIgnore.Enabled = true;
         }
 
         private void FormConnectionSettings_Shown(object sender, EventArgs e)

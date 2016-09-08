@@ -92,12 +92,13 @@ namespace HClassLibrary
                 s_connSett.id = value.id;
                 s_connSett.name = value.name;
                 s_connSett.server = value.server;
+                s_connSett.instance = value.instance;
                 s_connSett.port = value.port;
                 s_connSett.dbName = value.dbName;
                 s_connSett.userName = value.userName;
                 s_connSett.password = value.password;
 
-                s_connSett.ignore = value.ignore;
+                //s_connSett.ignore = value.ignore;
             }
         }
         private static List<MESSAGE> m_listQueueMessage;

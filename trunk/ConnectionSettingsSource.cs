@@ -170,11 +170,12 @@ namespace HClassLibrary
                         listConnSett[i].name = tableSource.Rows[i]["NAME_SHR"].ToString();
 
                         listConnSett [i].server = tableSource.Rows [i] ["IP"].ToString ();
+                        listConnSett[i].instance = (!(tableSource.Rows[i]["INSTANCE"] is DBNull)) ? tableSource.Rows[i]["INSTANCE"].ToString().Trim() : string.Empty;
                         listConnSett[i].port = Convert.ToInt32 (tableSource.Rows[i]["PORT"]);
                         listConnSett[i].dbName = tableSource.Rows[i]["DB_NAME"].ToString();
                         listConnSett[i].userName = tableSource.Rows[i]["UID"].ToString();
-                        //Ignore
-                        listConnSett[i].ignore = tableSource.Columns.IndexOf(@"IGNORE") < 0 ? false : Convert.ToInt32(tableSource.Rows[i]["IGNORE"].ToString()) == 1;
+                        ////Ignore
+                        //listConnSett[i].ignore = tableSource.Columns.IndexOf(@"IGNORE") < 0 ? false : Convert.ToInt32(tableSource.Rows[i]["IGNORE"].ToString()) == 1;
 
                         //TYPE_DATABASE_CFG.CFG_200 = ???
                         tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(Convert.ToInt32(tableSource.Rows[i]["ID"]), 501), null, null, out err);
@@ -226,13 +227,16 @@ namespace HClassLibrary
                         else
                             if (tableSource.Rows.Count == 1)
                             {//UPDATE
-                                if ((listConnSett[i].server.Equals (tableSource.Rows [0]["IP"].ToString ()) == false) ||
-                                    (listConnSett[i].dbName.Equals(tableSource.Rows[0]["DB_NAME"].ToString()) == false) ||
-                                    (listConnSett[i].userName.Equals(tableSource.Rows[0]["UID"].ToString()) == false))
+                                if ((listConnSett[i].server.Equals (tableSource.Rows [0]["IP"].ToString ()) == false)
+                                    || (listConnSett[i].instance.Equals((!(tableSource.Rows[0]["INSTANCE"] is DBNull)) ? tableSource.Rows[0]["INSTANCE"].ToString().Trim() : string.Empty) == false)
+                                    || (listConnSett[i].dbName.Equals(tableSource.Rows[0]["DB_NAME"].ToString()) == false)
+                                    || (listConnSett[i].userName.Equals(tableSource.Rows[0]["UID"].ToString()) == false)
+                                    )
                                 {
                                     strQuery += "UPDATE SOURCE SET ";
 
                                     strQuery += "IP='" + listConnSett[i].server + "',";
+                                    strQuery += "INSTANCE='" + listConnSett[i].instance + "',";
                                     strQuery += "DB_NAME='" + listConnSett[i].dbName + "',";
                                     strQuery += "UID='" + listConnSett[i].userName + "'";
 

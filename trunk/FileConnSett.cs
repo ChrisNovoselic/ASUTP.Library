@@ -70,7 +70,9 @@ namespace HClassLibrary
             {
                 int pos1 = 0, pos2 = 0, port;
                 bool valid;
-                string st = sb.ToString(), ignore;
+                string st = sb.ToString()
+                    , ignore
+                    ;
 
                 i = 0;
 
@@ -86,7 +88,7 @@ namespace HClassLibrary
                         connSetts.Add(new ConnectionSettings ());
                         connSetts[connSetts.Count - 1].id = ConnectionSettings.UN_ENUMERABLE_ID - i;
                         //connSetts[connSetts.Count - 1].port = 1433;
-
+                        //SERVER-IP
                         pos2 = st.IndexOf(';', pos1);
                         if (pos2 < 0)
                         {
@@ -96,10 +98,21 @@ namespace HClassLibrary
                         }
                         else
                             ;
-
                         connSetts[i].server = st.Substring(pos1, pos2 - pos1);
+                        //SERVER-INSTANCE
                         pos1 = pos2 + 1;
-
+                        pos2 = st.IndexOf(';', pos1);
+                        if (pos2 < 0)
+                        {
+                            //MessageBox.Show(this, "Файл с насртойками имеет неправильный формат!\nОбратитесь к поставщику программы.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            mayToProtected = false;
+                            break;
+                        }
+                        else
+                            ;
+                        connSetts[i].instance = st.Substring(pos1, pos2 - pos1);
+                        //PORT
+                        pos1 = pos2 + 1;
                         pos2 = st.IndexOf(';', pos1);
                         if (pos2 < 0)
                         {
@@ -119,8 +132,8 @@ namespace HClassLibrary
                         else
                             ;
                         connSetts[i].port = port;
+                        //DB_NAME
                         pos1 = pos2 + 1;
-
                         pos2 = st.IndexOf(';', pos1);
                         if (pos2 < 0)
                         {
@@ -131,8 +144,8 @@ namespace HClassLibrary
                         else
                             ;
                         connSetts[i].dbName = st.Substring(pos1, pos2 - pos1);
+                        //UID
                         pos1 = pos2 + 1;
-
                         pos2 = st.IndexOf(';', pos1);
                         if (pos2 < 0)
                         {
@@ -143,8 +156,8 @@ namespace HClassLibrary
                         else
                             ;
                         connSetts[i].userName = st.Substring(pos1, pos2 - pos1);
+                        //PASSWORD
                         pos1 = pos2 + 1;
-
                         pos2 = st.IndexOf(';', pos1);
                         if (pos2 < 0)
                         {
@@ -155,30 +168,31 @@ namespace HClassLibrary
                         else
                             ;
                         connSetts[i].password = st.Substring(pos1, pos2 - pos1);
-                        pos1 = pos2 + 1;
+                        ////IGNORE
+                        //pos1 = pos2 + 1;
+                        //pos2 = st.IndexOf(';', pos1);
+                        //if (pos2 < 0)
+                        //{
+                        //    msgErr = "Файл с насртойками имеет неправильный формат!\nОбратитесь к поставщику программы.";
+                        //    mayToProtected = false;
+                        //    break;
+                        //}
+                        //else
+                        //    ;
+                        //ignore = st.Substring(pos1, pos2 - pos1);
+                        //if (ignore != "1" && ignore != "0")
+                        //{
+                        //    msgErr = "В файле настроек неправильно задано игнорирование!\nОбратитесь к поставщику программы.";
+                        //    mayToProtected = false;
+                        //    break;
+                        //}
+                        //else
+                        //    ;
+                        //connSetts[i].ignore = (ignore == "1");
 
-                        pos2 = st.IndexOf(';', pos1);
-                        if (pos2 < 0)
-                        {
-                            msgErr = "Файл с насртойками имеет неправильный формат!\nОбратитесь к поставщику программы.";
-                            mayToProtected = false;
-                            break;
-                        }
-                        else
-                            ;
-                        ignore = st.Substring(pos1, pos2 - pos1);
-                        if (ignore != "1" && ignore != "0")
-                        {
-                            msgErr = "В файле настроек неправильно задано игнорирование!\nОбратитесь к поставщику программы.";
-                            mayToProtected = false;
-                            break;
-                        }
-                        else
-                            ;
-                        connSetts[i].ignore = (ignore == "1");
+                        ////m_connectionSettingsEdit[i].ignore = cs.ignore = (ignore == "0");
 
-                        //m_connectionSettingsEdit[i].ignore = cs.ignore = (ignore == "0");
-
+                        //Следующий элемент
                         pos1 = pos2 + 1;
 
                         i++;
@@ -241,11 +255,12 @@ namespace HClassLibrary
             foreach (ConnectionSettings cs in listConnSett)
             {
                 sb.Append(cs.server + ";");
+                sb.Append(cs.instance + ";");
                 sb.Append(cs.port.ToString() + ";");
                 sb.Append(cs.dbName + ";");
                 sb.Append(cs.userName + ";");
                 sb.Append(cs.password + ";");
-                sb.Append(cs.ignore ? "1;" : "0;");
+                //sb.Append(cs.ignore ? "1;" : "0;");
             }
 
             char[] file = Crypt.Crypting().Encrypt(sb, out err);

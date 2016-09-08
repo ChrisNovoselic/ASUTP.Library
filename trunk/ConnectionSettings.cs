@@ -32,6 +32,8 @@ namespace HClassLibrary
         /// Сервер-источник данных (может быть указан как доменное имя, IP-адрес)
         /// </summary>
         public volatile string server;
+
+        public volatile string instance;
         /// <summary>
         /// Нименование БД
         /// </summary>
@@ -48,10 +50,10 @@ namespace HClassLibrary
         /// Номер порта при подключении к источнику данных
         /// </summary>
         public volatile int port;
-        /// <summary>
-        /// Признак игнорирования (не использования) источника данных
-        /// </summary>
-        public volatile bool ignore;
+        ///// <summary>
+        ///// Признак игнорирования (не использования) источника данных
+        ///// </summary>
+        //public volatile bool ignore;
 
         override public bool Equals(object obj) {
             if ((ConnectionSettings) obj == this)
@@ -112,6 +114,35 @@ namespace HClassLibrary
             NotConnect
         }
 
+        public static string IP(string server)
+        {
+            return server.Split('\\')[0];
+        }
+
+        public static string Instance(string server)
+        {
+            string strRes = string.Empty;
+
+            if (server.Split('\\').Length > 1)
+                strRes = server.Split('\\')[1];
+            else
+                ;
+
+            return strRes;
+        }
+
+        public static string IpInstance(string ip, string instance)
+        {
+            string strRes = ip;
+
+            if (instance.Equals(string.Empty) == false)
+                strRes += @"\" + instance;
+            else
+                ;
+
+            return strRes;
+        }
+
         public ConnectionSettings()
         {
             SetDefault();
@@ -132,26 +163,45 @@ namespace HClassLibrary
                 this.userName = connSett.userName;
                 this.password = connSett.password;
 
-                this.ignore = connSett.ignore;
+                //this.ignore = connSett.ignore;
             }
         }
 
-        public ConnectionSettings(string nameConn, string srv, int port, string dbName, string uid, string pswd, bool bIgnore = false) : this ()
+        public ConnectionSettings(string nameConn
+            , string srv
+            , string instance
+            , int port
+            , string dbName
+            , string uid
+            , string pswd
+            //, bool bIgnore = false
+            )
+                : this ()
         {
             id = UN_ENUMERABLE_ID - 1;
 
             this.name = nameConn;
             this.server = srv;
+            this.instance = instance;
             this.port = port;
             this.dbName = dbName;
             this.userName = uid;
             this.password = pswd;
 
-            this.ignore = bIgnore;
+            //this.ignore = bIgnore;
         }
 
-        public ConnectionSettings(int id, string nameConn, string srv, int port, string dbName, string uid, string pswd, bool bIgnore = false)
-            : this(nameConn, srv, port, dbName, uid, pswd, bIgnore)
+        public ConnectionSettings(int id
+            , string nameConn
+            , string srv
+            , string instatnce
+            , int port
+            , string dbName
+            , string uid
+            , string pswd
+            //, bool bIgnore = false
+            )
+                : this(nameConn, srv, instatnce, port, dbName, uid, pswd/*, bIgnore*/)
         {
             this.id = id;
         }
@@ -169,38 +219,44 @@ namespace HClassLibrary
                 id = Int32.Parse (r[@"ID"].ToString ());
             name = r[@"NAME_SHR"].ToString ();
             server = r[@"IP"].ToString ();
+            instance = (!(r[@"INSTANCE"] is DBNull)) ? r[@"INSTANCE"].ToString().Trim() : string.Empty;
             port = Int32.Parse(r[@"PORT"].ToString());
             dbName = r[@"DB_NAME"].ToString();
             userName = r[@"UID"].ToString();
             password = r[@"PASSWORD"].ToString();
 
-            int iVal = -1;
-            bool bVal = false
-                , bRes = int.TryParse(r["IGNORE"].ToString(), out iVal);
-            if (bRes == true)
-            {
-                ignore = iVal == 1; //== "1";
-            }
-            else
-            {
-                bRes = bool.TryParse(r["IGNORE"].ToString(), out bVal);
-                if (bRes == true)
-                {
-                    ignore = bVal;
-                }
-                else
-                    ignore = false;
-            }
+            //int iVal = -1;
+            //bool bVal = false
+            //    , bRes = int.TryParse(r["IGNORE"].ToString(), out iVal);
+            //if (bRes == true)
+            //{
+            //    ignore = iVal == 1; //== "1";
+            //}
+            //else
+            //{
+            //    bRes = bool.TryParse(r["IGNORE"].ToString(), out bVal);
+            //    if (bRes == true)
+            //    {
+            //        ignore = bVal;
+            //    }
+            //    else
+            //        ignore = false;
+            //}
         }
 
         public void SetDefault()
         {
             id = -1;
             name =
-            server = dbName = userName = password = string.Empty;
+            server =
+            instance =
+            dbName =
+            userName =
+            password =
+                string.Empty;
             port = 1433;
-            //ignore = true;
-            ignore = false;
+            ////ignore = true;
+            //ignore = false;
         }
 
         public ConnectionSettingsError Validate()
@@ -287,7 +343,7 @@ namespace HClassLibrary
 
         public string GetConnectionStringMSSQL()
         {
-            return @"Data Source=" + server +
+            return @"Data Source=" + IpInstance(server, instance) +
                    @"," + port.ToString() +
                    @";Network Library=DBMSSOCN;Initial Catalog=" + dbName +
                    @";User Id=" + userName +
