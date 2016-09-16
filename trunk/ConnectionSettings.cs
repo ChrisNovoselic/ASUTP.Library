@@ -74,6 +74,7 @@ namespace HClassLibrary
             if ((object.ReferenceEquals(csRight, null) == false) &&
                 object.ReferenceEquals(csLeft, null) == false)
                 if ((csLeft.server == csRight.server) &&
+                    (csLeft.instance == csRight.instance) &&
                     (csLeft.dbName == csRight.dbName) &&
                     (csLeft.userName == csRight.userName) &&
                     (csLeft.password == csRight.password) &&
@@ -158,6 +159,7 @@ namespace HClassLibrary
 
                 this.name = connSett.name;
                 this.server = connSett.server;
+                this.instance = connSett.instance;
                 this.port = connSett.port;
                 this.dbName = connSett.dbName;
                 this.userName = connSett.userName;
@@ -272,6 +274,8 @@ namespace HClassLibrary
             catch (Exception e) {
                 Logging.Logg().Exception(e, @"ConnectionSettings::Validate() - ...", Logging.INDEX_MESSAGE.NOT_SET);
             }
+
+            //??? проверка INSTANCE (не должен начинаться на цифры, не содержит спец./символы)
 
             if (port > 65535)
             {
