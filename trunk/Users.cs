@@ -287,14 +287,14 @@ namespace HClassLibrary
 
         private DelegateObjectFunc[] f_arRegistration; // = { registrationCmdLine, registrationINI, registrationEnv };
 
-        public HUsers(int iListenerId)
+        public HUsers(int iListenerId, MODE_REGISTRATION mode = MODE_REGISTRATION.USER_DOMAINNAME)
         {
-            Logging.Logg().Action(@"HUsers::HUsers () - ... кол-во аргументов ком./строки = " + (Environment.GetCommandLineArgs().Length - 1) +
-                @"; DomainUserName = " + Environment.UserDomainName + @"\" + Environment.UserName +
-                @"; MashineName=" + Environment.MachineName
+            Logging.Logg().Action(string.Format(@"HUsers::HUsers () - ... кол-во аргументов ком./строки = {0}; MashineName::DomainUserName={1}::{2}\{3}"
+                , + (Environment.GetCommandLineArgs().Length - 1), Environment.MachineName, Environment.UserDomainName , Environment.UserName)
                 , Logging.INDEX_MESSAGE.NOT_SET);
 
             try {
+                s_modeRegistration = mode;
                 //Обрабатываемые слова 'командной строки'
                 m_NameArgs = new string[] { @"iuser", @"udn", @"irole", @"itec" }; //Длина = COUNT_INDEX_REGISTRATION
 
@@ -432,6 +432,88 @@ namespace HClassLibrary
             }
         }
 
+        public enum MODE_REGISTRATION { USER_DOMAINNAME, MACHINE_DOMAINNAME, MIXED }
+
+        private static MODE_REGISTRATION s_modeRegistration = MODE_REGISTRATION.USER_DOMAINNAME;
+
+        private string whereQueryUsers
+        {
+            get
+            {
+                string strRes = string.Empty;
+
+                switch (s_modeRegistration)
+                {
+                    case MODE_REGISTRATION.MACHINE_DOMAINNAME:
+                        strRes = @"COMPUTER_NAME=" + @"'" + m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'";
+                        break;
+                    case MODE_REGISTRATION.USER_DOMAINNAME:
+                    default:
+                        strRes = @"DOMAIN_NAME=" + @"'" + m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'";
+                        break;
+                    case MODE_REGISTRATION.MIXED:
+                        strRes = @"COMPUTER_NAME=" + @"'" + ((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]).Split(new string[] { @"::" }, StringSplitOptions.RemoveEmptyEntries)[0] + @"'"
+                            + @" AND " + @"DOMAIN_NAME=" + @"'" + ((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]).Split(new string[] { @"::" }, StringSplitOptions.RemoveEmptyEntries)[1] + @"'";
+                        break;
+                }                
+
+                return strRes;
+            }
+        }
+
+        private bool equalsDomainName(string dbDomainName, string dbMashineName)
+        {
+            bool bRes = false;
+            string strTesting = string.Empty;
+
+            switch (s_modeRegistration)
+            {
+                case MODE_REGISTRATION.MIXED:
+                    strTesting = string.Join(@"::", new string[] { dbMashineName.Trim(), dbDomainName.Trim() });
+                    break;
+                case MODE_REGISTRATION.USER_DOMAINNAME:
+                default:
+                    strTesting = dbDomainName.Trim();
+                    break;
+                case MODE_REGISTRATION.MACHINE_DOMAINNAME:
+                    strTesting = dbMashineName.Trim();
+                    break;
+            }
+
+            bRes = strTesting.Equals((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase);
+
+            return bRes;
+        }
+
+        private static string messageUserIDNotFind
+        {
+            get
+            {
+                string strRes = string.Empty;
+
+                switch (s_modeRegistration)
+                {
+                    case MODE_REGISTRATION.MACHINE_DOMAINNAME:
+                        strRes = @"Доменное имя рабочей станции";
+                        break;
+                    case MODE_REGISTRATION.USER_DOMAINNAME:
+                    default:
+                        strRes = @"Доменное имя пользователя";
+                        break;
+                    case MODE_REGISTRATION.MIXED:
+                        strRes = @"Доменное имя рабочей станции и пользователя";
+                        break;
+                }
+
+                if (strRes.Equals(string.Empty) == false)
+                    strRes += @" не найдено в БД конфигурации";
+                else
+                    ;
+
+                return strRes;
+            }
+        }
+
         /// <summary>
         /// Запуск проверки пользователя 
         /// </summary>
@@ -448,11 +530,23 @@ namespace HClassLibrary
                 Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + m_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME].ToString(), Logging.INDEX_MESSAGE.NOT_SET);
 
                 try {
-                    if (m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
+                    if (m_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
                         Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + Environment.UserDomainName + @"\" + Environment.UserName, Logging.INDEX_MESSAGE.NOT_SET);
                         //Определить из ENV
                         //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
-                        m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.UserDomainName + @"\" + Environment.UserName;
+                        switch (s_modeRegistration) {
+                            case MODE_REGISTRATION.MACHINE_DOMAINNAME:
+                                m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.MachineName;
+                                break;                            
+                            case MODE_REGISTRATION.USER_DOMAINNAME:
+                            default:
+                                m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.UserDomainName + @"\" + Environment.UserName;
+                                break;
+                            case MODE_REGISTRATION.MIXED:
+                                m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.MachineName + @"::" + Environment.UserDomainName + @"\" + Environment.UserName;
+                                break;
+                        }
+
                         m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = STATE_REGISTRATION.ENV;
                     }
                     else {
@@ -470,7 +564,7 @@ namespace HClassLibrary
                 if ((! (connDB == null)) && (err == 0))
                 {
                     //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
-                    GetUsers(ref connDB, @"DOMAIN_NAME=" + @"'" + m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'", string.Empty, out dataUsers, out err);
+                    GetUsers(ref connDB, whereQueryUsers, string.Empty, out dataUsers, out err);
 
                     Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - найдено пользователей = " + dataUsers.Rows.Count, Logging.INDEX_MESSAGE.NOT_SET);
 
@@ -490,7 +584,7 @@ namespace HClassLibrary
                             //}
 
                             //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
-                            if (dataUsers.Rows[i][@"DOMAIN_NAME"].ToString().Trim().Equals((string)m_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase) == true) break; else ;
+                            if (equalsDomainName(dataUsers.Rows[i][@"DOMAIN_NAME"].ToString(), dataUsers.Rows[i][@"COMPUTER_NAME"].ToString()) == true) break; else ;
                         }
 
                         if (i < dataUsers.Rows.Count)
@@ -500,7 +594,7 @@ namespace HClassLibrary
                             m_DataRegistration[(int)INDEX_REGISTRATION.ID_TEC] = Convert.ToInt32(dataUsers.Rows[i]["ID_TEC"]); m_StateRegistration[(int)INDEX_REGISTRATION.ID_TEC] = STATE_REGISTRATION.ENV;
                         }
                         else
-                            throw new Exception("Пользователь не найден в списке БД конфигурации");
+                            throw new Exception(messageUserIDNotFind);
                     }
                     else
                     {//Не найдено ни одной строки
@@ -508,7 +602,7 @@ namespace HClassLibrary
                             throw new HException(-4, "Нет соединения с БД конфигурации");
                         else
                             if (err == 0)
-                                throw new HException(-3, "Пользователь не найден в списке БД конфигурации");
+                                throw new HException(-3, messageUserIDNotFind);
                             else
                                 throw new HException(-2, "Ошибка получения списка пользователей из БД конфигурации");
                     }
@@ -535,16 +629,18 @@ namespace HClassLibrary
 
         //protected abstract void Registration (DataRow rowUser)  { }
 
-        protected void Initialize (string baseMsg) {
-            string strMes = baseMsg;
+        protected void Initialize (string addingMsg) {
+            string strMes = string.Empty
+                , strListIP = string.Empty;
 
             System.Net.IPAddress[] listIP = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
             int indxIP = -1;
             for (indxIP = 0; indxIP < listIP.Length; indxIP ++) {
-                strMes += @", ip[" + indxIP + @"]=" + listIP[indxIP].ToString ();
-            }
+                strListIP += @", ip[" + indxIP + @"]=" + listIP[indxIP].ToString ();
+            }            
 
-            strMes += @"; Version(Дата/время)=" + ProgramBase.AppProductVersion;
+            strMes = string.Format(@"Пользователь= {0}, (id={1}), id_tec={2}, {3}, {4}; Version(Дата/время)={5}"
+                , DomainName, Id, allTEC, addingMsg, strListIP, ProgramBase.AppProductVersion);
 
             Logging.Logg().Action(strMes, Logging.INDEX_MESSAGE.NOT_SET);
         }
