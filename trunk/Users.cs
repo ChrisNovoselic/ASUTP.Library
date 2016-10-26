@@ -228,19 +228,23 @@ namespace HClassLibrary
             public string m_key;
 
             public string m_help;
+
+            public INDEX_REGISTRATION m_indxRegistration;
+
+            public Type m_type;
         }
 
         //Данные о пользователе
         public enum INDEX_REGISTRATION { ID, DOMAIN_NAME, ROLE, ID_TEC, COUNT_INDEX_REGISTRATION };
         public static object [] s_REGISTRATION_INI = new object [(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION]; //Предустановленные в файле/БД конфигурации
 
-        protected enum STATE_REGISTRATION { UNKNOWN = -1, CMD, INI, ENV, COUNT_STATE_REGISTRATION };
+        protected enum STATE_REGISTRATION { UNKNOWN = -1, CMD, /*INI,*/ ENV, COUNT_STATE_REGISTRATION };
         protected static ARGUMENTS[] m_Arguments = new ARGUMENTS[] //Длина = COUNT_INDEX_REGISTRATION
         {
-            new ARGUMENTS() { m_key = @"iuser", m_help = string.Format(@"/{0} - формат: /{0}=ИДЕНТИФИКАТОР_ПОЛЬЗОВАТЕЛЯ, , например: /{0}=59", @"iuser") }
-            , new ARGUMENTS() { m_key = @"udn", m_help = @"/udn - формат: /udn=ИМЯ_РАБСТАНЦИИ_ПОЛНОЕ::ИМЯ_ПОЛЬЗОВАТЕЛЯ_ПОЛНОЕ, например: /udn=NE2844.ne.ru::NE\vkaskad" }
-            , new ARGUMENTS() { m_key = @"irole", m_help = string.Format(@"/{0} - формат: /{0}=ИДЕНТИФИКАТОР_РОЛИ_ПОЛЬЗОВАТЕЛЯ, например: /{0}=3", @"irole") }
-            , new ARGUMENTS() { m_key = @"itec", m_help = string.Format(@"/{0} - формат: /{0}=ИДЕНТИФИКАТОР_ТЭЦ , например: /{0}=59", @"itec") }
+            new ARGUMENTS() { m_key = @"iusr", m_indxRegistration = INDEX_REGISTRATION.ID, m_type = typeof(Int32), m_help = string.Format(@"/{0} - формат: /{0}=ИДЕНТИФИКАТОР_ПОЛЬЗОВАТЕЛЯ, , например: /{0}=59", @"iusr") }
+            , new ARGUMENTS() { m_key = @"udn", m_indxRegistration = INDEX_REGISTRATION.DOMAIN_NAME, m_type = typeof(string), m_help = @"/udn - формат: /udn=ИМЯ_РАБСТАНЦИИ_ПОЛНОЕ::ИМЯ_ПОЛЬЗОВАТЕЛЯ_ПОЛНОЕ, например: /udn=NE2844.ne.ru::NE\vkaskad" }
+            , new ARGUMENTS() { m_key = @"irole", m_indxRegistration = INDEX_REGISTRATION.ROLE, m_type = typeof(Int32), m_help = string.Format(@"/{0} - формат: /{0}=ИДЕНТИФИКАТОР_РОЛИ_ПОЛЬЗОВАТЕЛЯ, например: /{0}=3", @"irole") }
+            , new ARGUMENTS() { m_key = @"itec", m_indxRegistration = INDEX_REGISTRATION.ID_TEC, m_type = typeof(Int32), m_help = string.Format(@"/{0} - формат: /{0}=ИДЕНТИФИКАТОР_ТЭЦ , например: /{0}=59", @"itec") }
             ,
         };
 
@@ -310,7 +314,7 @@ namespace HClassLibrary
 
                 f_arRegistration = new DelegateObjectFunc[(int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION];
                 f_arRegistration[(int)STATE_REGISTRATION.CMD] = registrationCmdLine;
-                f_arRegistration[(int)STATE_REGISTRATION.INI] = registrationINI;
+                //f_arRegistration[(int)STATE_REGISTRATION.INI] = registrationINI;
                 f_arRegistration[(int)STATE_REGISTRATION.ENV] = registrationEnv;
 
                 s_DataRegistration = new object[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
@@ -365,96 +369,107 @@ namespace HClassLibrary
                 } else
                     ;
 
-                for (int i = 1; i < m_Arguments.Length; i++)
-                {
+                for (int i = 0; i < m_Arguments.Length; i++)
                     for (int j = 1; j < args.Length; j++)
-                    {
-                        if (!(args[j].IndexOf(m_Arguments[i].m_key) < 0))
-                        {
+                        if (!(args[j].IndexOf(m_Arguments[i].m_key) < 0)) {
                             //Параметр найден
-                            s_DataRegistration[i] = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - (args[j].IndexOf('=') + 1));
-                            s_StateRegistration[i] = STATE_REGISTRATION.CMD;
+                            try {
+                                switch (m_Arguments[i].m_indxRegistration)
+                                {
+                                    case INDEX_REGISTRATION.ID:
+                                    case INDEX_REGISTRATION.ID_TEC:
+                                    case INDEX_REGISTRATION.ROLE:
+                                        s_DataRegistration[i] = Convert.ToInt32(args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - (args[j].IndexOf('=') + 1)));
+                                        break;
+                                    case INDEX_REGISTRATION.DOMAIN_NAME:
+                                        s_DataRegistration[i] = args[j].Substring(args[j].IndexOf('=') + 1, args[j].Length - (args[j].IndexOf('=') + 1));
+                                        break;
+                                    default:
+                                        throw new Exception(string.Format(@"HUsers::registrationCmdLine () - интерпретация параметра {0}...", m_Arguments[i].m_key));
+                                        break;
+                                }
+                                
+                                s_StateRegistration[i] = STATE_REGISTRATION.CMD;
+                            } catch (Exception e) {
+                                Logging.Logg().Exception(e, string.Format(@"HUsers::registrationCmdLine () - интерпретация параметра {0}...", m_Arguments[i].m_key), Logging.INDEX_MESSAGE.NOT_SET);
+                            }
 
                             break;
-                        }
-                        else
-                        {
+                        } else {
                             Logging.Logg().Debug(string.Format(@"HUsers::HUsers () - аргумент {0} не обрабатывается...", args[j])
                                 , Logging.INDEX_MESSAGE.NOT_SET);
                         }
-                    }
-                }
-            }
-            else
-            {
+            } else {
             }
         }
 
-        /// <summary>
-        /// Функция запроса для поиска пользователя
-        /// </summary>
-        private void registrationINI(object par)
-        {
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
+        ///// <summary>
+        ///// Функция запроса для поиска пользователя
+        ///// </summary>
+        //private void registrationINI(object par)
+        //{
+        //    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - размер массива параметров INI = " + s_REGISTRATION_INI.Length, Logging.INDEX_MESSAGE.NOT_SET);
+        //    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - размер массива параметров INI = " + s_REGISTRATION_INI.Length, Logging.INDEX_MESSAGE.NOT_SET);
 
-            //Следующий приоритет INI
-            if (m_bRegistration == false) {
-                bool bValINI = false;
-                for (int i = 1; i < s_DataRegistration.Length; i++)
-                {
-                    Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - обработка параметра [" + i + @"]", Logging.INDEX_MESSAGE.NOT_SET);
+        //    //Следующий приоритет INI
+        //    if (m_bRegistration == false) {
+        //        bool bValINI = false;
+        //        for (int i = 1; i < s_DataRegistration.Length; i++)
+        //        {
+        //            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - обработка параметра [" + i + @"]", Logging.INDEX_MESSAGE.NOT_SET);
 
-                    try
-                    {
-                        if (s_StateRegistration[i] == STATE_REGISTRATION.UNKNOWN)
-                        {
-                            bValINI = false;
-                            //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - состояние параметра = " + m_StateRegistration[i].ToString());
+        //            try
+        //            {
+        //                if (s_StateRegistration[i] == STATE_REGISTRATION.UNKNOWN)
+        //                {
+        //                    bValINI = false;
+        //                    //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - состояние параметра = " + m_StateRegistration[i].ToString());
 
-                            //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - объект параметра = " + s_REGISTRATION_INI[i].ToString());
+        //                    //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - объект параметра = " + s_REGISTRATION_INI[i].ToString());
 
-                            //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - тип параметра = " + s_REGISTRATION_INI[i].GetType().Name);
+        //                    //Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationINI () - тип параметра = " + s_REGISTRATION_INI[i].GetType().Name);
 
-                            switch (s_REGISTRATION_INI[i].GetType().Name)
-                            {
-                                case @"String":
-                                    bValINI = ((string)s_REGISTRATION_INI[i]).Equals(string.Empty);
-                                    break;
-                                case @"Int32":
-                                    bValINI = ((Int32)s_REGISTRATION_INI[i]) < 0;
-                                    break;
-                                default:
-                                    break;
-                            }
+        //                    switch (s_REGISTRATION_INI[i].GetType().Name)
+        //                    {
+        //                        case @"String":
+        //                            bValINI = ((string)s_REGISTRATION_INI[i]).Equals(string.Empty);
+        //                            break;
+        //                        case @"Int32":
+        //                            bValINI = ((Int32)s_REGISTRATION_INI[i]) < 0;
+        //                            break;
+        //                        default:
+        //                            break;
+        //                    }
 
-                            if (bValINI == false)
-                            {
-                                s_DataRegistration[i] = s_REGISTRATION_INI[i];
+        //                    if (bValINI == false)
+        //                    {
+        //                        s_DataRegistration[i] = s_REGISTRATION_INI[i];
 
-                                s_StateRegistration[i] = STATE_REGISTRATION.INI;
-                            }
-                            else
-                                ;
-                        }
-                        else
-                            ;
-                    } 
-                    catch (Exception e)
-                    {
-                        Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationINI () - параметр не обработан [" + i + @"]", Logging.INDEX_MESSAGE.NOT_SET);
-                    }
-                }
-            }
-            else
-            {
-            }
-        }
+        //                        s_StateRegistration[i] = STATE_REGISTRATION.INI;
+        //                    }
+        //                    else
+        //                        ;
+        //                }
+        //                else
+        //                    ;
+        //            } 
+        //            catch (Exception e)
+        //            {
+        //                Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationINI () - параметр не обработан [" + i + @"]", Logging.INDEX_MESSAGE.NOT_SET);
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //    }
+        //}
 
         public enum MODE_REGISTRATION { USER_DOMAINNAME, MACHINE_DOMAINNAME, MIXED }
 
         private static MODE_REGISTRATION s_modeRegistration = MODE_REGISTRATION.USER_DOMAINNAME;
+
+        private const string DELIMETER_DOMAINNAME = @"::";
 
         private string whereQueryUsers
         {
@@ -463,48 +478,59 @@ namespace HClassLibrary
                 string strRes = string.Empty;
                 string[] parts = null;
 
-                switch (s_modeRegistration)
-                {
-                    case MODE_REGISTRATION.MACHINE_DOMAINNAME:
-                        strRes = @"COMPUTER_NAME=" + @"'" + s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'";
-                        break;
-                    case MODE_REGISTRATION.USER_DOMAINNAME:
-                    default:
-                        strRes = @"DOMAIN_NAME=" + @"'" + s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] + @"'";
-                        break;
-                    case MODE_REGISTRATION.MIXED:
-                        parts = ((string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]).Split(new string[] { @"::" }, StringSplitOptions.RemoveEmptyEntries);
-                        if ((!(parts == null))
-                            && (parts.Length == 2))
-                            strRes = @"COMPUTER_NAME=" + @"'" + parts[0] + @"'"
-                                + @" AND " + @"DOMAIN_NAME=" + @"'" + parts[1] + @"'";
-                        else
-                            ;
-                        break;
-                }                
+                if (!(s_StateRegistration[(int)INDEX_REGISTRATION.ID] == STATE_REGISTRATION.UNKNOWN))
+                // идентификатор известен
+                    strRes = string.Format(@"ID={0}", s_DataRegistration[(int)INDEX_REGISTRATION.ID]);
+                else
+                // идентификатор не указан, будем выбироать из таблицы зарегистрированных пользователей
+                    switch (s_modeRegistration)
+                    {
+                        case MODE_REGISTRATION.MACHINE_DOMAINNAME:
+                            strRes = string.Format(@"COMPUTER_NAME='{0}'", s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]);
+                            break;
+                        case MODE_REGISTRATION.USER_DOMAINNAME:
+                        default:
+                            strRes = string.Format(@"DOMAIN_NAME='{0}'", s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]);
+                            break;
+                        case MODE_REGISTRATION.MIXED:
+                            parts = ((string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]).Split(new string[] { DELIMETER_DOMAINNAME }, StringSplitOptions.RemoveEmptyEntries);
+                            if ((!(parts == null))
+                                && (parts.Length == 2))
+                                strRes = string.Format(@"COMPUTER_NAME='{0}' AND DOMAIN_NAME='{1}'", parts[0], parts[1]);
+                            else
+                                ;
+                            break;
+                    }                
 
                 return strRes;
             }
         }
 
-        private bool equalsDomainName(string dbDomainName, string dbMashineName)
+        private string getUserDomainNameEnvironment (string dbDomainName, string dbMashineName)
         {
-            bool bRes = false;
-            string strTesting = string.Empty;
+            string strRes = string.Empty;
 
             switch (s_modeRegistration)
             {
                 case MODE_REGISTRATION.MIXED:
-                    strTesting = string.Join(@"::", new string[] { dbMashineName.Trim(), dbDomainName.Trim() });
+                    strRes = string.Join(DELIMETER_DOMAINNAME, new string[] { dbMashineName.Trim(), dbDomainName.Trim() });
                     break;
                 case MODE_REGISTRATION.USER_DOMAINNAME:
                 default:
-                    strTesting = dbDomainName.Trim();
+                    strRes = dbDomainName.Trim();
                     break;
                 case MODE_REGISTRATION.MACHINE_DOMAINNAME:
-                    strTesting = dbMashineName.Trim();
+                    strRes = dbMashineName.Trim();
                     break;
             }
+
+            return strRes;
+        }
+
+        private bool equalsDomainName(string dbDomainName, string dbMashineName)
+        {
+            bool bRes = false;
+            string strTesting = getUserDomainNameEnvironment(dbDomainName, dbMashineName);            
 
             bRes = strTesting.Equals((string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase);
 
@@ -512,12 +538,19 @@ namespace HClassLibrary
         }
 
         public static string MachineName = Dns.GetHostEntry(IPAddress.Parse(System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList[0].ToString())).HostName;
-
+        /// <summary>
+        /// Доменные имена пользователя/компьютера
+        /// !!! - используется ТОЛЬКО для информации
+        /// </summary>
         public static string UserDomainName {
             get {
+                string usrDomainName = s_modeRegistration == MODE_REGISTRATION.MIXED ?
+                    (string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] :
+                        MachineName + DELIMETER_DOMAINNAME + (string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME];
+
                 return s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.CMD ?
-                    string.Format(@"[{0}]={1}", STATE_REGISTRATION.CMD.ToString(), (string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]) :
-                    (string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME];
+                    string.Format(@"[{0}]={1}", STATE_REGISTRATION.CMD.ToString(), usrDomainName) :
+                        usrDomainName;
             }
         }
 
@@ -563,7 +596,7 @@ namespace HClassLibrary
         private void registrationEnv(object par)
         {
             int idListener = (int)par //idListener = ((int [])par)[0]
-                //, indxDomainName = ((int[])par)[1]
+                , i = -1
                 ;
 
             Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - вХод ... idListener = " + idListener + @"; m_bRegistration = " + m_bRegistration.ToString() + @"; m_StateRegistration = " + s_StateRegistration, Logging.INDEX_MESSAGE.NOT_SET);
@@ -573,27 +606,32 @@ namespace HClassLibrary
                 Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME].ToString(), Logging.INDEX_MESSAGE.NOT_SET);
 
                 try {
-                    if (s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
-                        Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + Environment.UserDomainName + @"\" + Environment.UserName, Logging.INDEX_MESSAGE.NOT_SET);
-                        //Определить из ENV
-                        //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
-                        switch (s_modeRegistration) {
-                            case MODE_REGISTRATION.MACHINE_DOMAINNAME:
-                                s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = MachineName;
-                                break;                            
-                            case MODE_REGISTRATION.USER_DOMAINNAME:
-                            default:
-                                s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.UserDomainName + @"\" + Environment.UserName;
-                                break;
-                            case MODE_REGISTRATION.MIXED:
-                                s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = MachineName + @"::" + Environment.UserDomainName + @"\" + Environment.UserName;
-                                break;
-                        }
+                    if (s_StateRegistration[(int)INDEX_REGISTRATION.ID] == STATE_REGISTRATION.CMD)
+                    // идентификатор указан в командной строке
+                        ;
+                    else
+                    // если идентификатор не указан в командной строке
+                        if (s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
+                            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + Environment.UserDomainName + @"\" + Environment.UserName, Logging.INDEX_MESSAGE.NOT_SET);
+                            //Определить из ENV
+                            //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
+                            switch (s_modeRegistration) {
+                                case MODE_REGISTRATION.MACHINE_DOMAINNAME:
+                                    s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = MachineName;
+                                    break;                            
+                                case MODE_REGISTRATION.USER_DOMAINNAME:
+                                default:
+                                    s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = Environment.UserDomainName + @"\" + Environment.UserName;
+                                    break;
+                                case MODE_REGISTRATION.MIXED:
+                                    s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = MachineName + DELIMETER_DOMAINNAME + Environment.UserDomainName + @"\" + Environment.UserName;
+                                    break;
+                            }
 
-                        s_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = STATE_REGISTRATION.ENV;
-                    }
-                    else {
-                    }
+                            s_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = STATE_REGISTRATION.ENV;
+                        }
+                        else {
+                        }
                 } catch (Exception e) {
                     Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationEnv () ... Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ ... ", Logging.INDEX_MESSAGE.NOT_SET);
                     throw e;                    
@@ -613,28 +651,33 @@ namespace HClassLibrary
 
                     if ((err == 0) && (dataUsers.Rows.Count > 0))
                     {//Найдена хотя бы одна строка
-                        int i = -1;
-                        for (i = 0; i < dataUsers.Rows.Count; i ++)
-                        {
-                            //Проверка IP-адрес                    
-                            //for (indxIP = 0; indxIP < listIP.Length; indxIP ++) {
-                            //    if (listIP[indxIP].Equals(System.Net.IPAddress.Parse (dataUsers.Rows[i][@"IP"].ToString())) == true) {
-                            //        //IP найден
-                            //        break;
-                            //    }
-                            //    else
-                            //        ;
-                            //}
+                        i = 0;
 
-                            //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
-                            if (equalsDomainName(dataUsers.Rows[i][@"DOMAIN_NAME"].ToString(), dataUsers.Rows[i][@"COMPUTER_NAME"].ToString()) == true) break; else ;
-                        }
+                        if ((s_StateRegistration[(int)INDEX_REGISTRATION.ID] == STATE_REGISTRATION.UNKNOWN)
+                            || (s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.ENV))
+                            for (i = 0; i < dataUsers.Rows.Count; i++)
+                            {
+                                //Проверка IP-адрес                    
+                                //for (indxIP = 0; indxIP < listIP.Length; indxIP ++) {
+                                //    if (listIP[indxIP].Equals(System.Net.IPAddress.Parse (dataUsers.Rows[i][@"IP"].ToString())) == true) {
+                                //        //IP найден
+                                //        break;
+                                //    }
+                                //    else
+                                //        ;
+                                //}
+
+                                //Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ
+                                if (equalsDomainName(dataUsers.Rows[i][@"DOMAIN_NAME"].ToString(), dataUsers.Rows[i][@"COMPUTER_NAME"].ToString()) == true) break; else;
+                            }
+                        else
+                            setDataRegistration(INDEX_REGISTRATION.DOMAIN_NAME, getUserDomainNameEnvironment(dataUsers.Rows[i][@"DOMAIN_NAME"].ToString(), dataUsers.Rows[i][@"COMPUTER_NAME"].ToString()), STATE_REGISTRATION.CMD);
 
                         if (i < dataUsers.Rows.Count)
                         {
-                            s_DataRegistration[(int)INDEX_REGISTRATION.ID] = Convert.ToInt32(dataUsers.Rows[i]["ID"]); s_StateRegistration[(int)INDEX_REGISTRATION.ID] = STATE_REGISTRATION.ENV;
-                            s_DataRegistration[(int)INDEX_REGISTRATION.ROLE] = Convert.ToInt32(dataUsers.Rows[i]["ID_ROLE"]); s_StateRegistration[(int)INDEX_REGISTRATION.ROLE] = STATE_REGISTRATION.ENV;
-                            s_DataRegistration[(int)INDEX_REGISTRATION.ID_TEC] = Convert.ToInt32(dataUsers.Rows[i]["ID_TEC"]); s_StateRegistration[(int)INDEX_REGISTRATION.ID_TEC] = STATE_REGISTRATION.ENV;
+                            setDataRegistration(INDEX_REGISTRATION.ID, dataUsers.Rows[i]["ID"], STATE_REGISTRATION.ENV);
+                            setDataRegistration(INDEX_REGISTRATION.ROLE, dataUsers.Rows[i]["ID_ROLE"], STATE_REGISTRATION.ENV);
+                            setDataRegistration(INDEX_REGISTRATION.ID_TEC, dataUsers.Rows[i]["ID_TEC"], STATE_REGISTRATION.ENV);                            
                         }
                         else
                             throw new HException((int)ERROR_CODE.UDN_NOT_FOUND, messageUserIDNotFind);
@@ -668,6 +711,20 @@ namespace HClassLibrary
             } catch (Exception e) {
                 throw new HException(-6, e.Message);
             }
+        }
+
+        private static void setDataRegistration(INDEX_REGISTRATION indxReg, object value, STATE_REGISTRATION newState)
+        {
+            int iReg = (int)indxReg;
+
+            if (s_StateRegistration[(int)indxReg] == STATE_REGISTRATION.UNKNOWN) {
+                if (value.GetType() == typeof(Int32))
+                    s_DataRegistration[(int)indxReg] = Convert.ToInt32 (value);
+                else
+                    s_DataRegistration[(int)indxReg] = value;
+                s_StateRegistration[(int)indxReg] = newState;
+            } else
+                ;
         }
 
         //protected abstract void Registration (DataRow rowUser)  { }
