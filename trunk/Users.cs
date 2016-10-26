@@ -283,7 +283,7 @@ namespace HClassLibrary
         //    return val;
         //}
 
-        private bool m_bRegistration {
+        private bool isRegistration {
             get {
                 bool bRes = true;
 
@@ -599,11 +599,9 @@ namespace HClassLibrary
                 , i = -1
                 ;
 
-            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - в’од ... idListener = " + idListener + @"; m_bRegistration = " + m_bRegistration.ToString() + @"; m_StateRegistration = " + s_StateRegistration, Logging.INDEX_MESSAGE.NOT_SET);
-
             //—ледующий приоритет DataBase
-            if (m_bRegistration == false) {
-                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME].ToString(), Logging.INDEX_MESSAGE.NOT_SET);
+            if (isRegistration == false) {
+                Logging.Logg().Debug(string.Format(@"HUsers::HUsers () - ... registrationEnv () - s_StateRegistration [{0}] = {1}", INDEX_REGISTRATION.DOMAIN_NAME, s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME].ToString()), Logging.INDEX_MESSAGE.NOT_SET);
 
                 try {
                     if (s_StateRegistration[(int)INDEX_REGISTRATION.ID] == STATE_REGISTRATION.CMD)
@@ -611,8 +609,7 @@ namespace HClassLibrary
                         ;
                     else
                     // если идентификатор не указан в командной строке
-                        if (s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {
-                            Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = " + Environment.UserDomainName + @"\" + Environment.UserName, Logging.INDEX_MESSAGE.NOT_SET);
+                        if (s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.UNKNOWN) {                            
                             //ќпределить из ENV
                             //ѕроверка »ћя_ѕќЋ№«ќ¬ј“≈Ћя
                             switch (s_modeRegistration) {
@@ -628,7 +625,9 @@ namespace HClassLibrary
                                     break;
                             }
 
-                            s_StateRegistration [(int)INDEX_REGISTRATION.DOMAIN_NAME] = STATE_REGISTRATION.ENV;
+                            s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] = STATE_REGISTRATION.ENV;
+
+                            Logging.Logg().Debug(string.Format(@"HUsers::HUsers () - ... registrationEnv () - s_StateRegistration [{0}] = {1}", INDEX_REGISTRATION.DOMAIN_NAME, s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME]), Logging.INDEX_MESSAGE.NOT_SET);
                         }
                         else {
                         }
@@ -703,7 +702,7 @@ namespace HClassLibrary
                 }
             }
             else {
-                Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationEnv () - m_bRegistration = " + m_bRegistration.ToString(), Logging.INDEX_MESSAGE.NOT_SET);
+                Logging.Logg().Debug(string.Format(@"HUsers::HUsers () - ... registrationEnv () - isRegistration = {0}", isRegistration.ToString()), Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             try {
@@ -718,7 +717,7 @@ namespace HClassLibrary
             int iReg = (int)indxReg;
 
             if (s_StateRegistration[(int)indxReg] == STATE_REGISTRATION.UNKNOWN) {
-                if (value.GetType() == typeof(Int32))
+                if (value.GetType().IsPrimitive == true)
                     s_DataRegistration[(int)indxReg] = Convert.ToInt32 (value);
                 else
                     s_DataRegistration[(int)indxReg] = value;
