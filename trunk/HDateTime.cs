@@ -12,7 +12,7 @@ namespace HClassLibrary
         /// </summary>
         public enum INTERVAL : short { UNKNOWN = -1, MINUTES, HOURS, COUNT_ID_TIME }
         /// <summary>
-        /// Массив со строковыми наименованиями месяцев а году
+        /// Массив со строковыми наименованиями месяцев в году
         /// </summary>
         public readonly static string[] NameMonths = { @"январь", @"февраль", @"март"
             , @"апрель", @"май", @"июнь"
