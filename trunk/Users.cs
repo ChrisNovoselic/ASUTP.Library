@@ -305,6 +305,8 @@ namespace HClassLibrary
 
         public HUsers(int iListenerId, MODE_REGISTRATION mode = MODE_REGISTRATION.USER_DOMAINNAME)
         {
+            object argFReg = null;
+
             Logging.Logg().Action(string.Format(@"HUsers::HUsers () - ... кол-во аргументов ком./строки = {0}; MashineName::DomainUserName={1}::{2}\{3}"
                 , + (Environment.GetCommandLineArgs().Length - 1), MachineName, Environment.UserDomainName , Environment.UserName)
                 , Logging.INDEX_MESSAGE.NOT_SET);
@@ -313,9 +315,9 @@ namespace HClassLibrary
                 s_modeRegistration = mode;
 
                 f_arRegistration = new DelegateObjectFunc[(int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION];
-                f_arRegistration[(int)STATE_REGISTRATION.CMD] = registrationCmdLine;
-                //f_arRegistration[(int)STATE_REGISTRATION.INI] = registrationINI;
-                f_arRegistration[(int)STATE_REGISTRATION.ENV] = registrationEnv;
+                f_arRegistration[(int)STATE_REGISTRATION.CMD] = new DelegateObjectFunc (registrationCmdLine);
+                //f_arRegistration[(int)STATE_REGISTRATION.INI] = new DelegateObjectFunc (registrationINI);
+                f_arRegistration[(int)STATE_REGISTRATION.ENV] = new DelegateObjectFunc(registrationEnv);
 
                 s_DataRegistration = new object[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
                 s_StateRegistration = new STATE_REGISTRATION[(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
@@ -327,8 +329,16 @@ namespace HClassLibrary
 
             Logging.Logg().Debug(@"HUsers::HUsers () - ... очистили значения ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-            for (int i = 0; i < (int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION; i++)
-                if (i == (int)STATE_REGISTRATION.ENV) f_arRegistration[i](iListenerId); else f_arRegistration[i](null);
+            for (int i = 0; i < (int)STATE_REGISTRATION.COUNT_STATE_REGISTRATION; i++) {
+                argFReg = null;
+
+                if (i == (int)STATE_REGISTRATION.ENV)
+                    argFReg = iListenerId;
+                else
+                    ;
+
+                f_arRegistration[i](argFReg);
+            }
         }
 
         public static void Update (int iListenerId)
@@ -348,7 +358,9 @@ namespace HClassLibrary
         private void registrationCmdLine(object par)
         {
             Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationCmdLine () - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
-            
+
+            int i = -1 // счетчики циклов
+                , j = -1;
             //Приоритет CMD_LINE
             string[] args = Environment.GetCommandLineArgs();
 
@@ -364,18 +376,17 @@ namespace HClassLibrary
                     ))
                 { //Выдать сообщение-подсказку...
                     Console.WriteLine(@"Обрабатываются следующие аргументы:");
-                    for (int i = 1; i < m_Arguments.Length; i++)
+                    for (i = 1; i < m_Arguments.Length; i++)
                         Console.WriteLine(m_Arguments[i].m_help);
                 } else
                     ;
 
-                for (int i = 0; i < m_Arguments.Length; i++)
-                    for (int j = 1; j < args.Length; j++)
+                for (i = 0; i < m_Arguments.Length; i++) {
+                    for (j = 1; j < args.Length; j++)
                         if (!(args[j].IndexOf(m_Arguments[i].m_key) < 0)) {
                             //Параметр найден
                             try {
-                                switch (m_Arguments[i].m_indxRegistration)
-                                {
+                                switch (m_Arguments[i].m_indxRegistration) {
                                     case INDEX_REGISTRATION.ID:
                                     case INDEX_REGISTRATION.ID_TEC:
                                     case INDEX_REGISTRATION.ROLE:
@@ -388,7 +399,7 @@ namespace HClassLibrary
                                         throw new Exception(string.Format(@"HUsers::registrationCmdLine () - интерпретация параметра {0}...", m_Arguments[i].m_key));
                                         break;
                                 }
-                                
+
                                 s_StateRegistration[i] = STATE_REGISTRATION.CMD;
                             } catch (Exception e) {
                                 Logging.Logg().Exception(e, string.Format(@"HUsers::registrationCmdLine () - интерпретация параметра {0}...", m_Arguments[i].m_key), Logging.INDEX_MESSAGE.NOT_SET);
@@ -396,9 +407,15 @@ namespace HClassLibrary
 
                             break;
                         } else {
-                            Logging.Logg().Debug(string.Format(@"HUsers::HUsers () - аргумент {0} не обрабатывается...", args[j])
-                                , Logging.INDEX_MESSAGE.NOT_SET);
                         }
+                    // проверить найден ли известный для обработки аргумент в командной строке
+                    if (!(j < args.Length)) {
+                        Logging.Logg().Debug(string.Format(@"HUsers::HUsers () - значение для аргумента {0} в командной строке не задано...", m_Arguments[i].m_key)
+                            , Logging.INDEX_MESSAGE.NOT_SET);
+                    }
+                    else {                        
+                    }
+                }
             } else {
             }
         }
