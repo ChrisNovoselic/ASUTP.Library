@@ -554,11 +554,31 @@ namespace HClassLibrary
             return bRes;
         }
 
-        public static string MachineName = Dns.GetHostEntry(IPAddress.Parse(System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList[0].ToString())).HostName;
+        public static string MachineName
+        {
+            get {
+                string strRes = string.Empty;
         /// <summary>
         /// Доменные имена пользователя/компьютера
         /// !!! - используется ТОЛЬКО для информации
         /// </summary>
+                IPAddress[] listAddress = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
+
+                //IPAddress.Parse (???)
+                foreach (IPAddress address in listAddress) {
+                    try { strRes = Dns.GetHostEntry(address).HostName; }
+                    catch (Exception e) {; }
+
+                    if (string.IsNullOrEmpty(strRes) == false)
+                        break;
+                    else
+                        ;
+                }
+
+                return strRes;
+            }
+        }
+
         public static string UserDomainName {
             get {
                 string usrDomainName = s_modeRegistration == MODE_REGISTRATION.MIXED ?
