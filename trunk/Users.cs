@@ -558,10 +558,7 @@ namespace HClassLibrary
         {
             get {
                 string strRes = string.Empty;
-        /// <summary>
-        /// Доменные имена пользователя/компьютера
-        /// !!! - используется ТОЛЬКО для информации
-        /// </summary>
+        
                 IPAddress[] listAddress = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName()).AddressList;
 
                 //IPAddress.Parse (???)
@@ -578,7 +575,10 @@ namespace HClassLibrary
                 return strRes;
             }
         }
-
+        /// <summary>
+        /// Доменные имена пользователя/компьютера
+        /// !!! - используется ТОЛЬКО для информации
+        /// </summary>
         public static string UserDomainName {
             get {
                 string usrDomainName = s_modeRegistration == MODE_REGISTRATION.MIXED ?
