@@ -17,9 +17,29 @@ namespace HClassLibrary
         [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.I4)]
         public static extern int GetPrivateProfileString(String Section, String Key, String Default, StringBuilder retVal, int Size, String FilePath);
-
-        enum TYPE_SETUP_FILE {UNKNOWN = -1, INI, XML};
-        TYPE_SETUP_FILE m_selectedTypeFile;
+        /// <summary>
+        /// Перечисление - режим обработки принадлежности секций
+        ///  при UNNAMED наименование исполняемого файла игнорируется
+        ///  при INSTANCE (режим по умолчанию) используется собственное наименование приложения
+        ///  при CUSTOM д.б. указано наименование исполняемого файла в качестве принадлежности секции
+        /// </summary>
+        public enum MODE_SECTION_APPLICATION : short { UNNAMED = -1, INSTANCE, CUSTOM }
+        /// <summary>
+        /// Режим обработки принадлежности секции для текущего экземпляра объекта
+        /// </summary>
+        private MODE_SECTION_APPLICATION _modeSectionApp;
+        /// <summary>
+        /// Принадлежность секции в режиме 'CUSTOM'
+        /// </summary>
+        private string m_strSecAppCustom;
+        /// <summary>
+        /// Перечисление - известный формат файлов конфигурации
+        /// </summary>
+        private enum TYPE {UNKNOWN = -1, INI, XML};
+        /// <summary>
+        /// Формат обрабатываемого файоа конфигурации текущим экземпляром
+        /// </summary>
+        private TYPE _type;
         /// <summary>
         /// Перечисление для индексирования символов-разделителей
         /// </summary>
@@ -48,7 +68,13 @@ namespace HClassLibrary
         /// </summary>
         private string SEC_APP
         {
-            get { return "(" + ProgramBase.AppName + ")"; }
+            get {
+                return _modeSectionApp == MODE_SECTION_APPLICATION.INSTANCE ?
+                    "(" + ProgramBase.AppName + ")" :
+                    _modeSectionApp == MODE_SECTION_APPLICATION.UNNAMED ? string.Empty :
+                    _modeSectionApp == MODE_SECTION_APPLICATION.CUSTOM ?
+                        m_strSecAppCustom : string.Empty;
+            }
         }
         /// <summary>
         /// Наименование главной секции файла конфигурации
@@ -87,12 +113,13 @@ namespace HClassLibrary
 
             try {
                 //Получить часть секции - признак приложения
-                secApp = sec.Split(new char[] { s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] }, StringSplitOptions.None)[1];
+                secApp = _modeSectionApp == MODE_SECTION_APPLICATION.INSTANCE ? sec.Split(new char[] { s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] }, StringSplitOptions.None)[1] :
+                    _modeSectionApp == MODE_SECTION_APPLICATION.UNNAMED ? string.Empty :
+                    _modeSectionApp == MODE_SECTION_APPLICATION.CUSTOM ?
+                        m_strSecAppCustom : string.Empty;
                 //Получить результат при сравнении
                 bRes = secApp.Equals (SEC_APP);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Logging.Logg().Exception(e, @"FileINI::isSecApp() - ошибка разбора секции...", Logging.INDEX_MESSAGE.NOT_SET);
             }
 
@@ -120,191 +147,217 @@ namespace HClassLibrary
             return isSec(sec_shr) == true ? m_values[sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP].ContainsKey(key) : false;
         }
 
+        private void setType()
+        {
+            _type = TYPE.UNKNOWN;
+
+            string[] lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
+
+            if (lines.Length > 1) {
+                switch (lines[0].Replace('<', ' ').Replace('?', ' ').Replace('[', ' ').Trim().Split(' ')[0]) {
+                    case @"Main":
+                        _type = TYPE.INI;
+                        break;
+                    case @"xml":
+                        _type = TYPE.XML;
+                        break;
+                    default:
+                        break;
+                }
+            } else
+                ;
+        }
+
         /// <summary>
         /// Конструктор - основной
         /// </summary>
         /// <param name="nameFile">Имя файла конфигурации</param>
         /// <param name="bReadAuto">Признак автоматического считывания всех параметров при создании</param>
-        public FileINI(string nameFile, bool bReadAuto)
+        public FileINI(string nameFile, bool bReadAuto, MODE_SECTION_APPLICATION mode = MODE_SECTION_APPLICATION.INSTANCE)
         {
-            m_values = new Dictionary<string, Dictionary<string, string>>();
+            string msgErr = string.Empty;
+
+            _modeSectionApp = mode;
+            m_strSecAppCustom = string.Empty;
 
             m_NameFileINI = System.Environment.CurrentDirectory + "\\" + nameFile;
-            if (File.Exists(m_NameFileINI) != false)
-            {
-                string[] lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
-                lines[0]=lines[0].Replace('<', ' ');
-                lines[0]=lines[0].Replace('?', ' ');
-                lines[0] = lines[0].Replace('[', ' ');
-                string[] mass = lines[0].Trim().Split(' ');
-                if (mass.Length > 0)
-                {
-                    switch (mass[0])
-                    {
-                        case "xml":
-                            m_selectedTypeFile = TYPE_SETUP_FILE.XML;
-                            m_values = getDictFromXML(bReadAuto);
-                            break;
-                        case "Main":
-                            m_selectedTypeFile = TYPE_SETUP_FILE.INI;
-                            m_values = getDictFromINI(bReadAuto);
-                            break;
-                        default:
-                            m_selectedTypeFile = TYPE_SETUP_FILE.UNKNOWN;
-                            Logging.Logg().Error("", Logging.INDEX_MESSAGE.NOT_SET);
-                            new Exception("Не известный тип файла настроек");
-                            break;
-                    }
+            if (!(File.Exists(m_NameFileINI) == false)) {
+                setType();
+
+                m_values = new Dictionary<string, Dictionary<string, string>>();
+
+                switch (_type) {
+                    case TYPE.XML:
+                        setDictFromXML(bReadAuto);
+                        break;
+                    case TYPE.INI:
+                        setDictFromINI(bReadAuto);
+                        break;
+                    default:
+                        msgErr = string.Format("FileINI::ctor () - путь_к_файлу={0}, режим={1}...", m_NameFileINI, mode.ToString());
+                        Logging.Logg().Error(msgErr
+                            , Logging.INDEX_MESSAGE.NOT_SET);
+                        new Exception(msgErr);
+                        break;
                 }
-            }
-            else
-            {
+            } else {
                 Logging.Logg().Error("Не найден файл настроек", Logging.INDEX_MESSAGE.NOT_SET);
             }
-
         }
 
-        private Dictionary<string, Dictionary<string, string>> getDictFromINI(bool bReadAuto)
+        private string getSecName(string secName)
         {
-            Dictionary<string, Dictionary<string, string>> values = new Dictionary<string, Dictionary<string, string>>();
+            string strRes = secName;
 
-                //Проверить необходимость автоматического заполнения словаря
-                if (bReadAuto == true)
-                {
-                    string sec = string.Empty
-                        , sec_shr = string.Empty;
+            string strReplacement = string.Empty;
+            int indxStart = strRes.IndexOf('(')
+                , indxEnd = strRes.IndexOf(')');
 
-                    //Прочитать все строки ??? ProgramBase.ss_MainCultureInfo
-                    //EncodingInfo[]arEncInfo = Encoding.GetEncodings();
-                    string[] lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
-                    //Признак - строка начало секции
-                    bool bSec = false
-                        //Признак - следующая строка - продолжение текущей
-                        , bNewLine = true;
-                    //Пара ключ-значение
-                    string[] pair = null;
+            if ((!(indxStart < 0))
+                && (!(indxEnd < 0))
+                && (indxEnd - indxStart > @".exe".Length))
+                switch (_modeSectionApp) {
+                    case MODE_SECTION_APPLICATION.UNNAMED:
+                    // вырезать принадлежность
+                        strRes = strRes.Replace(strRes.Substring(indxStart, indxEnd - indxStart + 1), string.Empty);
+                        break;
+                    case MODE_SECTION_APPLICATION.CUSTOM:
+                    // заменить принадлежность
+                        strRes = strRes.Replace(strRes.Substring(indxStart, indxEnd - indxStart + 1), string.Format(@"{0}{2}{1}", @"(", @")", m_strSecAppCustom));
+                        break;
+                    case MODE_SECTION_APPLICATION.INSTANCE:
+                    default:
+                        break;
+                }
+            else
+                throw new Exception (string.Format(@"FileINI::getSecName () - не найдена принадлежность, секция={0}", secName));
 
-                    try
-                    {
-                        //Разобрать по-строчно
-                        foreach (string line in lines)
-                        {
-                            //Не обрабатывать "пустые" строки
-                            if (line.Length == 0)
+            return strRes;
+        }
+
+        private void setDictFromINI(bool bReadAuto)
+        {
+            string[] lines = null
+            //Пара ключ-значение
+                , pair = null;
+            //Признак - строка начало секции
+            bool bSec = false
+            //Признак - следующая строка - продолжение текущей
+                , bNewLine = true;
+
+            //Проверить необходимость автоматического заполнения словаря
+            if (bReadAuto == true) {
+                string sec = string.Empty
+                    , sec_shr = string.Empty;
+
+                //Прочитать все строки ??? ProgramBase.ss_MainCultureInfo
+                //EncodingInfo[]arEncInfo = Encoding.GetEncodings();
+                lines = System.IO.File.ReadAllLines(m_NameFileINI, Encoding.GetEncoding(1251));
+                
+                try {
+                    //Разобрать по-строчно
+                    foreach (string line in lines) {
+                        //Не обрабатывать "пустые" строки
+                        if (line.Length == 0)
+                            continue;
+                        else
+                            ;
+
+                        //Logging.Logg().Debug(@"FileINI::ctor () - строка: " + line, Logging.INDEX_MESSAGE.NOT_SET);
+
+                        bSec = line[0] == '[';
+                        //Не обрабатывать строки, начинающиеся не с "буквы"
+                        if (Char.IsLetter(line[0]) == false)
+                            //Строки, начинающиеся с '[' - обрабатывать
+                            if (bSec == false)
                                 continue;
                             else
                                 ;
+                        else
+                            ;
 
-                            //Logging.Logg().Debug(@"FileINI::ctor () - строка: " + line, Logging.INDEX_MESSAGE.NOT_SET);
-
-                            bSec = line[0] == '[';
-                            //Не обрабатывать строки, начинающиеся не с "буквы"
-                            if (Char.IsLetter(line[0]) == false)
-                                //Строки, начинающиеся с '[' - обрабатывать
-                                if (bSec == false)
-                                    continue;
+                        //Проверить признак секции
+                        if (bSec == true) {
+                            //Получить наименование секции
+                            sec = line.Substring(1, line.Length - 2);
+                            sec = getSecName(sec);
+                            //Проверить принадлежность к текущему приложению
+                            if (isSecApp(sec) == true) {
+                                //sec_shr = sec.Split(new char[] { s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART] }, StringSplitOptions.None)[0];
+                                //Проверить наличие секции в словаре
+                                //if (values.ContainsKey (sec_shr) == false)
+                                if (m_values.ContainsKey(sec) == false) {
+                                    //Добавить секцию
+                                    //values.Add (sec_shr, new Dictionary<string,string> ());
+                                    m_values.Add(sec, new Dictionary<string, string>());
+                                }
                                 else
                                     ;
-                            else
-                                ;
-
-                            //Проверить признак секции
-                            if (bSec == true)
-                            {
-                                //Получить наименование секции
-                                sec = line.Substring(1, line.Length - 2);
-                                //Проверить принадлежность к текущему приложению
-                                if (isSecApp(sec) == true)
-                                {
-                                    //sec_shr = sec.Split(new char[] { s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART] }, StringSplitOptions.None)[0];
-                                    //Проверить наличие секции в словаре
-                                    //if (values.ContainsKey (sec_shr) == false)
-                                    if (values.ContainsKey(sec) == false)
-                                    {
-                                        //Добавить секцию
-                                        //values.Add (sec_shr, new Dictionary<string,string> ());
-                                        values.Add(sec, new Dictionary<string, string>());
-                                    }
-                                    else
-                                        ;
-                                }
-                                else
-                                {
-                                    //Очистить секцию для предотвращения обработки параметров (внутри секции)
-                                    sec =
-                                    sec_shr =
-                                        string.Empty;
-                                }
+                            } else {
+                                //Очистить секцию для предотвращения обработки параметров (внутри секции)
+                                sec =
+                                sec_shr =
+                                    string.Empty;
                             }
-                            else
-                            {//Обработка параметра (ключ=значение)
-                                //Проверить наличие секции
-                                if ((sec.Equals(string.Empty) == false)
-                                    || (sec_shr.Equals(string.Empty) == false)
-                                )
-                                {
-                                    //Проверить наличие секции в словаре
-                                    //if (values.ContainsKey (sec_shr) == true)
-                                    if (values.ContainsKey(sec) == true)
-                                    {
-                                        if (bNewLine == true)
-                                        {
-                                            ////Вариант №1
-                                            //pair = line.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
-                                            //Вариант №2
-                                            pair = new string[2];
-                                            int indxPair = line.IndexOf(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
-                                            pair[0] = line.Substring(0, indxPair);
-                                            pair[1] = line.Substring(indxPair + 1, line.Length - indxPair - 1);
+                        } else {
+                        //Обработка параметра (ключ=значение)
+                            //Проверить наличие секции
+                            if ((sec.Equals(string.Empty) == false)
+                                || (sec_shr.Equals(string.Empty) == false)
+                            )
+                            {
+                                //Проверить наличие секции в словаре
+                                //if (values.ContainsKey (sec_shr) == true)
+                                if (m_values.ContainsKey(sec) == true) {
+                                    if (bNewLine == true) {
+                                        ////Вариант №1
+                                        //pair = line.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
+                                        //Вариант №2
+                                        pair = new string[2];
+                                        int indxPair = line.IndexOf(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
+                                        pair[0] = line.Substring(0, indxPair);
+                                        pair[1] = line.Substring(indxPair + 1, line.Length - indxPair - 1);
 
-                                            if (!(pair[1].IndexOf(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]) < 0))
-                                                Logging.Logg().Warning(@"FileINI::ctor () - в строке [" + line + @"] используются зарезервированные символы: '" + s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR] + @"'", Logging.INDEX_MESSAGE.NOT_SET);
-                                            else
-                                                ;
-
-                                            if (pair.Length == 2)
-                                                //Добавить параметр для секции
-                                                //values[sec_shr].Add (pair[0], pair[1]);
-                                                values[sec].Add(pair[0], pair[1]);
-                                            else
-                                                throw new Exception(@"FileINI::ctor () - ...");
-                                        }
-                                        else
-                                        {
-                                            pair[1] += line;
-                                        }
-
-                                        bNewLine = !line[line.Length - 1].Equals('_');
-
-                                        if (bNewLine == false)
-                                            values[sec][pair[0]] = values[sec][pair[0]].Substring(0, values[sec][pair[0]].LastIndexOf(' '));
+                                        if (!(pair[1].IndexOf(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]) < 0))
+                                            Logging.Logg().Warning(@"FileINI::ctor () - в строке [" + line + @"] используются зарезервированные символы: '" + s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR] + @"'", Logging.INDEX_MESSAGE.NOT_SET);
                                         else
                                             ;
+
+                                        if (pair.Length == 2)
+                                        //Добавить параметр для секции
+                                            //values[sec_shr].Add (pair[0], pair[1]);
+                                            m_values[sec].Add(pair[0], pair[1]);
+                                        else
+                                            throw new Exception(@"FileINI::ctor () - ...");
+                                    } else {
+                                        pair[1] += line;
                                     }
+
+                                    bNewLine = !line[line.Length - 1].Equals('_');
+
+                                    if (bNewLine == false)
+                                        m_values[sec][pair[0]] = m_values[sec][pair[0]].Substring(0, m_values[sec][pair[0]].LastIndexOf(' '));
                                     else
-                                        throw new Exception(@"FileINI::ctor () - ...");
-                                }
-                                else
-                                    ;
-                            }
+                                        ;
+                                } else
+                                    throw new Exception(@"FileINI::ctor () - ...");
+                            } else
+                                ;
                         }
                     }
-                    catch (Exception e)
-                    {
-                        Logging.Logg().Exception(e, @"FileINI::ctor () - ...", Logging.INDEX_MESSAGE.NOT_SET);
-                    }
+                } catch (Exception e) {
+                    Logging.Logg().Exception(e, @"FileINI::ctor () - ...", Logging.INDEX_MESSAGE.NOT_SET);
                 }
-                else
-                    ;
-            return values;
+            } else
+                ;
         }
 
-        private Dictionary<string, Dictionary<string, string>> getDictFromXML(bool bReadAuto)
+        private void setDictFromXML(bool bReadAuto)
         {
-            Dictionary<string, Dictionary<string, string>> values = new Dictionary<string, Dictionary<string, string>>();
-            try
-            {
-                XmlDocument setup = new XmlDocument();
+            XmlDocument setup = new XmlDocument();
+
+            try {
+                setup = new XmlDocument();
                 setup.Load(m_NameFileINI);
                 foreach (XmlNode nodes in setup["SETUP"])
                 {
@@ -326,19 +379,15 @@ namespace HClassLibrary
                                                     dict.Add(atr.Name, atr.Value);
                                             }
 
-                                            values.Add(node.Name + " (" + atrib.Value + ")", dict);
+                                            m_values.Add(node.Name + " (" + atrib.Value + ")", dict);
                                         }
                                     }
                                 }
                     }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Logging.Logg().Exception(e, e.Message, Logging.INDEX_MESSAGE.NOT_SET);
             }
-
-            return values;
         }
 
         /// <summary>
@@ -416,7 +465,8 @@ namespace HClassLibrary
         /// <param name="bReadAuto">Признак автоматического считывания всех параметров при создании</param>
         /// <param name="par">Массив ключей параметров</param>
         /// <param name="val">Массив значений параметров</param>
-        public FileINI(string nameFile, bool bReadAuto, string[] par, string[] val) : this (nameFile, bReadAuto)
+        public FileINI(string nameFile, bool bReadAuto, string[] par, string[] val, MODE_SECTION_APPLICATION mode = MODE_SECTION_APPLICATION.INSTANCE)
+            : this (nameFile, bReadAuto, mode)
         {
             string key = string.Empty;
 
@@ -480,7 +530,7 @@ namespace HClassLibrary
         {
             bool bRes = false;
 
-            if (m_selectedTypeFile == TYPE_SETUP_FILE.INI)
+            if (_type == TYPE.INI)
             {
                 string strVal =
                     //Value
@@ -493,7 +543,7 @@ namespace HClassLibrary
             }
             else
             {
-                if (m_selectedTypeFile == TYPE_SETUP_FILE.XML)
+                if (_type == TYPE.XML)
                 {
                     bool bSave = false;
                     XmlDocument setup = new XmlDocument();
