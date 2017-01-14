@@ -330,13 +330,14 @@ namespace HClassLibrary
                                         else
                                             throw new Exception(@"FileINI::ctor () - ...");
                                     } else {
-                                        pair[1] += line;
+                                        m_values[sec][pair[0]] += line;
                                     }
 
                                     bNewLine = !line[line.Length - 1].Equals('_');
 
                                     if (bNewLine == false)
-                                        m_values[sec][pair[0]] = m_values[sec][pair[0]].Substring(0, m_values[sec][pair[0]].LastIndexOf(' '));
+                                    // обрезать служебный символ переноса строки
+                                        m_values[sec][pair[0]] = m_values[sec][pair[0]].Substring(0, m_values[sec][pair[0]].Length - 1);
                                     else
                                         ;
                                 } else
