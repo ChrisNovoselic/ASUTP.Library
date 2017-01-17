@@ -235,6 +235,8 @@ namespace HClassLibrary
             return strRes;
         }
 
+        private static string s_Remark = @"REM";
+
         private void setDictFromINI(bool bReadAuto)
         {
             string[] lines = null
@@ -267,7 +269,9 @@ namespace HClassLibrary
 
                         bSec = line[0] == '[';
                         //Не обрабатывать строки, начинающиеся не с "буквы"
-                        if (Char.IsLetter(line[0]) == false)
+                        //Не обрабатывать строки-комментарии
+                        if ((Char.IsLetter(line[0]) == false)
+                            || ((line.Length > 3) && (line.Substring(0, s_Remark.Length).Equals(s_Remark) == true)))
                             //Строки, начинающиеся с '[' - обрабатывать
                             if (bSec == false)
                                 continue;
@@ -315,6 +319,10 @@ namespace HClassLibrary
                                         //Вариант №2
                                         pair = new string[2];
                                         int indxPair = line.IndexOf(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR]);
+                                        if (indxPair < 0)
+                                            continue;
+                                        else
+                                            ;
                                         pair[0] = line.Substring(0, indxPair);
                                         pair[1] = line.Substring(indxPair + 1, line.Length - indxPair - 1);
 
@@ -324,11 +332,14 @@ namespace HClassLibrary
                                             ;
 
                                         if (pair.Length == 2)
-                                        //Добавить параметр для секции
-                                            //values[sec_shr].Add (pair[0], pair[1]);
-                                            m_values[sec].Add(pair[0], pair[1]);
+                                        // проверить наличие ключа
+                                            if (m_values[sec].ContainsKey(pair[0]) == false)
+                                            //Добавить параметр для секции
+                                                m_values[sec].Add(pair[0], pair[1]);
+                                            else
+                                                throw new Exception(string.Format(@"FileINI::ctor () - ошибка интерпретации строки={0}, повторный ключ={1}", line, pair[0]));
                                         else
-                                            throw new Exception(@"FileINI::ctor () - ...");
+                                            throw new Exception(string.Format(@"FileINI::ctor () - ошибка интерпретации строки={0}, ключ не найден...", line));
                                     } else {
                                         m_values[sec][pair[0]] += line;
                                     }
