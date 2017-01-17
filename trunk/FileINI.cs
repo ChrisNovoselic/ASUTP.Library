@@ -180,7 +180,11 @@ namespace HClassLibrary
             _modeSectionApp = mode;
             m_strSecAppCustom = string.Empty;
 
-            m_NameFileINI = System.Environment.CurrentDirectory + "\\" + nameFile;
+            m_NameFileINI =
+                //System.Environment.CurrentDirectory
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+                + "\\" + nameFile;
+
             if (!(File.Exists(m_NameFileINI) == false)) {
                 setType();
 

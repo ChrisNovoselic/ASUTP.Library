@@ -5,6 +5,7 @@ using System.IO;
 //using System.Windows.Forms;
 using System.Threading;
 using System.Data.Common;
+using System.Reflection;
 
 namespace HClassLibrary
 {
@@ -949,6 +950,17 @@ namespace HClassLibrary
                 ;
         }
 
+        public void Error(MethodBase methodBase, string message, INDEX_MESSAGE indx, bool bLock = true)
+        {
+            if (post(indx) == true)
+                post(ID_MESSAGE.ERROR, "!Ошибка!: "
+                    + GetMethodInfo(methodBase)
+                    + message
+                    , true, true, bLock);
+            else
+                ;
+        }
+
         public void Warning(string message, INDEX_MESSAGE indx, bool bLock = true)
         {
             if (post (indx) == true)
@@ -957,10 +969,34 @@ namespace HClassLibrary
                 ;
         }
 
+        public void Warning(MethodBase methodBase, string message, INDEX_MESSAGE indx, bool bLock = true)
+        {
+            if (post(indx) == true)
+                post(ID_MESSAGE.WARNING, "!Предупреждение!: "
+                    + GetMethodInfo(methodBase)
+                    + message
+                    , true, true, bLock);
+            else
+                ;
+        }
+
         public void Debug(string message, INDEX_MESSAGE indx, bool bLock = true)
         {
             if (post(indx) == true)
                 post(ID_MESSAGE.DEBUG, "!Отладка!: " + message, true, true, bLock);
+            else
+                ;
+        }
+
+        public static string GetMethodInfo(MethodBase methodBase) { return string.Format(@"{0}.{1}::{2} () - ", methodBase.Module, methodBase.DeclaringType, methodBase.Name); }
+
+        public void Debug(MethodBase methodBase, string message, INDEX_MESSAGE indx, bool bLock = true)
+        {
+            if (post(indx) == true)
+                post(ID_MESSAGE.DEBUG, "!Отладка!: "
+                    + GetMethodInfo(methodBase)
+                    + message
+                    , true, true, bLock);
             else
                 ;
         }
