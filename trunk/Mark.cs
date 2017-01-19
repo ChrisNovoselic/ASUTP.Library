@@ -17,6 +17,8 @@ namespace HClassLibrary
         /// Совокупность значений признаков
         /// </summary>
         private Int32 m_mark;
+
+        public DelegateIntFunc ValueChanged;
         /// <summary>
         /// Конструктор объекта
         /// </summary>
@@ -43,9 +45,9 @@ namespace HClassLibrary
             Int32 val = HMath.Pow2(bit);
 
             if (opt == true)
-                if (!((m_mark & val) == val)) m_mark += val; else ;
+                if (!((m_mark & val) == val)) { m_mark += val; ValueChanged?.Invoke(val); } else;
             else
-                if ((m_mark & val) == val) m_mark -= val; else ;
+                if ((m_mark & val) == val) { m_mark -= val; ValueChanged?.Invoke(val); } else;
         }
         /// <summary>
         /// Установить значение признака по указанному адресу
@@ -77,9 +79,29 @@ namespace HClassLibrary
         /// <param name="mark">Исходное значение для всех признаков</param>
         public void Add(HMark mark)
         {
-            for (int i = 0; i < sizeof(Int32) * 8; i++) {
-                if ((IsMarked(mark.Value, i) == true) && (IsMarked(i) == false)) marked(true, i); else ;
+            int cntBit = -1
+                , valChanged = 0;
+
+            Delegate[]arHandler = ValueChanged.GetInvocationList();
+
+            foreach (DelegateIntFunc f in arHandler)
+                ValueChanged -= f;
+
+            cntBit = sizeof(Int32) * 8;
+
+            for (int i = 0; i < cntBit; i++) {
+                if ((IsMarked(mark.Value, i) == true)
+                    && (IsMarked(i) == false)) {
+                    marked(true, i);
+
+                    valChanged += HMath.Pow2(i);
+                } else;
             }
+
+            foreach (DelegateIntFunc f in arHandler)
+                ValueChanged += new DelegateIntFunc (f);
+
+            ValueChanged?.Invoke(valChanged);
         }
         /// <summary>
         /// Установить значение признака ИСТИНА по адресу (номеру бита)
