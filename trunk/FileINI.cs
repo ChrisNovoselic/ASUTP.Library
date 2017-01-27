@@ -414,6 +414,11 @@ namespace HClassLibrary
         public string GetMainValueOfKey(string key) {
             return GetSecValueOfKey(SEC_SHR_MAIN, key);
         }
+
+        public Dictionary<string, string> GetMainValuesOfKey(string key)
+        {
+            return GetSecValuesOfKey(SEC_SHR_MAIN, key);
+        }
         /// <summary>
         /// Установить значение по ключу в главной секции
         /// </summary>
@@ -458,16 +463,35 @@ namespace HClassLibrary
         /// <returns>Значение параметра по ключу</returns>
         public string GetSecValueOfKey(string sec_shr, string key)
         {
-            string sec = sec_shr + s_chSecDelimeters[(int)INDEX_DELIMETER.SEC_PART_APP] + SEC_APP;
-            //Logging.Logg().Debug(@"FileINI::GetSecValueOfKey (sec_shr=" + sec_shr + @", key=" + key + @") - sec=" + sec + @"...", Logging.INDEX_MESSAGE.NOT_SET);
-            //Logging.Logg().Debug(@"FileINI::GetSecValueOfKey () - isSec (sec_shr)=" + isSec(sec_shr).ToString() + @"...", Logging.INDEX_MESSAGE.NOT_SET);
-            return isSec (sec_shr) == true ? m_values[sec].ContainsKey(key) == true ? m_values[sec][key] : string.Empty : string.Empty;
+            Dictionary <string, string>dictSecValues = getSecValues(sec_shr);
+
+            return !(dictSecValues == null) ? dictSecValues.ContainsKey(key) == true ? dictSecValues[key] : string.Empty : string.Empty;
+        }
+
+        public Dictionary<string, string> GetSecValuesOfKey(string sec_shr, string key)
+        {
+            Dictionary<string, string> dictRes = new Dictionary<string, string>();
+
+            string secValue = GetSecValueOfKey(sec_shr, key);
+            string[] secValues = null
+                , pairValue = null;
+
+            if (secValue.Equals(string.Empty) == false) {
+                secValues = secValue.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.PAIR_VAL]);
+                foreach (string pairValues in secValues) {
+                    pairValue = pairValues.Split(s_chSecDelimeters[(int)INDEX_DELIMETER.VALUE]);
+                    dictRes[pairValue[0]] = pairValue[1];
+                }
+            } else
+                ;
+
+            return dictRes;
         }
         /// <summary>
         /// Возвратить словарь всех значений для секции
         /// </summary>
-        /// <param name="sec_shr"></param>
-        /// <returns></returns>
+        /// <param name="sec_shr">Наименование секции</param>
+        /// <returns>Словарь значений в секции</returns>
         protected Dictionary<string, string> getSecValues(string sec_shr)
         {
             //Полное наименование секции в файле конфигурации
