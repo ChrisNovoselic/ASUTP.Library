@@ -7,45 +7,58 @@ using System.Threading;
 
 namespace HClassLibrary
 {
-    public abstract class HHandlerQueue : HHandler
+    public interface IHHandlerQueue
+    {
+        bool Activate(bool active);
+        void Push(IDataHost obj, object[] pars);
+        void Start();
+        void Stop();
+    }
+
+    public abstract class HHandlerQueue : HHandler, IHHandlerQueue
     {
         protected class ItemQueue
         {
             private HHandler _owner;
-
+            /// <summary>
+            /// Объект, добавививший в очередь событие(состочние), используется для обратной связи
+            /// </summary>
             public IDataHost m_dataHostRecieved;
             public List<int> m_states; //??? Дублирование _owner.states
             private object[] m_pars;
-            //public object [] Pars (int state)
-            //{
-            //    return (m_pars as object [])[m_states.IndexOf (state)] as object [];
-            //}
-
+            /// <summary>
+            /// Параметры, переданные в качестве аргументов к событию(состоянию)
+            /// </summary>
             public object[] Pars
             {
-                get
-                { 
+                get { 
                     object [] arObjRes = null;
                     
-                    try
-                    {
+                    try {
                         arObjRes = (m_pars as object[])[_owner.IndexCurState] as object[];
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         Logging.Logg().Exception(e, @"HHandlerQueue.ItemQueue::Pars - ...", Logging.INDEX_MESSAGE.NOT_SET);
                     }
 
                     return arObjRes;
                 }
             }
-
+            /// <summary>
+            /// Конструктор - основной с параметрами
+            /// </summary>
+            /// <param name="owner">Объект - владелец элемента очереди</param>
+            /// <param name="obj">Объект, добавивший событие в очередь</param>
+            /// <param name="objPars">Массив аргументов события</param>
             public ItemQueue(HHandler owner, IDataHost obj, object[] objPars)
                 : this(obj, objPars)
             {
                 _owner = owner;
             }
-
+            /// <summary>
+            /// Конструктор - дполнительный (с параметрами)
+            /// </summary>
+            /// <param name="obj">Объект, добавивший событие в очередь</param>
+            /// <param name="objPars">Массив аргументов события</param>
             public ItemQueue(IDataHost obj, object[] objPars)
             {
                 m_dataHostRecieved = obj;
@@ -73,7 +86,6 @@ namespace HClassLibrary
                 }
             }
         }
-
         /// <summary>
         /// Объект для синхронизации изменения списка событий
         /// </summary>
@@ -109,7 +121,11 @@ namespace HClassLibrary
 
             m_lockQueue = new Object();            
         }
-
+        /// <summary>
+        /// Активировать очередь обработки событий
+        /// </summary>
+        /// <param name="active"></param>
+        /// <returns></returns>
         public override bool Activate(bool active)
         {
             bool bRes = false;
@@ -129,7 +145,9 @@ namespace HClassLibrary
 
             return bRes;
         }
-        
+        /// <summary>
+        /// Запустить (сдедать возможным прием/обработку) очередь событий
+        /// </summary>
         public override void Start()
         {
             base.Start();
@@ -153,7 +171,9 @@ namespace HClassLibrary
             else
                 ;
         }
-
+        /// <summary>
+        /// Остановить (сделать невозможным прием/обработку) событий
+        /// </summary>
         public override void Stop()
         {
             bool joined;
