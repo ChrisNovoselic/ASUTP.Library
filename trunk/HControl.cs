@@ -824,7 +824,16 @@ namespace HClassLibrary
         {
             get { return pressedValue; }
 
-            set { pressedValue = value; Value = value == true ? @"<-" : @"->"; }
+            set {
+                if (!(pressedValue == value)) {
+                    Value = value == true ? @"<-" : @"->";
+
+                    delegatePressChanged?.Invoke(RowIndex);
+
+                    pressedValue = value;
+                } else
+                    ;
+            }
         }
         /// <summary>
         /// Override the Clone method so that the Enabled property is copied.
@@ -835,6 +844,7 @@ namespace HClassLibrary
             DataGridViewPressedButtonCell cell = (DataGridViewPressedButtonCell)base.Clone();
 
             cell.Pressed = this.Pressed;
+            cell.delegatePressChanged = this.delegatePressChanged;
 
             return cell;
         }
@@ -892,7 +902,7 @@ namespace HClassLibrary
                 buttonArea.Height -= buttonAdjustment.Height;
                 buttonArea.Width -= buttonAdjustment.Width;
 
-                // Draw the disabled button.                
+                // Draw the disabled button.
                 ButtonRenderer.DrawButton(graphics, buttonArea, PushButtonState.Pressed);
 
                 // Draw the disabled button text. 
@@ -918,6 +928,8 @@ namespace HClassLibrary
         //    else
         //        ;
         //}
+
+        public DelegateIntFunc delegatePressChanged;
     }
     /// <summary>
     /// Столбец для представления с типом ячеек "кнопка", с возможностью фиксации состояния "нажата"
@@ -930,7 +942,15 @@ namespace HClassLibrary
         public DataGridViewPressedButtonColumn()
         {
             this.CellTemplate = new DataGridViewPressedButtonCell();
+            (this.CellTemplate as DataGridViewPressedButtonCell).delegatePressChanged += cell_PressChanged;
         }
+
+        private void cell_PressChanged(int iRow)
+        {
+            PressChanged?.Invoke(iRow);
+        }
+
+        public event DelegateIntFunc PressChanged;
     }
     #endregion
 

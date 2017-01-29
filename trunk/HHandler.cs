@@ -108,7 +108,9 @@ namespace HClassLibrary
         {
             bool bRes = true;
 
-            if (active == true) threadStateIsWorking++; else ;
+            //if (active == true)
+                threadStateIsWorking++;
+            //else ;
 
             if (actived == active)
             {
