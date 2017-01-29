@@ -52,16 +52,16 @@ namespace HClassLibrary
         /// Список событий (состояний) для обработки (или очередь)
         /// </summary>
         protected volatile List<int /*StatesMachine*/> states;
-        /// <summary>
-        /// Признак активности потока
-        /// </summary>
-        private bool actived;
+        ///// <summary>
+        ///// Признак активности потока
+        ///// </summary>
+        //private bool actived;
         /// <summary>
         /// Свойство - Признак активности потока
         /// </summary>
         public bool Actived {
             get {
-                return actived;
+                return threadStateIsWorking > 0 && threadStateIsWorking % 2 == 1;
             }
         }
         /// <summary>
@@ -81,7 +81,7 @@ namespace HClassLibrary
         /// </summary>
         protected virtual void Initialize()
         {
-            actived = false; //НЕ активен
+            //actived = false; //НЕ активен
             threadStateIsWorking = -1; //Не активен
 
             m_lockState = new Object();
@@ -106,20 +106,14 @@ namespace HClassLibrary
         /// <returns>Признак изменения состояния</returns>
         public virtual bool Activate(bool active)
         {
-            bool bRes = true;
+            bool bRes = !(Actived == active);
 
-            //if (active == true)
-                threadStateIsWorking++;
-            //else ;
-
-            if (actived == active)
-            {
-                bRes = false;
-            }
+            if (bRes == true)
+                //if (active == true)
+                    threadStateIsWorking++;
+                //else ;
             else
-            {
-                actived = active;
-            }
+                ;
 
             return bRes;
         }
