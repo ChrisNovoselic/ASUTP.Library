@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Data.Common;
 using System.Reflection;
+using System.Linq;
 
 namespace HClassLibrary
 {
@@ -103,6 +104,32 @@ namespace HClassLibrary
             }
         }
         private static List<MESSAGE> m_listQueueMessage;
+
+        public static int SetMode(string LOG_KEY = @"log=", Logging.LOG_MODE log_mode = Logging.LOG_MODE.DB)
+        {
+            int iRes = 0;
+
+            if (LOG_KEY.Equals(string.Empty) == false) {
+                var arg_log = from arg in Environment.GetCommandLineArgs() where !(arg.IndexOf(LOG_KEY) < 0) select arg;
+
+                if (arg_log.Count() == 1)
+                    if (Enum.IsDefined(typeof(Logging.LOG_MODE), arg_log.ElementAt(0).Substring(arg_log.ElementAt(0).IndexOf(LOG_KEY) + LOG_KEY.Length)) == true)
+                        log_mode = (Logging.LOG_MODE)Enum.Parse(typeof(Logging.LOG_MODE), arg_log.ElementAt(0).Substring(arg_log.ElementAt(0).IndexOf(LOG_KEY) + LOG_KEY.Length));
+                    else
+                        iRes = -1; // режим не распознан
+                else
+                    if (arg_log.Count() == 0)
+                        iRes = 3; // режим не указан - значение по умолчанию
+                    else
+                        iRes = 2; // режим указан несколко раз - значение по умолчанию                    
+            } else
+                iRes = 1; // ключ для поиска аргумента не указан
+
+            //Если назначить неизвестный тип логирования - 1-е сообщения б. утеряны
+            Logging.s_mode = log_mode;
+
+            return iRes;
+        }
 
         private Thread m_threadPost;
         private
