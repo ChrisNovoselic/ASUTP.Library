@@ -82,7 +82,7 @@ namespace HClassLibrary
             int cntBit = -1
                 , valChanged = 0;
 
-            Delegate[]arHandler = ValueChanged.GetInvocationList();
+            Delegate[]arHandler = ValueChanged == null ? new Delegate[] { } : ValueChanged.GetInvocationList();
 
             foreach (DelegateIntFunc f in arHandler)
                 ValueChanged -= f;
