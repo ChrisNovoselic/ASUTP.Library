@@ -94,9 +94,18 @@ namespace HClassLibrary
 
             return bRes;
         }
-
+        /// <summary>
+        /// Инициализировать размеры/пропорции ячеек объекта
+        /// </summary>
+        /// <param name="cols">Количество столбцов в макете/сетке</param>
+        /// <param name="rows">Количество строк в макете/сетке</param>
         protected abstract void initializeLayoutStyle (int cols = -1, int rows = -1);
-
+        /// <summary>
+        /// Инициализировать размеры/пропорции ячеек объекта
+        ///  (равномерное распределение)
+        /// </summary>
+        /// <param name="cols">Количество столбцов в макете/сетке</param>
+        /// <param name="rows">Количество строк в макете/сетке</param>
         protected void initializeLayoutStyleEvenly(int cols = -1, int rows = -1)
         {
             if (cols > 0)
@@ -120,6 +129,21 @@ namespace HClassLibrary
             for (int s = 0; s < this.RowCount - 0; s++)
                 this.RowStyles.Add(new RowStyle(SizeType.Percent, val));
             //this.RowStyles.Add(new RowStyle(SizeType.AutoSize, val));
+        }
+        /// <summary>
+        /// Индекс строки в [0]-ой ячейке которой не размещен ни один из элементов управления
+        ///  (для размещения очередного элемента управления)
+        /// </summary>
+        public int IndexLastRowControl
+        {
+            get {
+                int iRes = 0;
+
+                while (!(GetControlFromPosition(0, iRes) == null))
+                    iRes++;
+
+                return iRes;
+            }
         }
 
         #region Обязательный код для корректного освобождения памяти
@@ -225,6 +249,10 @@ namespace HClassLibrary
         }
     }
 
+    #region Подпись - Label
+    /// <summary>
+    /// Подпись, наследуется от 'Label'
+    /// </summary>
     partial class HLabel
     {
         /// <summary>
@@ -258,7 +286,9 @@ namespace HClassLibrary
 
         #endregion
     }
-
+    /// <summary>
+    /// Подпись, наследуется от 'Label'
+    /// </summary>
     public partial class HLabel : System.Windows.Forms.Label
     {
         public enum TYPE_HLABEL { UNKNOWN = -1, TG, TOTAL, TOTAL_ZOOM, COUNT_TYPE_HLABEL };
@@ -358,7 +388,9 @@ namespace HClassLibrary
             return fontRes;
         }
     }
-
+    /// <summary>
+    /// Стиль для подписи
+    /// </summary>
     public class HLabelStyles
     {
         public Color m_foreColor,
@@ -384,14 +416,23 @@ namespace HClassLibrary
             m_align = align;
         }
     };
+    #endregion
 
+    /// <summary>
+    /// Тип объекта - календарь для размещения в один из столбцов 'DataGridView'
+    /// </summary>
     public class CalendarColumn : DataGridViewColumn
     {
+        /// <summary>
+        /// Конструктор - основной (без параметров)
+        /// </summary>
         public CalendarColumn()
             : base()
         {
         }
-
+        /// <summary>
+        /// Шаблон для ячейки в столбце-каледаре
+        /// </summary>
         public override DataGridViewCell CellTemplate
         {
             get { return base.CellTemplate; }
