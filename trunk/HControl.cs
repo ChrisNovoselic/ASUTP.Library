@@ -145,7 +145,34 @@ namespace HClassLibrary
                 return iRes;
             }
         }
+        /// <summary>
+        /// Опции при поиске
+        /// </summary>
+        [Flags]
+        protected enum OptionFindControl {
+            /// <summary>
+            /// Поиск осуществляется в поле 'Name' элемента управления
+            /// </summary>
+            Name,
+            /// <summary>
+            /// Поиск осуществляется в поле 'Tag' элемента управления
+            /// </summary>
+            Tag
+        }
+        /// <summary>
+        /// Найти элемент управления на панели идентификатору
+        /// </summary>
+        /// <param name="nameCtrl">Идентификатор-строка элемента управления</param>
+        /// <param name="opt">Опция при поиске: в каком поле искать идентификатор</param>
+        /// <returns>Элемент управления на панели, если не найден null</returns>
+        protected Control findControl(string nameCtrl, OptionFindControl opt = OptionFindControl.Name)
+        {
+            Control ctrlRes = null;
 
+            ctrlRes = Controls.Find(nameCtrl, true)?[0];
+
+            return ctrlRes;
+        }
         #region Обязательный код для корректного освобождения памяти
         private System.ComponentModel.IContainer components = null;
 
