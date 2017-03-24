@@ -162,14 +162,23 @@ namespace HClassLibrary
         /// <summary>
         /// Найти элемент управления на панели идентификатору
         /// </summary>
-        /// <param name="nameCtrl">Идентификатор-строка элемента управления</param>
+        /// <param name="id">Идентификатор-строка элемента управления</param>
         /// <param name="opt">Опция при поиске: в каком поле искать идентификатор</param>
+        /// <param name="bSearchAllChildren">True - если требуется найти все дочерние элементы</param>
         /// <returns>Элемент управления на панели, если не найден null</returns>
-        protected Control findControl(string nameCtrl, OptionFindControl opt = OptionFindControl.Name)
+        protected Control findControl(string id, OptionFindControl opt = OptionFindControl.Name, bool bSearchAllChildren = true)
         {
             Control ctrlRes = null;
 
-            ctrlRes = Controls.Find(nameCtrl, true)?[0];
+            Control[] arFind;
+
+            arFind = Controls.Find(id, bSearchAllChildren);
+            if (arFind.Length == 1)
+                ctrlRes = arFind[0];
+            else if (arFind.Length == 0)
+                ctrlRes = new Control();
+            else
+                ctrlRes = new Control();
 
             return ctrlRes;
         }
