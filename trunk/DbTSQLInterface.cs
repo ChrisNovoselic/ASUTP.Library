@@ -515,6 +515,8 @@ namespace HClassLibrary
                 case @"double":
                     strVal = ((double)val).ToString(System.Globalization.CultureInfo.InvariantCulture);
                     break;
+                case @"Single":
+                case @"single":
                 case @"Float":
                 case @"float":
                     strVal = ((float)val).ToString(System.Globalization.CultureInfo.InvariantCulture);
