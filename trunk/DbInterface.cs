@@ -398,15 +398,43 @@ namespace HClassLibrary
 
                         try {
                             //m_threadGetData.RunWorkerAsync(new object[] { pair.Value.dataTable, request });
-                            threadGetData = new Thread(new ParameterizedThreadStart((obj) => {
-                                result = GetData(pair.Value.dataTable, request);
+                            threadGetData = new Thread(new ParameterizedThreadStart(delegate (object obj) {
+                                try {
+                                    result = GetData(pair.Value.dataTable, request);
 
-                                (obj as AutoResetEvent).Set();
-                            })) { IsBackground = true };
+                                    (obj as AutoResetEvent).Set();
+                                } catch (ThreadAbortException ae) {
+                                    Logging.Logg().ExceptionDB(string.Format(@"::DbInterface_ThreadFunction () - {1}:{2}{0}{3}{0}{4}"
+                                        , Environment.NewLine
+                                        , Name, pair.Key
+                                        , ((!(ae.Data == null)) && (ae.Data.Count > 0))
+                                            ? string.Format(@"внешний объект(индекс-0)={0}", ae.Data[0])
+                                                : "внешний объект не указан"
+                                        , ae.Message, ae.StackTrace));
+
+                                    Thread.ResetAbort();
+                                } catch (Exception e) {
+                                    Logging.Logg().ExceptionDB(string.Format(@"DbInterface_ThreadFunction () - {1}:{2}{0}{3}{0}{4}"
+                                        , Environment.NewLine
+                                        , Name, pair.Key
+                                        , e.Message, e.StackTrace));
+                                } finally {
+                                }
+                            })) {
+                                IsBackground = true
+                                , Name = string.Format (@"{0}:{1}", Name, pair.Key)
+                                , Priority = ThreadPriority.AboveNormal
+                            };
                             threadGetData.Start(waitHandleGetData[0]);
 
-                            iGetData = WaitHandle.WaitAny(waitHandleGetData);
-
+                            if ((iGetData = WaitHandle.WaitAny(waitHandleGetData)) > 0) {
+                                switch (iGetData) {
+                                    default:
+                                        threadGetData.Abort(string.Format(@"Индекс объекта синхронизации={0}", iGetData));
+                                        break;
+                                }
+                            } else
+                                ;
                             threadGetData = null;
                         } catch (DbException e) {
                             Logging.Logg().Exception(e
