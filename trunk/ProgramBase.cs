@@ -61,7 +61,10 @@ namespace HClassLibrary
 
         public const Int32 TIMER_START_INTERVAL = 666;
 
-        //Журналирование старта приложения
+        /// <summary>
+        /// Журналирование старта приложения
+        /// </summary>
+        /// <param name="bGUI">признак наличия графического интерфейса с пользователем</param>
         public static void Start(bool bGUI = true)
         {
             if (bGUI == true)
@@ -90,8 +93,9 @@ namespace HClassLibrary
             else ;
             Logging.Logg().PostStart(MessageWellcome);
         }
-
-        //Журналирование завершения приложения
+        /// <summary>
+        /// Журналирование завершения приложения
+        /// </summary>
         public static void Exit()
         {
             List<Form> listApplicationOpenForms = new List<Form>();
@@ -118,8 +122,9 @@ namespace HClassLibrary
 
             DbSources.Sources().UnRegister();
 
-            System.ComponentModel.CancelEventArgs cancelEvtArgs = new System.ComponentModel.CancelEventArgs(true);
-            Application.Exit(cancelEvtArgs);
+            Application.Exit(new System.ComponentModel.CancelEventArgs(true));
+
+            HCmd_Arg.SingleInstance.ReleaseMtx();
         }
 
         /// <summary>
@@ -300,12 +305,8 @@ namespace HClassLibrary
         {
             handlerArgs(args);
 
-            if (m_dictCmdArgs.ContainsKey("stop") == true)
-                execCmdLine(false);
-            else
-                if (SingleInstance.IsOnlyInstance == false)
-                    execCmdLine(true);
-                else ;
+            execCmdLine(!m_dictCmdArgs.ContainsKey("stop")
+                , SingleInstance.IsOnlyInstance);
         }
 
         /// <summary>
@@ -444,9 +445,11 @@ namespace HClassLibrary
             {
                 get
                 {
-                    bool bRes;
+                    bool bRes = true;
+
                     Logging.Logg().Debug(@"SingleInstance::IsOnlyInstance - m_mtxName = " + m_mtxName, Logging.INDEX_MESSAGE.NOT_SET);
                     m_mtx = new Mutex(true, m_mtxName, out bRes);
+
                     return bRes;
                 }
             }
@@ -468,19 +471,21 @@ namespace HClassLibrary
             /// </summary>
             static public void ReleaseMtx()
             {
-                m_mtx.ReleaseMutex();
+                try {
+                    m_mtx.ReleaseMutex();
+                } catch { }
             }
 
             /// <summary>
-            /// Остановка работы основного приложения
+            /// Остановка работы дублирующего приложения
             /// </summary>
             static public void StopApp()
             {
-                sendMsg(mainhWnd, (IntPtr)WinApi.SC_CLOSE, WinApi.WM_CLOSE);
+                sendMsg(HandleWnd, (IntPtr)WinApi.SC_CLOSE, WinApi.WM_CLOSE);
             }
 
             /// <summary>
-            /// Прерывание запуска дублирующего приложения
+            /// Прерывание запуска основного(текущего) приложения
             /// </summary>
             static public void InterruptReApp()
             {
@@ -488,16 +493,18 @@ namespace HClassLibrary
             }
 
             /// <summary>
-            /// поиск дескриптора по процессу
+            /// Поиск дескриптора окна дублирующего процесса
             /// </summary>
             /// <returns>дескриптор окна</returns>
-            static public IntPtr mainhWnd
+            static public IntPtr HandleWnd
             {
                 get
                 {
-                    IntPtr m_hWnd = IntPtr.Zero;
+                    IntPtr hWndRes = IntPtr.Zero;
+
                     Process process = Process.GetCurrentProcess();
                     Process[] processes = Process.GetProcessesByName(process.ProcessName);
+
                     foreach (Process _process in processes)
                     {
                         // Get the first instance that is not this instance, has the
@@ -505,19 +512,22 @@ namespace HClassLibrary
                         // and location. Also check that the process has a valid
                         // window handle in this session to filter out other user's
                         // processes.
-                        if (_process.Id != process.Id &&
-                            _process.MainModule.FileName == process.MainModule.FileName &&
-                            _process.Handle != IntPtr.Zero)
+                        if ((!(_process.Id == process.Id)) // идентификатор процесса не совпадает
+                            && (_process.MainModule.FileName == process.MainModule.FileName) // полный путь совпадает
+                            && (!(_process.Handle == IntPtr.Zero))) // найденный процесс "живой"
                         {
-                            m_hWnd = _process.MainWindowHandle;
+                            hWndRes = _process.MainWindowHandle;
 
-                            if (m_hWnd == IntPtr.Zero)
-                                m_hWnd = enumID(_process.Id);
-                            else ;
+                            if (hWndRes == IntPtr.Zero)
+                                hWndRes = findHandleWnd(_process.Id);
+                            else
+                                ;
+
                             break;
                         }
                     }
-                    return m_hWnd;
+
+                    return hWndRes;
                 }
             }
 
@@ -526,24 +536,27 @@ namespace HClassLibrary
             /// </summary>
             /// <param name="id">ид процесса приложения</param>
             /// <returns>дескриптор окна</returns>
-            static private IntPtr enumID(int id)
+            static private IntPtr findHandleWnd(int id)
             {
-                IntPtr hwnd = IntPtr.Zero;
-                bool flg = true;
-                WinApi.EnumWindows((hWnd, lParam) =>
-                {
-                    if (WinApi.IsWindowVisible(hWnd) && (WinApi.GetWindowTextLength(hWnd) != 0))
-                    {
-                        if (WinApi.IsIconic(hWnd) != 0 &&
-                            WinApi.GetPlacement(hWnd).showCmd == WinApi.ShowWindowCommands.Minimized
-                            && flg)
-                            hwnd = findCurProc(id, hWnd, out flg);
-                        else ;
-                    }
+                IntPtr hWndRes = IntPtr.Zero;
+                bool breakFind = false; // флаг остановки поиска хандлера
+
+                WinApi.EnumWindows((wParam, lParam) => {
+                    if ((WinApi.IsWindowVisible(wParam) == true) // видимость окна - да
+                        && (!(WinApi.GetWindowTextLength(wParam) == 0))) { // текст наименования - не пустой
+                        if ((!(WinApi.IsIconic(wParam) == 0)) // минимизицация окна - нет
+                            && (WinApi.GetPlacement(wParam).showCmd == WinApi.ShowWindowCommands.Minimized)
+                            && (breakFind == false))
+                            hWndRes = getHandleWnd(id, wParam, out breakFind);
+                        else
+                            ;
+                    } else
+                        ;
+
                     return true;
                 }, IntPtr.Zero);
 
-                return hwnd;
+                return hWndRes;
             }
 
             ///// <summary>
@@ -564,72 +577,71 @@ namespace HClassLibrary
             /// </summary>
             static public void SwitchToCurrentInstance()
             {
-                IntPtr hWnd = mainhWnd;
+                IntPtr hWnd = HandleWnd;
                 sendMsg(hWnd, IntPtr.Zero, WinApi.SW_RESTORE);
 
-                if (hWnd != IntPtr.Zero)
-                {
+                if (hWnd.Equals(IntPtr.Zero) == false) {
                     // Restore window if minimised. Do not restore if already in
                     // normal or maximised window state, since we don't want to
                     // change the current state of the window.
-                    if (WinApi.IsIconic(hWnd) != 0)
+                    if (!(WinApi.IsIconic(hWnd) == 0))
                         WinApi.ShowWindow(hWnd, WinApi.SW_RESTORE);
                     else
                         ;
                     // Set foreground window.
                     WinApi.SetForegroundWindow(hWnd);
-                }
+                } else
+                    Logging.Logg().Error(string.Format(@"SingleInstance::SwitchToCurrentInstance () - handleWindow = {0}", hWnd), Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             /// <summary>
-            /// поиск нужного процесса
+            /// Возвратить дескриптор окна, если процесс является его владельцем, иначе null
             /// </summary>
-            /// <param name="id">идентификатор приложения</param>
-            /// <param name="hwd">дескриптор окна</param>
-            ///  <param name="flg">флаг остановки посика хандлера</param>
+            /// <param name="id">Идентификатор приложения</param>
+            /// <param name="hWnd">Дескриптор окна для проверки</param>
+            ///  <param name="bIsOwner">Признак совпадения идентификаторов главных потоков (???процессов) переданного в 1-ом аргументе и владельца окна, переданного во 2-ом аргументе</param>
             /// <returns>дескриптор окна</returns>
-            static private IntPtr findCurProc(int id, IntPtr hwd, out bool flg)
+            static private IntPtr getHandleWnd(int id, IntPtr hWnd, out bool bIsOwner)
             {
+                IntPtr hWndRes = IntPtr.Zero;
+
                 int _ProcessId;
-                WinApi.GetWindowThreadProcessId(hwd, out _ProcessId);
+                WinApi.GetWindowThreadProcessId(hWnd, out _ProcessId);
 
                 if (id == _ProcessId)
-                {
-                    flg = false;
-                    return hwd;
-                }
+                    hWndRes = hWnd;
                 else
-                {
-                    flg = true;
-                    return IntPtr.Zero;
-                }
+                    ;
+
+                bIsOwner = hWndRes == IntPtr.Zero;
+
+                return hWndRes;
             }
         }
 
         /// <summary>
         /// Обработка команды старт/стоп
         /// </summary>
-        /// <param name="CmdStr">команда приложению</param>
-        static public void execCmdLine(bool bIsExecute)
+        /// <param name="bIsExecute">Признак продолжения выполнения текущего экземпляра</param>
+        /// <param name="bIsOnlyInstance">Признак уникальности текущего экземпляра</param>
+        static public void execCmdLine(bool bIsExecute, bool bIsOnlyInstance)
         {
-            bool bIsOnlyInstance = SingleInstance.IsOnlyInstance;
-
-            if (bIsExecute == true)
-            {
-                if (bIsOnlyInstance == false)
-                {
+            if (bIsExecute == true) {
+                if (bIsOnlyInstance == false) {
                     SingleInstance.SwitchToCurrentInstance();
                     SingleInstance.InterruptReApp();
-                }
-            }
-            else
-                if (bIsExecute == false)
-                {
+                } else
+                    ;
+            } else
+                if (bIsExecute == false) {
                     if (bIsOnlyInstance == false)
                         SingleInstance.StopApp();
+                    else
+                        ;
 
                     SingleInstance.InterruptReApp();
-                }
+                } else
+                    ;
         }
 
         public void Dispose()

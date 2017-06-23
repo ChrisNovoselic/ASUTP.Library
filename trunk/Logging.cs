@@ -222,21 +222,29 @@ namespace HClassLibrary
 
         public static Logging Logg()
         {
+            string pathToFile = string.Empty;
+
             if (m_this == null)
             {
                 switch (s_mode) {
                     case LOG_MODE.FILE_EXE:
                         //m_this = new Logging(System.Environment.CurrentDirectory + @"\" + AppName + "_" + Environment.MachineName + "_log.txt", false, null, null);
-                        m_this = new Logging(System.Environment.CurrentDirectory + @"\logs\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        pathToFile = System.Environment.CurrentDirectory + @"\logs";
+                        try {
+                            if (Directory.Exists(pathToFile) == false)
+                                Directory.CreateDirectory(pathToFile);
+                            else
+                                ;
+                        } catch { }
                         break;
                     case LOG_MODE.FILE_DESKTOP:
-                        m_this = new Logging(System.Environment.GetFolderPath (Environment.SpecialFolder.Desktop) + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        pathToFile = System.Environment.GetFolderPath (Environment.SpecialFolder.Desktop);
                         break;
                     case LOG_MODE.FILE_NETDEV:
-                        m_this = new Logging(@"\\ne1150\D$\My Project's\Work's\C.Net\Temp" + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        pathToFile = @"\\ne1150\D$\My Project's\Work's\C.Net\Temp";
                         break;
                     case LOG_MODE.FILE_LOCALDEV:
-                        m_this = new Logging(@"D:\My Project's\Work's\C.Net\Temp" + @"\" + AppName + "_" + Environment.MachineName + "_log.txt");
+                        pathToFile = @"D:\My Project's\Work's\C.Net\Temp";
                         break;
                     case LOG_MODE.DB:
                     case LOG_MODE.UNKNOWN:
@@ -244,6 +252,11 @@ namespace HClassLibrary
                         m_this = new Logging ();
                         break;
                 }
+
+                if (string.IsNullOrEmpty(pathToFile) == false)
+                    m_this = new Logging(string.Format(@"{0}\{1}_{2}_{3}.{4}", pathToFile, AppName, Environment.MachineName, "log", "txt"));
+                else
+                    ;
             }
             else
                 ;
