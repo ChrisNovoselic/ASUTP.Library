@@ -7,37 +7,111 @@ using System.Reflection;
 
 using System.Threading;
 using System.Diagnostics; //Process
+using System.Messaging;
 
 namespace HClassLibrary
 {
+    #region Типы делегатов ???заменить на Action<>, Func
+    /// <summary>
+    /// Тип для делегата без аргументов и без возвращаемого значения
+    /// </summary>
     public delegate void DelegateFunc();
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'int' и без возвращаемого значения
+    /// </summary>
+    /// <param name="param">Аргумент 1</param>
     public delegate void DelegateIntFunc(int param);
+    /// <summary>
+    /// Тип для делегата с аргументами типа 'int', 'int' и без возвращаемого значения
+    /// </summary>
+    /// <param name="param1">Аргумент 1</param>
+    /// <param name="param2">Аргумент 2</param>
     public delegate void DelegateIntIntFunc(int param1, int param2);
+    /// <summary>
+    /// Тип для делегата с аргументами типа 'int', 'int' с возвращаемым значением типа 'int'
+    /// </summary>
+    /// <param name="param1">Аргумент 1</param>
+    /// <param name="param2">Аргумент 2</param>
+    /// <returns>Результат выполнения</returns>
     public delegate int IntDelegateIntIntFunc(int param1, int param2);
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'string' и без возвращаемого значения
+    /// </summary>
+    /// <param name="param">Аргумент 1</param>
     public delegate void DelegateStringFunc(string param);
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'bool' и без возвращаемого значения
+    /// </summary>
+    /// <param name="param">Аргумент 1</param>
     public delegate void DelegateBoolFunc(bool param);
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'object' и без возвращаемого значения
+    /// </summary>
+    /// <param name="obj">Аргумент 1</param>
     public delegate void DelegateObjectFunc(object obj);
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'ссылка на object' с и без возвращаемого значения
+    /// </summary>
+    /// <param name="obj">Аргумент 1</param>
     public delegate void DelegateRefObjectFunc(ref object obj);
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'DateTime' с и без возвращаемого значения
+    /// </summary>
+    /// <param name="date">Аргумент 1</param>
     public delegate void DelegateDateFunc(DateTime date);
-
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'DateTime' и без возвращаемого значения
+    /// </summary>
+    /// <returns>Результат выполнения</returns>
     public delegate int IntDelegateFunc();
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'int' с возвращаемым значения типа 'int'
+    /// </summary>
+    /// <param name="param">>Аргумент 1</param>
+    /// <returns>Результат выполнения</returns>
     public delegate int IntDelegateIntFunc(int param);
-
+    /// <summary>
+    /// Тип для делегата без аргументов с возвращаемым значения типа 'string'
+    /// </summary>
+    /// <returns>Результат выполнения</returns>
     public delegate string StringDelegateFunc();
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'int' с возвращаемым значения типа 'string'
+    /// </summary>
+    /// <param name="param">Аргумент 1</param>
+    /// <returns>Результат выполнения</returns>
     public delegate string StringDelegateIntFunc(int param);
+    /// <summary>
+    /// Тип для делегата с аргументом типа 'string' с возвращаемым значения типа 'string'
+    /// </summary>
+    /// <param name="keyParam">Аргумент 1</param>
+    /// <returns>Результат выполнения</returns>
     public delegate string StringDelegateStringFunc(string keyParam);
+    #endregion
 
+    /// <summary>
+    /// Класс исключения для хранения дополнительно 
+    /// </summary>
     public class HException : Exception
     {
+        /// <summary>
+        /// Целочисленное значение детализирующее исключение пользователя
+        /// </summary>
         public int m_code;
-
+        /// <summary>
+        /// Конструктор - основной (с параметрами)
+        /// </summary>
+        /// <param name="code">Дополнительный код исключения</param>
+        /// <param name="msg">Сообщение для создания объекта базового класса</param>
         public HException(int code, string msg)
             : base(msg)
         {
             m_code = code;
         }
     }
-
+    /// <summary>
+    /// Перечисление - идентификатор ошибки
+    /// </summary>
     public enum Errors
     {
         NoError,
@@ -49,8 +123,14 @@ namespace HClassLibrary
 
     //public enum TYPE_DATABASE_CFG { CFG_190, CFG_200, COUNT };
 
+    /// <summary>
+    /// Базовый класс для класса приложения
+    /// </summary>
     public static class ProgramBase
     {
+        /// <summary>
+        /// Перечисление - идентификаторы приложений из состава ИС Статистика
+        /// </summary>
         public enum ID_APP { STATISTIC = 1, TRANS_GTP, TRANS_GTP_TO_NE22, TRANS_GTP_FROM_NE22, TRANS_BYISK_GTP_TO_NE22, TRANS_MODES_CENTRE, TRANS_MODES_CENTRE_GUI, TRANS_MODES_CENTRE_CMD, TRANS_MODES_TERMINALE, TRANS_TG }
 
         public static System.Globalization.CultureInfo ss_MainCultureInfo = new System.Globalization.CultureInfo(@"ru-Ru");
@@ -143,7 +223,6 @@ namespace HClassLibrary
 
         static void Application_ExceptionSingleInstance(object sender)
         {
-
         }
 
         /// <summary>
@@ -261,7 +340,7 @@ namespace HClassLibrary
         }
 
         /// <summary>
-        /// Формируек командную строку для запуска приложения
+        /// Сформировать командную строку для запуска приложения (исключая путь к образу исполняемого файла)
         /// </summary>
         static string getCommandLineArgs()
         {
@@ -435,8 +514,8 @@ namespace HClassLibrary
         /// </summary>
         static public class SingleInstance
         {
-            static private string m_mtxName = ProgramInfo.NameMtx.ToString();
-            static Mutex m_mtx;
+            static private string s_NameMtx = ProgramInfo.NameMtx.ToString();
+            static Mutex s_mtx;
 
             /// <summary>
             /// Проверка на повторный запуск
@@ -447,23 +526,31 @@ namespace HClassLibrary
                 {
                     bool bRes = true;
 
-                    Logging.Logg().Debug(@"SingleInstance::IsOnlyInstance - m_mtxName = " + m_mtxName, Logging.INDEX_MESSAGE.NOT_SET);
-                    m_mtx = new Mutex(true, m_mtxName, out bRes);
+                    Logging.Logg().Debug(@"SingleInstance::IsOnlyInstance - m_mtxName = " + s_NameMtx, Logging.INDEX_MESSAGE.NOT_SET);
+                    s_mtx = new Mutex(true, s_NameMtx, out bRes);
 
                     return bRes;
                 }
             }
 
             /// <summary>
-            /// Отправка сообщения приложению
-            /// для его активации
+            /// Отправка сообщения окну по дескриптору окна
             /// </summary>
-            /// <param name="hWnd">дескриптор окна</param>
-            static private void sendMsg(IntPtr hWnd, IntPtr wParam, int iMsg)
+            /// <param name="hWnd">Дескриптор окна</param>
+            /// <param name="idMsg">Аргумент 2</param>
+            /// <param name="wParam">Аргумент 3</param>            
+            static private void sendMsg(IntPtr hWnd, int idMsg, IntPtr wParam)
             {
                 //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-                WinApi.SendMessage(hWnd, iMsg, wParam, IntPtr.Zero);
+                WinApi.SendMessage(hWnd, idMsg, wParam, IntPtr.Zero);
+            }
+            
+            static private void postMsg(IntPtr hWnd, uint idMsg, IntPtr wParam)
+            {
+                //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
+
+                WinApi.PostMessage(hWnd, idMsg, wParam, IntPtr.Zero);
             }
 
             /// <summary>
@@ -472,7 +559,7 @@ namespace HClassLibrary
             static public void ReleaseMtx()
             {
                 try {
-                    m_mtx.ReleaseMutex();
+                    s_mtx.ReleaseMutex();
                 } catch { }
             }
 
@@ -481,7 +568,13 @@ namespace HClassLibrary
             /// </summary>
             static public void StopApp()
             {
-                sendMsg(HandleWnd, (IntPtr)WinApi.SC_CLOSE, WinApi.WM_CLOSE);
+                // вариант №1
+                sendMsg(HandleWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
+                //// вариант №3
+                //postMsg((IntPtr)WinApi.HWND_BROADCAST, WinApi.WM_CLOSE, new IntPtr(WinApi.SC_CLOSE));
+                // вариант №3
+                //using (MessageQueue mq = new MessageQueue(string.Format(@".\{0}", s_NameMtx), true))
+                //    mq.Send(new object[] { 0 });
             }
 
             /// <summary>
@@ -578,7 +671,7 @@ namespace HClassLibrary
             static public void SwitchToCurrentInstance()
             {
                 IntPtr hWnd = HandleWnd;
-                sendMsg(hWnd, IntPtr.Zero, WinApi.SW_RESTORE);
+                sendMsg(hWnd, WinApi.SW_RESTORE, IntPtr.Zero);
 
                 if (hWnd.Equals(IntPtr.Zero) == false) {
                     // Restore window if minimised. Do not restore if already in

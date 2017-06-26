@@ -15,10 +15,6 @@ namespace HClassLibrary
         /// <summary>
         /// Служит для генерации сообщения WM_SYSCOMMAND
         /// </summary>
-        public static IntPtr HWND;
-        /// <summary>
-        /// Служит для генерации сообщения WM_SYSCOMMAND
-        /// </summary>
         public const int WM_SYSCOMMAND = 0x0112;
         /// <summary>
         /// Constant value was found in the "windows.h" header file.
@@ -45,9 +41,13 @@ namespace HClassLibrary
         /// <returns></returns>
         [DllImport("user32.dll")]
         public static extern bool EnumWindows(EnumWindowsProcDel lpEnumFunc, IntPtr lParam);
-
+        /// <summary>
+        /// Тип для делегата при использовании в функции поиска
+        /// </summary>
+        /// <param name="hWnd">Дескриптор окна</param>
+        /// <param name="lParam">Аргумент 1</param>
+        /// <returns>Результат выполнения</returns>
         public delegate bool EnumWindowsProcDel(IntPtr hWnd, IntPtr lParam);
-
         /// <summary>
         /// Определяет свернуто ли приложение
         /// </summary>
@@ -96,6 +96,28 @@ namespace HClassLibrary
         /// <returns></returns>
         [DllImport("user32")]
         public static extern bool SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+        /// <summary>
+        /// Отправить сообщение окну
+        /// </summary>
+        /// <param name="hWnd">Дескриптор окна</param>
+        /// <param name="Msg">Сообщение (идентификатор)</param>
+        /// <param name="wParam">Аргумент 1</param>
+        /// <param name="lParam">Аргумент 2</param>
+        /// <returns></returns>
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        /// <summary>
+        /// Отправить сообщение потоку
+        /// </summary>
+        /// <param name="threadId">Тдентификатор потока</param>
+        /// <param name="msg">Сообщение (идентификатор)</param>
+        /// <param name="wParam">Аргумент 1</param>
+        /// <param name="lParam">Аргумент 2</param>
+        /// <returns></returns>
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool PostThreadMessage(uint threadId, uint msg, IntPtr wParam, IntPtr lParam);
         /// <summary>
         /// Получение ид потока, который создал окно
         /// </summary>
