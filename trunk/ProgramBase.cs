@@ -568,8 +568,13 @@ namespace HClassLibrary
             /// </summary>
             static public void StopApp()
             {
+                IntPtr hWnd = HandleWnd;
+
                 // вариант №1
-                sendMsg(HandleWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
+                if (hWnd.Equals(IntPtr.Zero) == false)
+                    sendMsg(hWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
+                else
+                    ;
                 //// вариант №3
                 //postMsg((IntPtr)WinApi.HWND_BROADCAST, WinApi.WM_CLOSE, new IntPtr(WinApi.SC_CLOSE));
                 // вариант №3
@@ -599,26 +604,32 @@ namespace HClassLibrary
                     Process[] processes = Process.GetProcessesByName(process.ProcessName);
 
                     foreach (Process _process in processes)
-                    {
                         // Get the first instance that is not this instance, has the
                         // same process name and was started from the same file name
                         // and location. Also check that the process has a valid
                         // window handle in this session to filter out other user's
                         // processes.
-                        if ((!(_process.Id == process.Id)) // идентификатор процесса не совпадает
-                            && (_process.MainModule.FileName == process.MainModule.FileName) // полный путь совпадает
-                            && (!(_process.Handle == IntPtr.Zero))) // найденный процесс "живой"
-                        {
-                            hWndRes = _process.MainWindowHandle;
+                        try {                        
+                            if (process.HasExited == false)
+                                if ((!(_process.Id == process.Id)) // идентификатор процесса не совпадает
+                                    && (_process.MainModule.FileName == process.MainModule.FileName) // полный путь совпадает
+                                    && (!(_process.Handle == IntPtr.Zero))) // найденный процесс "живой"
+                                {
+                                    hWndRes = _process.MainWindowHandle;
 
-                            if (hWndRes == IntPtr.Zero)
-                                hWndRes = findHandleWnd(_process.Id);
+                                    if (hWndRes == IntPtr.Zero)
+                                        hWndRes = findHandleWnd(_process.Id);
+                                    else
+                                        ;
+
+                                    break;
+                                } else
+                                    ;
                             else
                                 ;
-
-                            break;
+                        } catch (Exception e) {
+                            hWndRes = IntPtr.Zero;
                         }
-                    }
 
                     return hWndRes;
                 }
