@@ -543,7 +543,12 @@ namespace HClassLibrary
             {
                 //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-                WinApi.SendMessage(hWnd, idMsg, wParam, IntPtr.Zero);
+                if (hWnd.Equals(IntPtr.Zero) == false)
+                    WinApi.SendMessage(hWnd, idMsg, wParam, IntPtr.Zero);
+                else {
+                    //using (MessageQueue mq = new MessageQueue(string.Format(@".\private$\{0}", s_NameMtx), true))
+                    //    mq.Send(new object[] { s_NameMtx, idMsg, wParam, IntPtr.Zero });
+                }                
             }
             
             static private void postMsg(IntPtr hWnd, uint idMsg, IntPtr wParam)
@@ -571,15 +576,10 @@ namespace HClassLibrary
                 IntPtr hWnd = HandleWnd;
 
                 // вариант №1
-                if (hWnd.Equals(IntPtr.Zero) == false)
-                    sendMsg(hWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
-                else
-                    ;
+                sendMsg(hWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
                 //// вариант №3
                 //postMsg((IntPtr)WinApi.HWND_BROADCAST, WinApi.WM_CLOSE, new IntPtr(WinApi.SC_CLOSE));
-                // вариант №3
-                //using (MessageQueue mq = new MessageQueue(string.Format(@".\{0}", s_NameMtx), true))
-                //    mq.Send(new object[] { 0 });
+
             }
 
             /// <summary>
@@ -600,36 +600,34 @@ namespace HClassLibrary
                 {
                     IntPtr hWndRes = IntPtr.Zero;
 
-                    Process process = Process.GetCurrentProcess();
-                    Process[] processes = Process.GetProcessesByName(process.ProcessName);
+                    Process cur_process = Process.GetCurrentProcess();
+                    Process[] processes = Process.GetProcessesByName(cur_process.ProcessName);
 
-                    foreach (Process _process in processes)
+                    foreach (Process process in processes)
                         // Get the first instance that is not this instance, has the
                         // same process name and was started from the same file name
                         // and location. Also check that the process has a valid
                         // window handle in this session to filter out other user's
                         // processes.
                         try {                        
-                            if (process.HasExited == false)
-                                if ((!(_process.Id == process.Id)) // идентификатор процесса не совпадает
-                                    && (_process.MainModule.FileName == process.MainModule.FileName) // полный путь совпадает
-                                    && (!(_process.Handle == IntPtr.Zero))) // найденный процесс "живой"
+                            //if (process.HasExited == false)
+                                if ((!(process.Id == cur_process.Id)) // идентификатор процесса не совпадает
+                                    && (process.MainModule.FileName == cur_process.MainModule.FileName) // полный путь совпадает
+                                    && (!(process.Handle == IntPtr.Zero))) // найденный процесс "живой"
                                 {
-                                    hWndRes = _process.MainWindowHandle;
+                                    hWndRes = process.MainWindowHandle;
 
                                     if (hWndRes == IntPtr.Zero)
-                                        hWndRes = findHandleWnd(_process.Id);
+                                        hWndRes = findHandleWnd(process.Id);
                                     else
                                         ;
 
                                     break;
                                 } else
                                     ;
-                            else
-                                ;
-                        } catch (Exception e) {
-                            hWndRes = IntPtr.Zero;
-                        }
+                            //else
+                            //    ;
+                        } catch { /*hWndRes = IntPtr.Zero;*/ }
 
                     return hWndRes;
                 }
@@ -646,11 +644,11 @@ namespace HClassLibrary
                 bool breakFind = false; // флаг остановки поиска хандлера
 
                 WinApi.EnumWindows((wParam, lParam) => {
-                    if ((WinApi.IsWindowVisible(wParam) == true) // видимость окна - да
-                        && (!(WinApi.GetWindowTextLength(wParam) == 0))) { // текст наименования - не пустой
-                        if ((!(WinApi.IsIconic(wParam) == 0)) // минимизицация окна - нет
+                    if (/*(WinApi.IsWindowVisible(wParam) == true) // видимость окна - да
+                        &&*/ (!(WinApi.GetWindowTextLength(wParam) == 0))) { // текст наименования - не пустой
+                        if (/*(!(WinApi.IsIconic(wParam) == 0)) // минимизицация окна - нет
                             && (WinApi.GetPlacement(wParam).showCmd == WinApi.ShowWindowCommands.Minimized)
-                            && (breakFind == false))
+                            &&*/ (breakFind == false))
                             hWndRes = getHandleWnd(id, wParam, out breakFind);
                         else
                             ;
@@ -682,9 +680,10 @@ namespace HClassLibrary
             static public void SwitchToCurrentInstance()
             {
                 IntPtr hWnd = HandleWnd;
+
                 sendMsg(hWnd, WinApi.SW_RESTORE, IntPtr.Zero);
 
-                if (hWnd.Equals(IntPtr.Zero) == false) {
+                if (hWnd.Equals(IntPtr.Zero) == false) {                    
                     // Restore window if minimised. Do not restore if already in
                     // normal or maximised window state, since we don't want to
                     // change the current state of the window.
@@ -717,7 +716,7 @@ namespace HClassLibrary
                 else
                     ;
 
-                bIsOwner = hWndRes == IntPtr.Zero;
+                bIsOwner = !(hWndRes == IntPtr.Zero);
 
                 return hWndRes;
             }
