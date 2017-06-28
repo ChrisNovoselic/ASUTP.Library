@@ -552,7 +552,7 @@ namespace HClassLibrary
             /// </summary>
             static public void ReleaseMtx()
             {
-                s_mutex.ReleaseMutex();
+                s_mutex?.ReleaseMutex();
             }
 
             /// <summary>
