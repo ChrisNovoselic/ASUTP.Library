@@ -122,8 +122,14 @@ namespace HClassLibrary
 
     //public enum TYPE_DATABASE_CFG { CFG_190, CFG_200, COUNT };
 
+    /// <summary>
+    /// Базовый класс для класса приложения
+    /// </summary>
     public static class ProgramBase
     {
+        /// <summary>
+        /// Перечисление - идентификаторы приложений из состава ИС Статистика
+        /// </summary>
         public enum ID_APP { STATISTIC = 1, TRANS_GTP, TRANS_GTP_TO_NE22, TRANS_GTP_FROM_NE22, TRANS_BYISK_GTP_TO_NE22, TRANS_MODES_CENTRE, TRANS_MODES_CENTRE_GUI, TRANS_MODES_CENTRE_CMD, TRANS_MODES_TERMINALE, TRANS_TG }
 
         public static System.Globalization.CultureInfo ss_MainCultureInfo = new System.Globalization.CultureInfo(@"ru-Ru");
@@ -137,7 +143,7 @@ namespace HClassLibrary
         /// <summary>
         /// Журналирование старта приложения
         /// </summary>
-        /// <param name="bGUI">Признак наличия интерфйса с пользователем</param>
+        /// <param name="bGUI">Признак наличия графического интерфейса с пользователем</param>
         public static void Start(bool bGUI = true)
         {
             if (bGUI == true) {
@@ -165,7 +171,6 @@ namespace HClassLibrary
                 ;
             Logging.Logg().PostStart(MessageWellcome);
         }
-
         /// <summary>
         /// Журналирование завершения приложения
         /// </summary>
@@ -324,11 +329,13 @@ namespace HClassLibrary
             } catch (ArgumentException ex) {
                 throw;
             }
+
             Process.Start(exePath, commandLineArgs);
         }
 
         /// <summary>
         /// Формируек командную строку для запуска приложения
+        ///   (исключая путь к образу исполняемого файла)
         /// </summary>
         static string getCommandLineArgs()
         {
@@ -355,7 +362,7 @@ namespace HClassLibrary
     public class HCmd_Arg : IDisposable
     {
         /// <summary>
-        /// значения командной строки
+        /// Значения командной строки
         /// </summary>
         protected static Dictionary<string, string> m_dictCmdArgs;
         ///// <summary>
@@ -366,7 +373,7 @@ namespace HClassLibrary
         /// <summary>
         /// Основной конструктор класса
         /// </summary>
-        /// <param name="args">параметры командной строки</param>
+        /// <param name="args">Параметры командной строки</param>
         public HCmd_Arg(string[] args)
         {
             handlerArgs(args);
@@ -383,9 +390,9 @@ namespace HClassLibrary
         }
 
         /// <summary>
-        /// обработка CommandLine
+        /// Обработка CommandLine - формирование словаря со значениями
         /// </summary>
-        /// <param name="cmdLine">командная строка</param>
+        /// <param name="cmdLine">Параметры командной строки</param>
         protected static void handlerArgs(string[] cmdLine)
         {
             string[] args = null
@@ -445,7 +452,8 @@ namespace HClassLibrary
             }
 
             /// <summary>
-            /// создвет имя мьютекса по пути запускаемого приложения
+            /// Строковя уникальная строка для наименования мьютекса
+            ///  (из пути запускаемого приложения)
             /// </summary>
             static public string NameMtx
             {
@@ -483,18 +491,23 @@ namespace HClassLibrary
                 get
                 {
                     object[] attributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyTitleAttribute), false);
+
                     if (attributes.Length > 0) {
-                        AssemblyTitleAttribute titleAttribute = (AssemblyTitleAttribute)attributes[0];
-                        if (titleAttribute.Title != "")
-                            return titleAttribute.Title;
-                    }
+                        AssemblyTitleAttribute assTitleAttr = (AssemblyTitleAttribute)attributes[0];
+                        if (string.IsNullOrEmpty(assTitleAttr.Title) == false)
+                            return assTitleAttr.Title;
+                        else
+                            ;
+                    } else
+                        ;
+
                     return System.IO.Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().CodeBase);
                 }
             }
         }
 
         /// <summary>
-        /// класс по работе с запущенным приложением
+        /// Класс по работе с запущенным приложением
         /// </summary>
         static public class SingleInstance
         {
@@ -509,7 +522,7 @@ namespace HClassLibrary
                 get
                 {
                     bool bRes;
-                    Logging.Logg().Debug(@"SingleInstance::IsOnlyInstance - m_mtxName = " + s_NameMutex, Logging.INDEX_MESSAGE.NOT_SET);
+                    Logging.Logg().Debug(@"SingleInstance::IsOnlyInstance - s_NameMutex = " + s_NameMutex, Logging.INDEX_MESSAGE.NOT_SET);
                     s_mutex = new Mutex(true, s_NameMutex, out bRes);
                     return bRes;
                 }
@@ -543,15 +556,15 @@ namespace HClassLibrary
             }
 
             /// <summary>
-            /// Остановка работы основного приложения
+            /// Остановка работы дублирующего приложения
             /// </summary>
             static public void StopApp()
             {
-                sendMsg(mainhWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
+                sendMsg(HandleWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
             }
 
             /// <summary>
-            /// Прерывание запуска дублирующего приложения
+            /// Прерывание запуска основного(текущего) приложения
             /// </summary>
             static public void InterruptReApp()
             {
@@ -559,10 +572,9 @@ namespace HClassLibrary
             }
 
             /// <summary>
-            /// поиск дескриптора по процессу
+            /// Дескриптор окна дублирующего процесса
             /// </summary>
-            /// <returns>дескриптор окна</returns>
-            static public IntPtr mainhWnd
+            static public IntPtr HandleWnd
             {
                 get
                 {
@@ -596,16 +608,19 @@ namespace HClassLibrary
             }
 
             /// <summary>
-            /// выборка всех запущенных приложений
+            /// Возвратить дескриптор окна по идентификатору процесса
             /// </summary>
-            /// <param name="id">ид процесса приложения</param>
-            /// <returns>дескриптор окна</returns>
+            /// <param name="id">Идентификатор процесса</param>
+            /// <returns>Дескриптор (главного) окна приложения</returns>
             static private IntPtr getWindowThreadProcessId(int id)
             {
                 IntPtr hWndRes = IntPtr.Zero;
                 bool bIsSuccess = false;
 
-                WinApi.EnumWindows((wParam, lParam) => {
+                // Функция для перечисления всех окон
+                // , при этом при выполнении набора условий
+                //  происходит проверка: принадлежит ли процессу(по идентификатору) окно(по дескриптору) 
+                WinApi.EnumWindowsProcDel winEnumerateProc = (wParam, lParam) => {
                     if ((WinApi.IsWindowVisible(wParam) == true)
                         && (!(WinApi.GetWindowTextLength(wParam) == 0))) {
                         if ((!(WinApi.IsIconic(wParam) == 0))
@@ -614,10 +629,13 @@ namespace HClassLibrary
                             hWndRes = getWindowThreadProcessId(id, wParam, out bIsSuccess);
                         else
                             ;
-                    }
+                    } else
+                        ;
 
                     return true;
-                }, IntPtr.Zero);
+                };
+
+                WinApi.EnumWindows(winEnumerateProc, IntPtr.Zero);
 
                 return hWndRes;
             }
@@ -640,7 +658,7 @@ namespace HClassLibrary
             /// </summary>
             static public void SwitchToCurrentInstance()
             {
-                IntPtr hWnd = mainhWnd;
+                IntPtr hWnd = HandleWnd;
                 sendMsg(hWnd, WinApi.SW_RESTORE, IntPtr.Zero);
 
                 if (hWnd.Equals(IntPtr.Zero) == false) {
@@ -653,35 +671,40 @@ namespace HClassLibrary
                         ;
                     // Set foreground window.
                     WinApi.SetForegroundWindow(hWnd);
-                }
+                } else
+                    ;
             }
 
             /// <summary>
-            /// поиск нужного процесса
+            /// Возвратить дескриптор окна, если процесс является его владельцем, иначе null
             /// </summary>
-            /// <param name="id">идентификатор приложения</param>
-            /// <param name="hWnd">дескриптор окна</param>
-            ///  <param name="bIsOwner">флаг остановки посика хандлера</param>
-            /// <returns>дескриптор окна</returns>
+            /// <param name="id">Идентификатор приложения</param>
+            /// <param name="hWnd">Дескриптор окна для проверки</param>
+            ///  <param name="bIsOwner">Признак совпадения идентификаторов главных потоков (???процессов) переданного в 1-ом аргументе и владельца окна, переданного во 2-ом аргументе</param>
+            /// <returns>Дескриптор окна</returns>
             static private IntPtr getWindowThreadProcessId(int id, IntPtr hWnd, out bool bIsOwner)
             {
+                IntPtr hWndRes = IntPtr.Zero;
+
                 int owner_id;
                 WinApi.GetWindowThreadProcessId(hWnd, out owner_id);
 
-                if (id == owner_id) {
-                    bIsOwner = true;
-                    return hWnd;
-                } else {
-                    bIsOwner = false;
-                    return IntPtr.Zero;
-                }
+                bIsOwner = id == owner_id;
+
+                if (bIsOwner == true)
+                    hWndRes = hWnd;
+                else
+                    ;
+
+                return hWndRes;
             }
         }
 
         /// <summary>
         /// Обработка команды старт/стоп
         /// </summary>
-        /// <param name="CmdStr">команда приложению</param>
+        /// <param name="bIsExecute">Признак продолжения выполнения текущего экземпляра</param>
+        /// <param name="bIsOnlyInstance">Признак уникальности текущего экземпляра</param>
         static public void execCmdLine(bool bIsExecute, bool bIsOnlyInstance)
         {
             if (bIsExecute == true) {
