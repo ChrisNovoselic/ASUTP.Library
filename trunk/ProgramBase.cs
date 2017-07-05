@@ -522,8 +522,11 @@ namespace HClassLibrary
                 get
                 {
                     bool bRes;
+
                     Logging.Logg().Debug(@"SingleInstance::IsOnlyInstance - s_NameMutex = " + s_NameMutex, Logging.INDEX_MESSAGE.NOT_SET);
-                    s_mutex = new Mutex(true, s_NameMutex, out bRes);
+
+                    try { s_mutex = new Mutex(true, s_NameMutex, out bRes); } catch { bRes = false; }
+
                     return bRes;
                 }
             }
@@ -552,7 +555,7 @@ namespace HClassLibrary
             /// </summary>
             static public void ReleaseMtx()
             {
-                s_mutex?.ReleaseMutex();
+                try { s_mutex?.ReleaseMutex(); } catch { }
             }
 
             /// <summary>
