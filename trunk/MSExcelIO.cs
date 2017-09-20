@@ -15,6 +15,9 @@ namespace HClassLibrary
     /// </summary>
     public class MSExcelIO : IDisposable
     {
+        private enum TYPE_INSTANCE : short { ERROR = -1, ACTIVE, NEW }
+
+        private TYPE_INSTANCE _newInstance;
         /// <summary>
         /// Строка - идентификатор приложения MS Excel
         /// </summary>
@@ -57,10 +60,15 @@ namespace HClassLibrary
 
             try {
                 oExcel = System.Runtime.InteropServices.Marshal.GetActiveObject (UID);
+
+                _newInstance = TYPE_INSTANCE.ACTIVE;
             } catch {
                 try {
                     oExcel = Activator.CreateInstance (Type.GetTypeFromProgID (UID));
+
+                    _newInstance = TYPE_INSTANCE.NEW;
                 } catch (Exception e2) {
+                    _newInstance = TYPE_INSTANCE.ERROR;
                 }
             }            
         }
@@ -745,7 +753,10 @@ namespace HClassLibrary
         /// </summary>
         public void Dispose()
         {
-            CloseExcelAllDocs();
+            if (_newInstance == TYPE_INSTANCE.NEW)
+                CloseExcelAllDocs ();
+            else
+                ;
 
             Range = null;
             WorkSheet = null;
