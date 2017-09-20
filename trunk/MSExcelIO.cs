@@ -6,7 +6,7 @@ using System.Text; //StringBuilder
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-using Excel = Microsoft.Office.Interop.Excel;
+//using Excel = Microsoft.Office.Interop.Excel;
 
 namespace HClassLibrary
 {
@@ -53,7 +53,16 @@ namespace HClassLibrary
         /// </summary>
         public MSExcelIO()
         {
-            oExcel = Activator.CreateInstance(Type.GetTypeFromProgID(UID));
+            oExcel = null;
+
+            try {
+                oExcel = System.Runtime.InteropServices.Marshal.GetActiveObject (UID);
+            } catch {
+                try {
+                    oExcel = Activator.CreateInstance (Type.GetTypeFromProgID (UID));
+                } catch (Exception e2) {
+                }
+            }            
         }
 
         /// <summary>
@@ -80,16 +89,38 @@ namespace HClassLibrary
         /// <returns>Массив всех открытых документов - книг</returns>
         private object getWorkBooks()
         {
-            return oExcel.GetType().InvokeMember("Workbooks", BindingFlags.GetProperty, null, oExcel, null);
+            object objRes = null;
+
+            try {
+                objRes = oExcel.GetType().InvokeMember("Workbooks", BindingFlags.GetProperty, null, oExcel, null);
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkBooks () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         /// <summary>
         /// Добавить к массиву открытых документов элемент - книгу с именем - полным путем к книге
         /// </summary>
-        /// <returns></returns>
-        private object addWorkBook()
+        /// <param name="name">Строка - полный путь к книге</param>
+        /// <returns>Объект - книга MS Excel</returns>
+        private object addWorkBook(string name = "")
         {
-            return WorkBooks.GetType().InvokeMember("Add", BindingFlags.InvokeMethod, null, WorkBooks, null);
+            object objRes = null;
+
+            object[] args = null;
+
+            if (name.Equals (string.Empty) == false)
+                args = new object[] { name };
+
+            try {
+                objRes = WorkBooks.GetType ().InvokeMember ("Add", BindingFlags.InvokeMethod, null, WorkBooks, args);
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format("MSExcelIO::addWorkBook () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         /// <summary>
@@ -99,7 +130,15 @@ namespace HClassLibrary
         /// <returns>Объект - книга MS Excel</returns>
         private object openWorkBook(string name)
         {
-            return WorkBooks.GetType().InvokeMember("Open", BindingFlags.InvokeMethod, null, WorkBooks, new object[] { name, true });
+            object objRes = null;
+
+            try {
+                objRes = WorkBooks.GetType ().InvokeMember ("Open", BindingFlags.InvokeMethod, null, WorkBooks, new object[] { name, true });
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format("MSExcelIO::openWorkBook (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         /// <summary>
@@ -109,7 +148,15 @@ namespace HClassLibrary
         /// <returns>Объект - книга MS Excel</returns>
         private object getWorkBook(string name)
         {
-            return WorkBooks.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkBooks, new object[] { name });
+            object objRes = null;
+
+            try {
+                objRes = WorkBooks.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkBooks, new object[] { name });
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkBook (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         /// <summary>
@@ -135,22 +182,46 @@ namespace HClassLibrary
         /// <returns>Массив всех листов книги</returns>
         private object getWorkSheets()
         {
-            return WorkBook.GetType().InvokeMember("Worksheets", BindingFlags.GetProperty, null, WorkBook, null);
+            object objRes = null;
+
+            try {
+                objRes = WorkBook.GetType().InvokeMember("Worksheets", BindingFlags.GetProperty, null, WorkBook, null);
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkSheets () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         /// <summary>
         /// Получить лист книги с указанным номером (1 - по умолчанию)
         /// </summary>
         /// <param name="num">Номер листа (1-ый - по умолчанию)</param>
-        /// <returns></returns>
+        /// <returns>Лист книги MS Excel</returns>
         private object getWorkSheet(int num = 1)
         {
-            return WorkSheets.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkSheets, new object[] { num });
+            object objRes = null;
+
+            try {
+                objRes = WorkSheets.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkSheets, new object[] { num });
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkSheet (номер={0}) - ...", num), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         private object getWorkSheet(string sheetName)
         {
-            return WorkSheets.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkSheets, new object[] { sheetName });
+            object objRes = null;
+
+            try {
+                objRes = WorkSheets.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkSheets, new object[] { sheetName });
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkSheet (наименование={0}) - ...", sheetName), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         /// <summary>
@@ -160,7 +231,15 @@ namespace HClassLibrary
         /// <returns>Объект - диапазон ячеек</returns>
         private object getRange(string pos = "A1")
         {
-            return WorkSheet.GetType().InvokeMember("Range", BindingFlags.GetProperty, null, WorkSheet, new object[1] { pos });
+            object objRes = null;
+
+            try {
+                objRes = WorkSheet.GetType().InvokeMember("Range", BindingFlags.GetProperty, null, WorkSheet, new object[1] { pos });
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getRange (позиция={0}) - ...", pos), Logging.INDEX_MESSAGE.NOT_SET);
+            }
+
+            return objRes;
         }
 
         /// <summary>
@@ -180,33 +259,41 @@ namespace HClassLibrary
         /// <param name="name">Строка - полный путь к документу</param>
         public void OpenDocument(string name)
         {
-            //Получить массив всех открытых документов - книг
-            WorkBooks = getWorkBooks();
-            //Добавить к массиву открытых документов элемент - книгу с именем - полным путем к книге
-            WorkBook = openWorkBook(name);
-            //Получить массив всех листов книги
-            WorkSheets = getWorkSheets ();
-            //Получить лист книги с указанным номером (1 - по умолчанию)
-            WorkSheet = getWorkSheet();
-            //Получить объект - диапазон ячеек с адресом "A1" на новом листе
-            Range = getRange();
+            try {
+                //Получить массив всех открытых документов - книг
+                WorkBooks = getWorkBooks ();
+                //Добавить к массиву открытых документов элемент - книгу с именем - полным путем к книге
+                WorkBook = openWorkBook (name);
+                //Получить массив всех листов книги
+                WorkSheets = getWorkSheets ();
+                //Получить лист книги с указанным номером (1 - по умолчанию)
+                WorkSheet = getWorkSheet ();
+                //Получить объект - диапазон ячеек с адресом "A1" на новом листе
+                Range = getRange ();
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::OpenDocument (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
+            }
         }
 
         /// <summary>
         /// СОЗДАТЬ НОВЫЙ ДОКУМЕНТ
         /// </summary>
-        public void NewDocument()
+        public void NewDocument(string name = "")
         {
-            //Получить массив всех открытых документов - книг
-            WorkBooks = getWorkBooks();
-            //Добавить к массиву открытых документов элемент - новую книгу
-            WorkBook = addWorkBook();
-            //Получить массив всех листов текущей книги
-            WorkSheets = getWorkSheets();
-            //Получить лист книги с указанным номером (1 - по умолчанию)
-            WorkSheet = getWorkSheet();
-            //Получить объект диапазон ячеек с адресом "A1" на текущем листе
-            Range = getRange();
+            try {
+                //Получить массив всех открытых документов - книг
+                WorkBooks = getWorkBooks ();
+                //Добавить к массиву открытых документов элемент - новую книгу
+                WorkBook = addWorkBook (name);
+                //Получить массив всех листов текущей книги
+                WorkSheets = getWorkSheets ();
+                //Получить лист книги с указанным номером (1 - по умолчанию)
+                WorkSheet = getWorkSheet ();
+                //Получить объект диапазон ячеек с адресом "A1" на текущем листе
+                Range = getRange ();
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::NewDocument () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
+            }
         }
 
         /// <summary>
