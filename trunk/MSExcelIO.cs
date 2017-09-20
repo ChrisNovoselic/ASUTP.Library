@@ -58,19 +58,7 @@ namespace HClassLibrary
         {
             oExcel = null;
 
-            try {
-                oExcel = System.Runtime.InteropServices.Marshal.GetActiveObject (UID);
-
-                _newInstance = TYPE_INSTANCE.ACTIVE;
-            } catch {
-                try {
-                    oExcel = Activator.CreateInstance (Type.GetTypeFromProgID (UID));
-
-                    _newInstance = TYPE_INSTANCE.NEW;
-                } catch (Exception e2) {
-                    _newInstance = TYPE_INSTANCE.ERROR;
-                }
-            }            
+            create ();
         }
 
         /// <summary>
@@ -749,6 +737,33 @@ namespace HClassLibrary
         //Cells = WorkSheet.GetType().InvokeMember("Cells", BindingFlags.GetProperty, null, WorkSheet, null);
 
         /// <summary>
+        /// Повторная инициализация объекта MS Excel
+        /// </summary>
+        public void ReCreate ()
+        {
+            Dispose ();
+
+            create ();
+        }
+
+        private void create ()
+        {
+            try {
+                oExcel = System.Runtime.InteropServices.Marshal.GetActiveObject (UID);
+
+                _newInstance = TYPE_INSTANCE.ACTIVE;
+            } catch {
+                try {
+                    oExcel = Activator.CreateInstance (Type.GetTypeFromProgID (UID));
+
+                    _newInstance = TYPE_INSTANCE.NEW;
+                } catch (Exception e2) {
+                    _newInstance = TYPE_INSTANCE.ERROR;
+                }
+            }
+        }
+
+        /// <summary>
         /// УНИЧТОЖЕНИЕ ОБЪЕКТА EXCEL
         /// </summary>
         public void Dispose()
@@ -765,6 +780,7 @@ namespace HClassLibrary
             WorkBooks = null;
 
             Marshal.ReleaseComObject(oExcel);
+            oExcel = null;
             GC.GetTotalMemory(true);
         }
     }
