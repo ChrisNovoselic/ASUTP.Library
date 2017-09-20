@@ -79,7 +79,7 @@ namespace HClassLibrary
             get
             {
                 //Вызвать метод 'GetProperty' объекта 'oExcel' для свойства 'Visible' без параметров
-                return Convert.ToBoolean(oExcel.GetType().InvokeMember("Visible", BindingFlags.GetProperty, null, oExcel, null));
+                return Equals(oExcel, null) == false ? Convert.ToBoolean(oExcel.GetType().InvokeMember("Visible", BindingFlags.GetProperty, null, oExcel, null)) : false;
             }
         }
 
@@ -257,8 +257,10 @@ namespace HClassLibrary
         /// ОТКРЫТЬ ДОКУМЕНТ
         /// </summary>
         /// <param name="name">Строка - полный путь к документу</param>
-        public void OpenDocument(string name)
+        public int OpenDocument(string name)
         {
+            int iRes = -1;
+
             try {
                 //Получить массив всех открытых документов - книг
                 WorkBooks = getWorkBooks ();
@@ -270,16 +272,22 @@ namespace HClassLibrary
                 WorkSheet = getWorkSheet ();
                 //Получить объект - диапазон ячеек с адресом "A1" на новом листе
                 Range = getRange ();
+
+                iRes = 0;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format ("MSExcelIO::OpenDocument (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
             }
+
+            return iRes;
         }
 
         /// <summary>
         /// СОЗДАТЬ НОВЫЙ ДОКУМЕНТ
         /// </summary>
-        public void NewDocument(string name = "")
+        public int NewDocument (string name = "")
         {
+            int iRes = -1;
+
             try {
                 //Получить массив всех открытых документов - книг
                 WorkBooks = getWorkBooks ();
@@ -291,9 +299,13 @@ namespace HClassLibrary
                 WorkSheet = getWorkSheet ();
                 //Получить объект диапазон ячеек с адресом "A1" на текущем листе
                 Range = getRange ();
+
+                iRes = 0;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format ("MSExcelIO::NewDocument () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
             }
+
+            return iRes;
         }
 
         /// <summary>
@@ -446,7 +458,7 @@ namespace HClassLibrary
             get
             {
                 //Вызвать метод 'Close' для текущей книги 'WorkBook' с параметром 'true'
-                return (int)WorkBooks.GetType().InvokeMember("Count", BindingFlags.GetProperty, null, WorkBooks, null);
+                return Equals (WorkBooks, null) == false ? (int)WorkBooks.GetType().InvokeMember("Count", BindingFlags.GetProperty, null, WorkBooks, null) : -1;
             }
         }
 
@@ -488,7 +500,7 @@ namespace HClassLibrary
             try
             {
                 //Проверить существование файла
-                if (File.Exists(name))
+                if (File.Exists(name) == true)
                 {
                     //Вызвать метод 'Save' для текущей книги 'WorkBook' без параметров
                     WorkBook.GetType().InvokeMember("Save", BindingFlags.InvokeMethod, null, WorkBook, null);
