@@ -15,7 +15,10 @@ namespace HClassLibrary
     /// </summary>
     public class MSExcelIO : IDisposable
     {
-        private enum TYPE_INSTANCE : short { ERROR = -1, ACTIVE, NEW }
+        /// <summary>
+        /// Тип создаваемого COM-объекта
+        /// </summary>
+        public enum TYPE_INSTANCE : short { ERROR = -1, UNKNOWN, ACTIVE, NEW }
 
         private TYPE_INSTANCE _newInstance;
         /// <summary>
@@ -56,10 +59,10 @@ namespace HClassLibrary
         /// </summary>
         public MSExcelIO()
         {
-            oExcel = null;
-
-            create ();
+            oExcel = Create (out _newInstance);
         }
+
+        private int _visible;
 
         /// <summary>
         /// ВИДИМОСТЬ MS EXCEL
@@ -68,8 +71,17 @@ namespace HClassLibrary
         {
             set
             {
-                //Вызвать метод 'SetProperty' объекта 'oExcel' для свойства 'Visible' с параметром 'value'
-                oExcel.GetType().InvokeMember("Visible", BindingFlags.SetProperty, null, oExcel, new object[] { value });
+                if (value == false)
+                    if (_newInstance == TYPE_INSTANCE.NEW)
+                        //Вызвать метод 'SetProperty' объекта 'oExcel' для свойства 'Visible' с параметром 'value'
+                        oExcel.GetType ().InvokeMember ("Visible", BindingFlags.SetProperty, null, oExcel, new object [] { value });
+                    else
+                        ;
+                else
+                    //Вызвать метод 'SetProperty' объекта 'oExcel' для свойства 'Visible' с параметром 'value'
+                    oExcel.GetType ().InvokeMember ("Visible", BindingFlags.SetProperty, null, oExcel, new object [] { value });
+
+                _visible = value == true ? 1 : 0;
             }
 
             get
@@ -123,13 +135,17 @@ namespace HClassLibrary
         /// Добавить к массиву открытых документов элемент - книгу с именем - полным путем к книге
         /// </summary>
         /// <param name="name">Строка - полный путь к книге</param>
+        /// <param name="err">Признак результата выполнения метода</param>
         /// <returns>Объект - книга MS Excel</returns>
-        private object openWorkBook(string name)
+        private object openWorkBook(string name, out int err)
         {
             object objRes = null;
+            err = -1;
 
             try {
                 objRes = WorkBooks.GetType ().InvokeMember ("Open", BindingFlags.InvokeMethod, null, WorkBooks, new object[] { name, true });
+
+                err = 0;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format("MSExcelIO::openWorkBook (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
             }
@@ -140,14 +156,18 @@ namespace HClassLibrary
         /// <summary>
         /// Возвратить объект - книгу MS Excel по указанному наименованию
         /// </summary>
-        /// <param name="name">Наименование книги (внутренне для приложения)</param>
+        /// <param name="name">Наименование книги (внутреннее для приложения)</param>
+        /// <param name="err">Признак результата выполнения метода</param>
         /// <returns>Объект - книга MS Excel</returns>
-        private object getWorkBook(string name)
+        private object getWorkBook(string name, out int err)
         {
             object objRes = null;
+            err = -1;
 
             try {
                 objRes = WorkBooks.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkBooks, new object[] { name });
+
+                err = 0;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkBook (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
             }
@@ -250,28 +270,55 @@ namespace HClassLibrary
         }
 
         /// <summary>
+        /// Проверить открыт ли документ?
+        /// </summary>
+        /// <param name="name">Строка - полный путь к документу</param>
+        /// <param name="err">Признак результата выполнения метода</param>
+        /// <returns>Признак открыт/закрыт документ</returns>
+        public bool IsOpen (string name, out int err)
+        {
+            bool bRes = false;
+
+            //Получить массив всех открытых документов - книг
+            WorkBooks = getWorkBooks ();
+
+            bRes = !(getWorkBook (name, out err) == null);
+
+            return bRes;
+        }
+
+        /// <summary>
         /// ОТКРЫТЬ ДОКУМЕНТ
         /// </summary>
         /// <param name="name">Строка - полный путь к документу</param>
         public int OpenDocument(string name)
         {
             int iRes = -1;
+            int err = -1;
 
             try {
                 //Получить массив всех открытых документов - книг
                 WorkBooks = getWorkBooks ();
-                //Добавить к массиву открытых документов элемент - книгу с именем - полным путем к книге
-                WorkBook = openWorkBook (name);
-                //Получить массив всех листов книги
-                WorkSheets = getWorkSheets ();
-                //Получить лист книги с указанным номером (1 - по умолчанию)
-                WorkSheet = getWorkSheet ();
-                //Получить объект - диапазон ячеек с адресом "A1" на новом листе
-                Range = getRange ();
+                
+                //if (WorkBooks == null) {
+                    //Добавить к массиву открытых документов элемент - книгу с именем - полным путем к книге
+                    WorkBook = openWorkBook (name, out err);
+                    if (err == 0) {
+                        //Получить массив всех листов книги
+                        WorkSheets = getWorkSheets ();
+                        //Получить лист книги с указанным номером (1 - по умолчанию)
+                        WorkSheet = getWorkSheet ();
+                        //Получить объект - диапазон ячеек с адресом "A1" на новом листе
+                        Range = getRange ();
 
-                iRes = 0;
+                        iRes = 0;
+                    } else
+                        iRes = 1;
+                //} else
+                //// iRes оставить значение -1
+                //    ;
             } catch (Exception e) {
-                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::OpenDocument (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
+                Logging.Logg ().Exception (e, string.Format ("MSExcelIO::OpenDocument (путь={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
             }
 
             return iRes;
@@ -426,7 +473,7 @@ namespace HClassLibrary
         /// <summary>
         /// Закрыть текущий документ
         /// </summary>
-        /// <returns>Ркезультат выполнения операции</returns>
+        /// <returns>Результат выполнения операции</returns>
         public bool CloseExcelDoc()
         {
             bool bRes = true;
@@ -439,6 +486,31 @@ namespace HClassLibrary
             catch (Exception e)
             {
                 Logging.Logg().Exception(e, @"MSExcelIO::CloseExcelDoc () - ...", Logging.INDEX_MESSAGE.NOT_SET);
+
+                bRes = false;
+            }
+
+            return bRes;
+        }
+
+        /// <summary>
+        /// Закрыть текущий документ
+        /// </summary>
+        /// <param name="name">Строка - путь к документу - внутреннее наименование книги MS Excel</param>
+        /// <returns>Результат выполнения операции</returns>
+        public bool CloseExcelDoc (string name)
+        {
+            bool bRes = true;
+            int err = -1;
+
+            object targetWorkBook;
+
+            try {
+                targetWorkBook = getWorkBook(name, out err);
+                //Вызвать метод 'Close' для текущей книги 'WorkBook' с параметром 'true'
+                targetWorkBook.GetType ().InvokeMember ("Close", BindingFlags.InvokeMethod, null, WorkBook, new object [] { true });
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, @"MSExcelIO::CloseExcelDoc () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
             }
@@ -717,7 +789,7 @@ namespace HClassLibrary
         /// <summary>
         /// Выбрать (установить текущую) страницу
         /// </summary>
-        /// <param name="indx">Наименование страницы</param>
+        /// <param name="sheetName">Наименование страницы</param>
         public void SelectWorksheet(string sheetName)
         {
             WorkSheet = getWorkSheet(sheetName);
@@ -736,37 +808,59 @@ namespace HClassLibrary
 
         //Cells = WorkSheet.GetType().InvokeMember("Cells", BindingFlags.GetProperty, null, WorkSheet, null);
 
+
+
         /// <summary>
         /// Повторная инициализация объекта MS Excel
         /// </summary>
         public void ReCreate ()
         {
-            Dispose ();
+            dispose (false);
 
-            create ();
+            oExcel = Create (out _newInstance);
         }
 
-        private void create ()
+        /// <summary>
+        /// Создать объект для работы с COM-приложением
+        /// </summary>
+        /// <param name="typeInstance">Тип экземпляра COM-приложения</param>
+        /// <returns>Объект с экземпляром COM-приложения</returns>
+        public static object Create (out TYPE_INSTANCE typeInstance)
         {
-            try {
-                oExcel = System.Runtime.InteropServices.Marshal.GetActiveObject (UID);
+            object objRes = null;
 
-                _newInstance = TYPE_INSTANCE.ACTIVE;
+            try {
+                objRes = System.Runtime.InteropServices.Marshal.GetActiveObject (UID);
+
+                typeInstance = TYPE_INSTANCE.ACTIVE;
             } catch {
                 try {
-                    oExcel = Activator.CreateInstance (Type.GetTypeFromProgID (UID));
+                    objRes = Activator.CreateInstance (Type.GetTypeFromProgID (UID));
 
-                    _newInstance = TYPE_INSTANCE.NEW;
+                    typeInstance = TYPE_INSTANCE.NEW;
                 } catch (Exception e2) {
-                    _newInstance = TYPE_INSTANCE.ERROR;
+                    typeInstance = TYPE_INSTANCE.ERROR;
+
+                    Logging.Logg ().Exception (e2, string.Format ("MSExcelIO::Create () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
                 }
             }
+
+            return objRes;
         }
 
         /// <summary>
         /// УНИЧТОЖЕНИЕ ОБЪЕКТА EXCEL
         /// </summary>
         public void Dispose()
+        {
+            dispose (true);
+        }
+
+        /// <summary>
+        /// Освобождение объекта MS Excel
+        /// </summary>
+        /// <param name="bEnded"></param>
+        protected void dispose (bool bEnded)
         {
             if (_newInstance == TYPE_INSTANCE.NEW)
                 CloseExcelAllDocs ();
@@ -779,9 +873,14 @@ namespace HClassLibrary
             WorkBook = null;
             WorkBooks = null;
 
-            Marshal.ReleaseComObject(oExcel);
-            oExcel = null;
-            GC.GetTotalMemory(true);
+            Marshal.ReleaseComObject (oExcel);
+            if (bEnded == true) {
+                _newInstance = TYPE_INSTANCE.UNKNOWN;
+                oExcel = null;
+
+                GC.GetTotalMemory (true);
+            } else
+                ;
         }
     }
 }
