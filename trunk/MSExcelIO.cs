@@ -5,6 +5,7 @@ using System.IO;
 using System.Text; //StringBuilder
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Globalization;
 
 //using Excel = Microsoft.Office.Interop.Excel;
 
@@ -351,6 +352,8 @@ namespace HClassLibrary
             return iRes;
         }
 
+        private IFormatProvider NumberFormat { get { return CultureInfo.CurrentCulture.NumberFormat; } }
+
         /// <summary>
         /// Установить значение для ячейки с указанными номерами стобца, строки
         ///  на указанной странице (страница становится активной) текущей книги
@@ -363,7 +366,7 @@ namespace HClassLibrary
         private void setValue(int indx, int col, int row, double value, bool bSelectSheet = true)
         {
             SelectWorksheet(indx);
-            setValue(col, row, value.ToString());
+            setValue(getRange (col, row), value.ToString(NumberFormat));
         }
 
         /// <summary>
@@ -378,7 +381,22 @@ namespace HClassLibrary
         private void setValue(string sheetName, int col, int row, double value, bool bSelectSheet = true)
         {
             SelectWorksheet(sheetName);
-            setValue(col, row, value.ToString());
+            setValue(getRange (col, row), value.ToString(NumberFormat));
+        }
+
+        /// <summary>
+        /// Установить значение для ячейки с указанными номерами стобца, строки
+        ///  на указанной странице (страница становится активной) текущей книги
+        /// </summary>
+        /// <param name="sheetName">Наименование страницы</param>
+        /// <param name="col">Номер столбца</param>
+        /// <param name="row">Номер строки</param>
+        /// <param name="value">Значение ячейки</param>
+        /// <param name="bSelectSheet">Признак установки активной указанной страницы</param>
+        private void setValue (string sheetName, int col, int row, float value, bool bSelectSheet = true)
+        {
+            SelectWorksheet (sheetName);
+            setValue (getRange (col, row), value.ToString (NumberFormat));
         }
 
         /// <summary>
@@ -393,7 +411,7 @@ namespace HClassLibrary
         private void setValue(int indx, int col, int row, string value, bool bSelectSheet = true)
         {
             SelectWorksheet(indx);
-            setValue(col, row, value);
+            setValue(getRange (col, row), value);
         }
 
         /// <summary>
@@ -408,7 +426,7 @@ namespace HClassLibrary
         private void setValue(string sheetName, int col, int row, string value, bool bSelectSheet = true)
         {
             SelectWorksheet(sheetName);
-            setValue(col, row, value);
+            setValue(getRange (col, row), value);
         }
 
         /// <summary>
@@ -420,7 +438,19 @@ namespace HClassLibrary
         /// <param name="value">Значение ячейки</param>
         private void setValue(int col, int row, double value)
         {
-            setValue(col, row, value.ToString());
+            setValue(getRange (col, row), value.ToString(NumberFormat));
+        }
+
+        /// <summary>
+        /// Установить значение для ячейки с указанными номерами стобца, строки
+        ///  на текущей странице текущей книги
+        /// </summary>
+        /// <param name="col">Номер столбца</param>
+        /// <param name="row">Номер строки</param>
+        /// <param name="value">Значение ячейки</param>
+        private void setValue (int col, int row, float value)
+        {
+            setValue (getRange (col, row), value.ToString (NumberFormat));
         }
 
         /// <summary>
@@ -444,8 +474,7 @@ namespace HClassLibrary
         /// <param name="value">Значение ячейки</param>
         private void setValue(string pos, string value)
         {
-            object range = getRange(pos);
-            setValue(range, value);
+            setValue(getRange (pos), value);
         }
 
         /// <summary>
@@ -456,7 +485,18 @@ namespace HClassLibrary
         /// <param name="value">Значение ячейки</param>
         private void setValue(string pos, double value)
         {
-            setValue (pos, value.ToString ());
+            setValue (pos, value.ToString (NumberFormat));
+        }
+
+        /// <summary>
+        /// Установить значение для ячейки по указанному адресу диапазона ячеек
+        ///  на текущей странице текущей книги
+        /// </summary>
+        /// <param name="pos">Адрес диапазона ячеек</param>
+        /// <param name="value">Значение ячейки</param>
+        private void setValue (string pos, float value)
+        {
+            setValue (pos, value.ToString (NumberFormat));
         }
 
         /// <summary>
