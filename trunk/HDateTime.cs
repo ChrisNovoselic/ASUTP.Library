@@ -50,7 +50,7 @@ namespace HClassLibrary
 
             if (dtRes.IsDaylightSavingTime() == true)
             {
-                dtRes = dtRes.AddHours(-1);
+                dtRes = dtRes.AddHours(1);
             }
             else
             {
@@ -59,26 +59,33 @@ namespace HClassLibrary
             return dtRes;
         }
 
+        /// <summary>
+        ///  Возвратить текущие дату/время в МСК
+        /// </summary>
+        /// <returns></returns>
         public static DateTime ToMoscowTimeZone()
         {
-            DateTime dtRes
-                , dt = DateTime.Now;
+            //DateTime dtRes
+            //    , dt = DateTime.Now;
 
-            if (!(dt.Kind == DateTimeKind.Local))
-                dtRes = dt.Add(TS_NSK_OFFSET_OF_MOSCOWTIMEZONE);
-            else
-            {
-                dtRes = dt - TimeZoneInfo.Local.GetUtcOffset(dt);
-                if (dtRes.IsDaylightSavingTime() == true)
-                {
-                    dtRes = dtRes.AddHours(1);
-                }
-                else { }
+            //if (!(dt.Kind == DateTimeKind.Local))
+            //    dtRes = dt.Add(TS_NSK_OFFSET_OF_MOSCOWTIMEZONE);
+            //else
+            //{
+            //    dtRes = dt - TimeZoneInfo.Local.GetUtcOffset(dt);
+            //    if (dtRes.IsDaylightSavingTime() == true)
+            //    {
+            //        dtRes = dtRes.AddHours(1);
+            //    }
+            //    else { }
 
-                dtRes = dtRes.Add(TS_MSK_OFFSET_OF_UTCTIMEZONE); //TS_NSK_OFFSET_OF_MOSCOWTIMEZONE
-            }
+            //    dtRes = dtRes.Add(TS_MSK_OFFSET_OF_UTCTIMEZONE); //TS_NSK_OFFSET_OF_MOSCOWTIMEZONE
+            //}
 
-            return dtRes;
+            return
+                //dtRes
+                ToMoscowTimeZone(DateTime.Now)
+                ;
         }
 
         /// <summary>
