@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -70,7 +71,7 @@ namespace HClassLibrary
                 dtRes = dt - TimeZoneInfo.Local.GetUtcOffset(dt);
                 if (dtRes.IsDaylightSavingTime() == true)
                 {
-                    dtRes = dtRes.AddHours(-1);
+                    dtRes = dtRes.AddHours(1);
                 }
                 else { }
 
@@ -80,7 +81,18 @@ namespace HClassLibrary
             return dtRes;
         }
 
-        public static TimeSpan TS_NSK_OFFSET_OF_MOSCOWTIMEZONE = new TimeSpan(4, 0, 0);
+        /// <summary>
+        /// Разность между локальным текущим времененм и МСК текущим временем
+        /// </summary>
+        public static TimeSpan TS_NSK_OFFSET_OF_MOSCOWTIMEZONE {
+            get
+            {
+                return
+                    //TimeZoneInfo.Local.BaseUtcOffset - TimeZoneInfo.FindSystemTimeZoneById(s_Name_Moscow_TimeZone).BaseUtcOffset
+                    new TimeSpan(4, 0, 0)
+                        ;
+            }
+        }
 
         //public static TimeSpan GetOffsetOfCurrentTimeZone()
         //{
