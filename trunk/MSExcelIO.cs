@@ -63,6 +63,21 @@ namespace HClassLibrary
             oExcel = Create (out _newInstance);
         }
 
+        /// <summary>
+        /// Признак возможности использования функционала тек./объекта
+        ///  , иначе: установлен ли MS Excel на ПК
+        /// </summary>
+        public bool IsValidate
+        {
+            get
+            {
+                return
+                    //Equals (oExcel, null) == false
+                    !(_newInstance == TYPE_INSTANCE.ERROR)
+                    ;
+            }
+        }
+
         private int _visible;
 
         /// <summary>
@@ -72,17 +87,20 @@ namespace HClassLibrary
         {
             set
             {
-                if (value == false)
-                    if (_newInstance == TYPE_INSTANCE.NEW)
+                if (!(_newInstance == TYPE_INSTANCE.ERROR)) {
+                    if (value == false)
+                        if (_newInstance == TYPE_INSTANCE.NEW)
+                            //Вызвать метод 'SetProperty' объекта 'oExcel' для свойства 'Visible' с параметром 'value'
+                            oExcel.GetType ().InvokeMember ("Visible", BindingFlags.SetProperty, null, oExcel, new object [] { value });
+                        else
+                            ;
+                    else
                         //Вызвать метод 'SetProperty' объекта 'oExcel' для свойства 'Visible' с параметром 'value'
                         oExcel.GetType ().InvokeMember ("Visible", BindingFlags.SetProperty, null, oExcel, new object [] { value });
-                    else
-                        ;
-                else
-                    //Вызвать метод 'SetProperty' объекта 'oExcel' для свойства 'Visible' с параметром 'value'
-                    oExcel.GetType ().InvokeMember ("Visible", BindingFlags.SetProperty, null, oExcel, new object [] { value });
 
-                _visible = value == true ? 1 : 0;
+                    _visible = value == true ? 1 : 0;
+                } else
+                    ;
             }
 
             get
@@ -101,7 +119,10 @@ namespace HClassLibrary
             object objRes = null;
 
             try {
-                objRes = oExcel.GetType().InvokeMember("Workbooks", BindingFlags.GetProperty, null, oExcel, null);
+                if (IsValidate == true)
+                    objRes = oExcel.GetType ().InvokeMember ("Workbooks", BindingFlags.GetProperty, null, oExcel, null);
+                else
+                    ;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkBooks () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
             }
@@ -124,7 +145,10 @@ namespace HClassLibrary
                 args = new object[] { name };
 
             try {
-                objRes = WorkBooks.GetType ().InvokeMember ("Add", BindingFlags.InvokeMethod, null, WorkBooks, args);
+                if (Equals (WorkBooks, null) == false)
+                    objRes = WorkBooks.GetType ().InvokeMember ("Add", BindingFlags.InvokeMethod, null, WorkBooks, args);
+                else
+                    ;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format("MSExcelIO::addWorkBook () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
             }
@@ -144,9 +168,12 @@ namespace HClassLibrary
             err = -1;
 
             try {
-                objRes = WorkBooks.GetType ().InvokeMember ("Open", BindingFlags.InvokeMethod, null, WorkBooks, new object[] { name, true });
+                if (Equals (WorkBooks, null) == false) {
+                    objRes = WorkBooks.GetType ().InvokeMember ("Open", BindingFlags.InvokeMethod, null, WorkBooks, new object [] { name, true });
 
-                err = 0;
+                    err = 0;
+                } else
+                    ;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format("MSExcelIO::openWorkBook (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
             }
@@ -166,9 +193,12 @@ namespace HClassLibrary
             err = -1;
 
             try {
-                objRes = WorkBooks.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkBooks, new object[] { name });
+                if (Equals (WorkBooks, null) == false) {
+                    objRes = WorkBooks.GetType ().InvokeMember ("Item", BindingFlags.GetProperty, null, WorkBooks, new object [] { name });
 
-                err = 0;
+                    err = 0;
+                } else
+                    ;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkBook (наименование={0}) - ...", name), Logging.INDEX_MESSAGE.NOT_SET);
             }
@@ -185,7 +215,8 @@ namespace HClassLibrary
         {
             object objRes = null;
 
-            if (Count > 0)
+            if ((Count > 0)
+                && (Equals(WorkBooks, null) == false))
                 objRes = WorkBooks.GetType().InvokeMember("Item", BindingFlags.GetProperty, null, WorkBooks, new object[] { indx });
             else
                 ;
@@ -202,7 +233,10 @@ namespace HClassLibrary
             object objRes = null;
 
             try {
-                objRes = WorkBook.GetType().InvokeMember("Worksheets", BindingFlags.GetProperty, null, WorkBook, null);
+                if (Equals (WorkBook, null) == false) {
+                    objRes = WorkBook.GetType ().InvokeMember ("Worksheets", BindingFlags.GetProperty, null, WorkBook, null);
+                } else
+                    ;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, string.Format ("MSExcelIO::getWorkSheets () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
             }
@@ -521,7 +555,10 @@ namespace HClassLibrary
             try
             {
                 //Вызвать метод 'Close' для текущей книги 'WorkBook' с параметром 'true'
-                WorkBook.GetType().InvokeMember("Close", BindingFlags.InvokeMethod, null, WorkBook, new object[] { true });
+                if (Equals (WorkBook, null) == false) {
+                    WorkBook.GetType ().InvokeMember ("Close", BindingFlags.InvokeMethod, null, WorkBook, new object [] { true });
+                } else
+                    ;
             }
             catch (Exception e)
             {
@@ -547,8 +584,11 @@ namespace HClassLibrary
 
             try {
                 targetWorkBook = getWorkBook(name, out err);
+                if (Equals (targetWorkBook, null) == false)
                 //Вызвать метод 'Close' для текущей книги 'WorkBook' с параметром 'true'
-                targetWorkBook.GetType ().InvokeMember ("Close", BindingFlags.InvokeMethod, null, WorkBook, new object [] { true });
+                    targetWorkBook.GetType ().InvokeMember ("Close", BindingFlags.InvokeMethod, null, targetWorkBook, new object [] { true });
+                else
+                    ;
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, @"MSExcelIO::CloseExcelDoc () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
@@ -605,22 +645,19 @@ namespace HClassLibrary
         {
             bool bRes = true;
 
-            try
-            {
+            try {
+                if ((IsValidate == true)
+                    && (Equals(WorkBook, null) == false))
                 //Проверить существование файла
-                if (File.Exists(name) == true)
-                {
+                    if (File.Exists(name) == true)
                     //Вызвать метод 'Save' для текущей книги 'WorkBook' без параметров
-                    WorkBook.GetType().InvokeMember("Save", BindingFlags.InvokeMethod, null, WorkBook, null);
-                }
-                else
-                {
+                        WorkBook.GetType().InvokeMember("Save", BindingFlags.InvokeMethod, null, WorkBook, null);
+                    else
                     //Вызвать метод 'SaveAs' для текущей книги 'WorkBook' с параметром - наименование - полный путь к книге
-                    WorkBook.GetType().InvokeMember("SaveAs", BindingFlags.InvokeMethod, null, WorkBook, new object[] { name });
-                }
-            }
-            catch (Exception e)
-            {
+                        WorkBook.GetType().InvokeMember("SaveAs", BindingFlags.InvokeMethod, null, WorkBook, new object[] { name });
+                else
+                    ;
+            } catch (Exception e) {
                 Logging.Logg().Exception(e, @"MSExcelIO::SaveExcel () - ...", Logging.INDEX_MESSAGE.NOT_SET);
 
                 bRes = false;
