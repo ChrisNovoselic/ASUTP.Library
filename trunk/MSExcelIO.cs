@@ -6,6 +6,7 @@ using System.Text; //StringBuilder
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 //using Excel = Microsoft.Office.Interop.Excel;
 
@@ -83,7 +84,7 @@ namespace HClassLibrary
         /// <summary>
         /// ВИДИМОСТЬ MS EXCEL
         /// </summary>
-        public bool Visible
+        public virtual bool Visible
         {
             set
             {
@@ -194,7 +195,11 @@ namespace HClassLibrary
 
             try {
                 if (Equals (WorkBooks, null) == false) {
-                    objRes = WorkBooks.GetType ().InvokeMember ("Item", BindingFlags.GetProperty, null, WorkBooks, new object [] { name });
+                    objRes = WorkBooks.GetType ().InvokeMember ("Item", BindingFlags.GetProperty, null, WorkBooks, new object [] {
+                            new Regex(@"[\\/]").IsMatch(name) == true
+                                ? Path.GetFileName(name)
+                                    : name
+                        });
 
                     err = 0;
                 } else
@@ -313,11 +318,16 @@ namespace HClassLibrary
         public bool IsOpen (string name, out int err)
         {
             bool bRes = false;
+            err = -1;
 
-            //Получить массив всех открытых документов - книг
-            WorkBooks = getWorkBooks ();
-
-            bRes = !(getWorkBook (name, out err) == null);
+            if ((new Regex(@"[\\/]").IsMatch(name) == true) // проверить полный путь
+                && (File.Exists(name) == true)) {
+                //Получить массив всех открытых документов - книг
+                WorkBooks = getWorkBooks();
+                //??? в аргументе метода полный_путь, а для 'getWorkBook' требуется внутренний
+                bRes = !(getWorkBook(name, out err) == null);
+            } else
+                err = 1; // предупреждение: проверку выполнить не удалось
 
             return bRes;
         }
