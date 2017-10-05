@@ -188,6 +188,8 @@ namespace HClassLibrary
 
         public override void Stop()
         {
+            ClearStates ();
+
             StopDbInterfaces ();
             
             base.Stop ();

@@ -272,12 +272,11 @@ namespace HClassLibrary
                 m_timerConnSett =
                     new System.Threading.Timer (TimerConnSett_Tick, null, 0, 6666)
                     //new System.Windows.Forms.Timer ()
-                    ;                
+                    ;
                 //m_timerConnSett.Tick += new EventHandler(TimerConnSett_Tick);
                 //m_timerConnSett.Start ();
-                //m_timerConnSett.Interval = 6666;
-            }
-            else
+                //m_timerConnSett.Interval = MAX_WATING;
+            } else
                 ;
 
             m_objQueueMessage = new object ();
@@ -301,7 +300,7 @@ namespace HClassLibrary
             m_arEvtThread[(int)INDEX_SEMATHREAD.STOP].Set ();
 
             if ((!(m_threadPost == null)) && (m_threadPost.IsAlive == true)) {
-                if ((m_threadPost.Join(6666) == false))
+                if ((m_threadPost.Join(DbInterface.MAX_WATING) == false))
                     m_threadPost.Abort ();
                 else
                     ;

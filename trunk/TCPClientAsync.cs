@@ -185,7 +185,7 @@ namespace HClassLibrary
         /// завершения операции записи.</returns>
         public void Write(byte[] bytes)
         {
-            if (m_evWrite.WaitOne (666, true) == true)
+            if (m_evWrite.WaitOne (DbInterface.WAIT_TIME_MS, true) == true)
             {
                 //Запись разрешена
                 NetworkStream networkStream = null;
@@ -345,7 +345,7 @@ namespace HClassLibrary
 
         public void Disconnect()
         {
-            m_evWrite.WaitOne (666, true);
+            m_evWrite.WaitOne (DbInterface.WAIT_TIME_MS, true);
 
             if (!(m_tcpClient == null))
             {

@@ -190,7 +190,7 @@ namespace HClassLibrary
                     Logging.Logg().Exception(e, "HHandler::Stop () - semaState.Release(1)", Logging.INDEX_MESSAGE.NOT_SET);
                 }
                 //Ожидать завершения потоковой функции
-                joined = taskThreadQueue.Join(666);
+                joined = taskThreadQueue.Join(DbInterface.WAIT_TIME_MS);
                 //Проверить корректное завершение потоковой функции
                 if (joined == false)
                     //Завершить аварийно потоковую функцию

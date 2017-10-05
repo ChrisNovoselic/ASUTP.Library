@@ -47,7 +47,7 @@ namespace HClassLibrary
             {
                 m_evClose.Reset ();
 
-                joined = m_thread.Join(6666);
+                joined = m_thread.Join(DbInterface.MAX_WATING);
                 if (joined == false)
                     m_thread.Abort();
                 else
@@ -206,7 +206,7 @@ namespace HClassLibrary
         {
             m_evClose.Reset();
 
-            bool joined = m_thread.Join(666);
+            bool joined = m_thread.Join(DbInterface.WAIT_TIME_MS);
             if (joined == false)
                 m_thread.Abort();
             else

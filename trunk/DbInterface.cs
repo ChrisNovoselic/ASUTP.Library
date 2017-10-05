@@ -22,18 +22,35 @@ namespace HClassLibrary
         /// </summary>
         public enum DB_TSQL_INTERFACE_TYPE
         {
+            /// <summary>My Sql</summary>
             MySQL
+            /// <summary>MS SQL</summary>
             , MSSQL
+            /// <summary>MS Excel</summary>
             , MSExcel
+            /// <summary>Модес - Центр</summary>
             , ModesCentre
+            /// <summary>Oracle</summary>
             , Oracle
+            /// <summary>Неизвестный тип</summary>
             , UNKNOWN
         }
-
+        /// <summary>
+        /// Максимальное количество повторов
+        /// </summary>
         public static volatile int MAX_RETRY = 3;
+        /// <summary>
+        /// Количество попыток проверки наличия результата в одном цикле
+        /// </summary>
         public static volatile int MAX_WAIT_COUNT = 39;
+        /// <summary>
+        /// Интервал ожидания между проверками наличия результата
+        ///  , при условии что в предыдущей итерации результат не был получен
+        /// </summary>
         public static volatile int WAIT_TIME_MS = 106;
-
+        /// <summary>
+        /// Максимальное время ожидания окончания длительно выполняющейся операции
+        /// </summary>
         public static int MAX_WATING
         {
             get {
@@ -137,6 +154,7 @@ namespace HClassLibrary
         /// Признак установленного соединения с БД
         /// </summary>
         private bool connected;
+
         /// <summary>
         /// Конструктор - основной (с аргументом)
         /// </summary>
@@ -160,10 +178,14 @@ namespace HClassLibrary
             sem = new Semaphore(0, 1);
         }
 
+        /// <summary>
+        /// Признак наличия соединения с источником данных
+        /// </summary>
         public bool Connected
         {
             get { return connected; }
         }
+
         /// <summary>
         /// Зарегистрировать нового подписчика, вернуть его идентификатор
         /// </summary>
@@ -186,10 +208,11 @@ namespace HClassLibrary
 
             //return -1;
         }
+
         /// <summary>
         /// Отменить регистрацию подписчика по идентификатору
         /// </summary>
-        /// <param name="listenerId"></param>
+        /// <param name="listenerId">Идентификатор подписчика</param>
         public void ListenerUnregister(int listenerId)
         {
             if (m_dictListeners.ContainsKey(listenerId) == false)
@@ -211,6 +234,7 @@ namespace HClassLibrary
                 m_dictListeners.Remove(listenerId);                
             }
         }
+
         /// <summary>
         /// Запустить поток выполнения запросов
         /// </summary>
@@ -220,6 +244,7 @@ namespace HClassLibrary
             //sem.WaitOne();
             dbThread.Start();
         }
+
         /// <summary>
         /// Остановить выполнение всех запросов
         /// </summary>
@@ -243,15 +268,20 @@ namespace HClassLibrary
                     Logging.Logg().Exception(e, @"DbInterface::Stop () - ...", Logging.INDEX_MESSAGE.NOT_SET);
                 }
 
-                joined = dbThread.Join(6666);
+                joined = dbThread.Join(MAX_WATING);
                 if (!joined)
-                    dbThread.Abort();
+                    dbThread.Interrupt();
                 else
                     ;
             } else
                 ;
         }
 
+        /// <summary>
+        /// Отправить запрос источнику данных
+        /// </summary>
+        /// <param name="listenerId">Идентификатор подписчика - инициатора запроса</param>
+        /// <param name="request">Строка - содержание запроса</param>
         public void Request(int listenerId, string request)
         {
             //Logging.Logg().Debug(@"DbInterface::Request (int, string) - listenerId=" + listenerId.ToString() + @", request=" + request);
@@ -280,6 +310,13 @@ namespace HClassLibrary
             //Logging.Logg().Debug(@"DbInterface::Request (int, string) - " + listenerId + @", " + request);
         }
 
+        /// <summary>
+        /// Получить результат запроса для подписчика с диагностическими признаками
+        /// </summary>
+        /// <param name="listenerId">Идентификатор подписчика - инициатора запроса</param>
+        /// <param name="error">Признак ошибки при получении данных</param>
+        /// <param name="table">Таблица - результат запроса к источнику данных</param>
+        /// <returns>Результат выполнения метода</returns>
         public int Response(int listenerId, out bool error, out DataTable table)
         {
             int iRes = -1;
@@ -303,6 +340,9 @@ namespace HClassLibrary
             return iRes;
         }
 
+        /// <summary>
+        /// Применить параметры соединения с источником данных - активировать объект доступа к нему
+        /// </summary>
         protected void SetConnectionSettings()
         {
             try {
@@ -312,9 +352,16 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Установить параметры соединения с источником данных
+        /// </summary>
+        /// <param name="cs">Объект с параметрами соединения</param>
+        /// <param name="bStarted">Признак немедленной активации объекта доступа к источнику данных</param>
         public abstract void SetConnectionSettings(object cs, bool bStarted);
 
-        //BackgroundWorker m_threadGetData;
+        /// <summary>
+        /// Объект синхронизации для распознования команды на аварийное завершение подпотока получения данных запроса
+        /// </summary>
         private AutoResetEvent m_eventGetDataBreak;
 
         private void DbInterface_ThreadFunction(object data)
@@ -323,6 +370,8 @@ namespace HClassLibrary
             bool result;
             bool reconnection/* = false*/;
             Thread threadGetData;
+            // Массив объектов синхронизации текущего потока и подпотока ожидания
+            // 0 - нормальное завершение, 1 - аврийное завершение
             WaitHandle[] waitHandleGetData = new WaitHandle[] { new AutoResetEvent(false), m_eventGetDataBreak = new AutoResetEvent(false) };
             int iGetData = -1;
 
@@ -369,11 +418,16 @@ namespace HClassLibrary
                 //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - m_listListeners.Count = " + m_listListeners.Count);
 
                 lock (lockListeners) {
+                    // в новом цикле - новое состояние для прерывания
+                    iGetData = -1;
+
+                    //??? внутри цикла при аварийном прерывании из словаря удаляется элемент
                     foreach (KeyValuePair<int, DbInterfaceListener> pair in m_dictListeners) {
-                        if (iGetData > 0)
-                            break;
-                        else
-                            ;
+                        //??? если прервали обработку запроса одного из подписчиков, то остальные продолжаем обрабатывать
+                        //if (iGetData > 0)
+                        //    break;
+                        //else
+                        //    ;
 
                         //lock (lockListeners)
                         //{
@@ -420,19 +474,37 @@ namespace HClassLibrary
                                         , e.Message, e.StackTrace));
                                 } finally {
                                 }
-                            })) {
+                            })) { // параметры для запуска потока
                                 IsBackground = true
                                 , Name = string.Format (@"{0}:{1}", Name, pair.Key)
                                 , Priority = ThreadPriority.AboveNormal
                             };
-                            threadGetData.Start(waitHandleGetData[0]);
+                            // запуск потока
+                            threadGetData.Start(waitHandleGetData [0]);
 
-                            if ((iGetData = WaitHandle.WaitAny(waitHandleGetData)) > 0) {
+                            if ((iGetData = WaitHandle.WaitAny(waitHandleGetData, MAX_WATING)) > 0) {
                                 switch (iGetData) {
-                                    default:
-                                        threadGetData.Abort(string.Format(@"Индекс объекта синхронизации={0}", iGetData));
+                                    case WaitHandle.WaitTimeout:
+                                        // команда на аварийное завершение
+                                        (waitHandleGetData [1] as AutoResetEvent).Set ();
+                                        break;
+                                    default:                                        
                                         break;
                                 }
+
+                                // ждем мсек норм. завершения после исполнения команды на аварийное завершение внутр. потока
+                                if (waitHandleGetData [0].WaitOne (WAIT_TIME_MS) == false)
+                                    // ждем еще мсек норм. завершения
+                                    if (threadGetData.Join (WAIT_TIME_MS) == false) {
+                                        // аваавррийно завершаем
+                                        threadGetData.Abort (string.Format (@"Аварийное завершение подпотока получения данных..."));
+                                        //threadGetData.Interrupt ();
+                                        //// перейти к следующему подписчику
+                                        //continue;
+                                    } else
+                                        ;
+                                else
+                                    ;
                             } else
                                 ;
                             threadGetData = null;

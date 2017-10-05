@@ -12,34 +12,71 @@ using System.Data.OracleClient;
 
 using System.IO; //StreamReader
 
-//namespace HClassLibrary
 namespace HClassLibrary
 {
+    /// <summary>
+    /// Класс для бращения к источнику данных посредством запросов на T-SQL
+    /// </summary>
     public class DbTSQLInterface : DbInterface
     {
+        /// <summary>
+        /// Перечисление - перечень возможных ошибок при работе с источником данных
+        /// </summary>
         public enum Error
         {
-            NO_ERROR = 0, DBCONN_NOT_OPEN = -1, DBCONN_NULL = -2, DBADAPTER_NULL = -3, PARAMQUERY_NULL = -4,
-            PARAMQUERY_LENGTH = -5
-                ,
-            CATCH_DBCONN = -11
-                , CATCH_CSV_READ = -21,
-            CATCH_CSV_ROWREAD = -22
-                , TABLE_NULL = -31, TABLE_ROWS_0 = -32
+            NO_ERROR = 0
+            , DBCONN_NOT_OPEN = -1, DBCONN_NULL = -2, DBADAPTER_NULL = -3
+            , PARAMQUERY_NULL = -4, PARAMQUERY_LENGTH = -5
+            , CATCH_DBCONN = -11
+            , CATCH_CSV_READ = -21, CATCH_CSV_ROWREAD = -22
+            , TABLE_NULL = -31, TABLE_ROWS_0 = -32
         };
-        public enum QUERY_TYPE { UPDATE, INSERT, DELETE, COUNT_QUERY_TYPE };
-
+        /// <summary>
+        /// Перечисление - типы запросов
+        /// </summary>
+        public enum QUERY_TYPE {
+            /// <summary>
+            /// Обновление данных
+            /// </summary>
+            UPDATE
+            /// <summary>Вставка новых записей</summary>
+            , INSERT
+            /// <summary>Удаление данных</summary>
+            , DELETE
+                /// <summary>Количество типов запросов</summary>
+                , COUNT_QUERY_TYPE };
+        /// <summary>
+        /// Строка - сообщение об успешно установленном соединении
+        /// </summary>
         public static string MessageDbOpen = "Соединение с базой установлено";
+        /// <summary>
+        /// Строка - сообщение о разрыве соедиения с источником данных
+        /// </summary>
         public static string MessageDbClose = "Соединение с базой разорвано";
+        /// <summary>
+        /// Строка - сообщение при возникновении исключительной ситуации при работе с БД
+        /// </summary>
         public static string MessageDbException = "!Исключение! Работа с БД";
-
+        /// <summary>
+        /// Непосредственный объект соединения с источником данных
+        /// </summary>
         private DbConnection m_dbConnection;
         private DbCommand m_dbCommand;
         private DbDataAdapter m_dbAdapter;
+        /// <summary>
+        /// Объект синхронизации при доступе к параметрам соединения с источником данных
+        /// </summary>
         private static object lockConn = new object();
-
+        /// <summary>
+        /// Тип источника данных
+        /// </summary>
         private DB_TSQL_INTERFACE_TYPE m_connectionType;
 
+        /// <summary>
+        /// Конструктор - основной (с аргументами)
+        /// </summary>
+        /// <param name="type">Тип источника данных</param>
+        /// <param name="name">Наименование объекта для доступа к источнику данных</param>
         public DbTSQLInterface(DB_TSQL_INTERFACE_TYPE type, string name)
             : base(name)
         {
@@ -92,6 +129,63 @@ namespace HClassLibrary
             m_dbAdapter.SelectCommand = m_dbCommand;
         }
 
+        /// <summary>
+        /// Создать объект соединения с БД
+        /// </summary>
+        /// <param name="type">Тип источника данных</param>
+        /// <returns>Объект соединения с БД</returns>
+        private static DbConnection createDbConnection (DB_TSQL_INTERFACE_TYPE type)
+        {
+            DbConnection connRes;
+
+            switch (type) {
+                case DB_TSQL_INTERFACE_TYPE.MySQL:
+                    connRes = new MySqlConnection ();
+                    break;
+                case DB_TSQL_INTERFACE_TYPE.MSSQL:
+                default:
+                    connRes = new SqlConnection ();
+                    break;
+                case DB_TSQL_INTERFACE_TYPE.Oracle:
+                    connRes = new OracleConnection ();
+                    break;
+                case DB_TSQL_INTERFACE_TYPE.MSExcel:
+                    connRes = new OleDbConnection ();
+                    break;
+            }
+
+            return connRes;
+        }
+
+        /// <summary>
+        /// Установить соединение
+        /// </summary>
+        /// <param name="connSett">Параметры соединения с БД</param>
+        /// <param name="err">Признак ошибкт при установке соединения</param>
+        /// <returns>Признак установки соединения</returns>
+        private static DbConnection connect (ConnectionSettings connSett, out Error err)
+        {
+            err = Error.NO_ERROR;
+
+            return createDbConnection(getTypeDB(connSett));
+        }
+
+        /// <summary>
+        /// Разорвать соединение с БД
+        /// </summary>
+        /// <param name="conn">Объект соединения с БД</param>
+        /// <param name="err">Признак ошибки при выполнении операции</param>
+        private static void disconnect (ref DbConnection conn, out Error err)
+        {
+            err = Error.NO_ERROR;
+
+            conn.Close ();
+        }
+
+        /// <summary>
+        /// Установить соединение с источником данных
+        /// </summary>
+        /// <returns>Признак установки соединения</returns>
         protected override bool Connect()
         {
             if (((ConnectionSettings)m_connectionSettings).Validate() != ConnectionSettings.ConnectionSettingsError.NoError)
@@ -177,6 +271,11 @@ namespace HClassLibrary
             return result;
         }
 
+        /// <summary>
+        /// Установить параметры соединения с источником данных
+        /// </summary>
+        /// <param name="cs">Объект с параметрами соединения</param>
+        /// <param name="bStarted">Признак немедленной активации объекта доступа к источнику данных</param>
         public override void SetConnectionSettings(object cs, bool bStarted)
         {
             lock (lockConnectionSettings)
@@ -200,6 +299,10 @@ namespace HClassLibrary
                 ;
         }
 
+        /// <summary>
+        /// Отменить установку соединения с источником данных
+        /// </summary>
+        /// <returns>Признак выполнения операции разъединения</returns>
         protected override bool Disconnect()
         {
             if (m_dbConnection.State == ConnectionState.Closed)
@@ -231,6 +334,10 @@ namespace HClassLibrary
             return result;
         }
 
+        /// <summary>
+        /// Разорвать установленное соединение с источником данных
+        /// </summary>
+        /// <param name="er">Признак наличия ошибки при выполнении операции</param>
         public override void Disconnect(out int er)
         {
             er = (int)Error.NO_ERROR;
@@ -256,6 +363,12 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Получить результат запроса (KhryapinAN DD.09.2017 выполняется в отдельном потоке)
+        /// </summary>
+        /// <param name="table">Таблица - результат запроса</param>
+        /// <param name="query">Запрос к источнику данных на T-SQL</param>
+        /// <returns>Признак получения результата</returns>
         protected override bool GetData(DataTable table, object query)
         {
             if (m_dbConnection.State != ConnectionState.Open)
@@ -298,6 +411,11 @@ namespace HClassLibrary
             return result;
         }
 
+        /// <summary>
+        /// Строка соединения для логгирования с усечением значения пароля
+        /// </summary>
+        /// <param name="strConnSett">Строка соединения с БД</param>
+        /// <returns>Строка для размещения в журнале приложения</returns>
         private static string ConnectionStringToLog(string strConnSett)
         {
             string strRes = string.Empty;
@@ -312,6 +430,11 @@ namespace HClassLibrary
             return strRes;
         }
 
+        /// <summary>
+        /// Зафиксировать/разместить в журнале сообщение о возникновении исключительной ситуации
+        /// </summary>
+        /// <param name="conn">Объект соединения с БД(источником данных)</param>
+        /// <param name="e">Исключение, требуещще журналирования</param>
         private static void logging_catch_db(DbConnection conn, Exception e)
         {
             string s = string.Empty, log = string.Empty;
@@ -332,6 +455,10 @@ namespace HClassLibrary
             Logging.Logg().ExceptionDB(log);
         }
 
+        /// <summary>
+        /// Зафиксировать/разместить в журнале сообщение о разрыве соединения с БД (источником данных)
+        /// </summary>
+        /// <param name="conn">Объект соединения с БД(источником данных)</param>
         private static void logging_close_db(DbConnection conn)
         {
             string s = ConnectionStringToLog(conn.ConnectionString);
@@ -339,6 +466,10 @@ namespace HClassLibrary
             Logging.Logg().Debug(MessageDbClose + " (" + s + ")", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
+        /// <summary>
+        /// Зафиксировать/разместить в журнале сообщение об установке соединения с БД (источником данных)
+        /// </summary>
+        /// <param name="conn">Объект соединения с БД(источником данных)</param>
         private static void logging_open_db(DbConnection conn)
         {
             string s = ConnectionStringToLog(conn.ConnectionString);
@@ -346,6 +477,24 @@ namespace HClassLibrary
             Logging.Logg().Debug(MessageDbOpen + " (" + s + ")", Logging.INDEX_MESSAGE.NOT_SET, true);
         }
 
+        /// <summary>
+        /// Возвратить тип источника данных по объекту с параметрами для соединения
+        /// </summary>
+        /// <param name="connSett">Объект с параметрами для установления соединения</param>
+        /// <returns>Тип источника данных</returns>
+        public static DbTSQLInterface.DB_TSQL_INTERFACE_TYPE getTypeDB (ConnectionSettings connSett)
+        {
+            return getTypeDB (connSett.port);
+        }
+
+        /// <summary>
+        /// Возвратить тип источника данных по строке соединения
+        ///  (извлекается номер порта, по нему и определяется искомый тип)
+        ///  , не применим, если в строке соединения не указан номер порта
+        ///  , по умолчанию возвращается 'MS SQL'
+        /// </summary>
+        /// <param name="strConn">Строка соединения с источником данных</param>
+        /// <returns>Тип источника данных</returns>
         public static DbTSQLInterface.DB_TSQL_INTERFACE_TYPE getTypeDB(string strConn)
         {
             DB_TSQL_INTERFACE_TYPE res = DB_TSQL_INTERFACE_TYPE.MSSQL;
@@ -369,6 +518,12 @@ namespace HClassLibrary
             return res;
         }
 
+        /// <summary>
+        /// Возвратить тип источника данных по номеру порта
+        ///  , если не удается идентифицировать источник, возвращается 'неизвестный тип'
+        /// </summary>
+        /// <param name="port">Номер порта для связи с источником данных</param>
+        /// <returns>Тип источника данных</returns>
         public static DbTSQLInterface.DB_TSQL_INTERFACE_TYPE getTypeDB(int port)
         {
             DbTSQLInterface.DB_TSQL_INTERFACE_TYPE typeDBRes = DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN;
@@ -391,6 +546,11 @@ namespace HClassLibrary
             return typeDBRes;
         }
 
+        /// <summary>
+        /// Возвратить объект соединения с БД (для синхронных операций)
+        /// </summary>
+        /// <param name="err">Признак ошибки при выполнении метода, актуальности возвращаемого значения</param>
+        /// <returns></returns>
         public DbConnection GetConnection(out int err)
         {
             err = (int)Error.NO_ERROR;
@@ -408,96 +568,42 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Подтвердить наличие поля в таблице-результате запроса
+        /// </summary>
+        /// <param name="data">Таблица</param>
+        /// <param name="nameField">Наименование поля</param>
+        /// <returns>Признак наличия поля</returns>
         public static bool IsNameField(DataTable data, string nameField) { return data.Columns.IndexOf(nameField) > -1 ? true : false; }
 
+        /// <summary>
+        /// Подтвердить наличие поля в строке таблицы-результата запроса
+        /// </summary>
+        /// <param name="data">Строка таблицы</param>
+        /// <param name="nameField">Наименование поля</param>
+        /// <returns>Признак наличия поля</returns>
         public static bool IsNameField(DataRow data, string nameField) { return IsNameField(data.Table, nameField); }
 
-        ////public static DbConnection getConnection (ConnectionSettings connSett, out int er)
-        //public DbConnection getConnection(ConnectionSettings connSett, out int er)
-        //{
-        //    er = 0;
-
-        //    string s = string.Empty;
-        //    DbConnection connRes = null;
-
-        //    DbTSQLInterface.DB_TSQL_INTERFACE_TYPE typeDB = getTypeDB (connSett.port);
-
-        //    if (!(typeDB == DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.UNKNOWN))
-        //    {
-        //        switch (typeDB)
-        //        {
-        //            case DB_TSQL_INTERFACE_TYPE.MySQL:
-        //                s = connSett.GetConnectionStringMySQL();
-        //                connRes = new MySqlConnection(s);
-        //                break;
-        //            case DB_TSQL_INTERFACE_TYPE.MSSQL:
-        //                s = connSett.GetConnectionStringMSSQL ();
-        //                connRes = new SqlConnection(s);
-        //                break;
-        //            default:
-        //                break;
-        //        }
-
-        //        try
-        //        {
-        //            connRes.Open();
-
-        //            if (!(connSett.id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_open_db(connRes); } else ;
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            if (!(connSett.id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_catch_db(connRes, e); } else ;
-
-        //            connRes = null;
-
-        //            er = -1;
-        //        }
-        //    }
-        //    else
-        //        ;
-
-        //    return connRes;
-        //}
-
-        //public static void closeConnection(ref DbConnection conn, out int er)
-        //{
-        //    er = 0;
-
-        //    try
-        //    {
-        //        if (!(conn.State == ConnectionState.Closed))
-        //        {
-        //            conn.Close();
-
-        //            //if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_close_db(conn); } else ;
-        //            logging_close_db (conn);
-        //        }
-        //        else
-        //            ;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        logging_catch_db(conn, e);
-
-        //        conn = null;
-
-        //        er = -1;
-        //    }
-        //}
-
         /// <summary>
-        /// Добавление в начале и в конце значения одинарные кавычки,
-        ///  если тип значения "простой"
+        /// Преобразование/подготовка значение для использования его в строке запроса
+        ///  - добавление в начале и в конце значения одинарные кавычки
+        ///  , если тип значения "простой"
         /// </summary>
-        /// <param name="table">таблица со значениями</param>
-        /// <param name="row">номер записи в таблице со значениями</param>
-        /// <param name="col">номер столбца в записи таблицы со значениями</param>
-        /// <returns>строка - значение из таблицы с одинарными кавычками или без них</returns>
+        /// <param name="table">Таблица со значениями</param>
+        /// <param name="row">Номер записи в таблице со значениями</param>
+        /// <param name="col">Номер столбца в записи таблицы со значениями</param>
+        /// <returns>Строка - значение из таблицы с одинарными кавычками или без них</returns>
         public static string ValueToQuery(DataTable table, int row, int col)
         {
             return ValueToQuery(table.Rows[row][col], table.Columns[col].DataType);
         }
 
+        /// <summary>
+        /// Преобразование/подготовка значение для использования его в строке запроса
+        /// </summary>
+        /// <param name="val">Значение для преобразования</param>
+        /// <param name="type">Тип столбца в таблице, для размещения в него значения</param>
+        /// <returns>Строка - значение из таблицы с одинарными кавычками или без них</returns>
         public static string ValueToQuery(object val, Type type)
         {
             string strRes = string.Empty
@@ -537,11 +643,32 @@ namespace HClassLibrary
         }
 
         /// <summary>
+        /// Проверка и преобразование запроса к БД в зависимости от типа БД (MSSQL, MySql)
+        /// </summary>
+        /// <param name="strConn">строка соединения объекта DbConnection</param>
+        /// <param name="query">преобразуемый запрос</param>
+        private static void queryValidateOfTypeDB (string strConn, ref string query)
+        {
+            switch (getTypeDB (strConn)) {
+                case DB_TSQL_INTERFACE_TYPE.MySQL:
+                    query = query.Replace (@"[dbo].", string.Empty);
+                    query = query.Replace ('[', '`');
+                    query = query.Replace (']', '`');
+                    break;
+                case DB_TSQL_INTERFACE_TYPE.MSSQL:
+                case DB_TSQL_INTERFACE_TYPE.Oracle:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        /// <summary>
         /// Импорт содержания текстового файла с разделителем в таблицу
         /// </summary>
         /// <param name="path">путь к файлу</param>
         /// <param name="fields">наименования полей таблицы (не используется)</param>
-        /// <param name="er"></param>
+        /// <param name="er">Признак ошибки при выполнении операции</param>
         /// <returns></returns>
         public static DataTable CSVImport(string path, string fields, out int er)
         {
@@ -584,6 +711,20 @@ namespace HClassLibrary
             return dataTableRes;
         }
 
+        /// <summary>
+        /// Тип делегата для функции обратного вызова при аснхронном запросе к источнику данных синхронного типа
+        /// </summary>
+        /// <param name="table">Таблица - результат запроса</param>
+        /// <param name="err">Признак ошибки при выполнении запроса</param>
+        public delegate void DelegateSelectAsync (out DataTable table, out Error err);
+
+        /// <summary>
+        /// Отправить/выполнить запрос к источнику данных
+        /// </summary>
+        /// <param name="path">Путь к источнику данных (MS Excel, MS Access)</param>
+        /// <param name="query">Строка - запрос</param>
+        /// <param name="er">Признак ошибки при отправлении запроса</param>
+        /// <returns>Результат выполнения запроса</returns>
         public static DataTable Select(string path, string query, out int er)
         {
             er = (int)Error.NO_ERROR;
@@ -647,27 +788,64 @@ namespace HClassLibrary
         }
 
         /// <summary>
-        /// Проверка и преобразование запроса к БД в зависимости от типа БД (MSSQL, MySql)
+        /// Отправить/выполнить запрос не требующий возвращения результата
         /// </summary>
-        /// <param name="strConn">строка соединения объекта DbConnection</param>
-        /// <param name="query">преобразуемый запрос</param>
-        private static void queryValidateOfTypeDB(string strConn, ref string query)
+        /// <param name="connSett">Параметры соединения с БД</param>
+        /// <param name="query">Запрос для выполнения</param>
+        /// <param name="er">Признак ошибки при выполнеии запроса</param>
+        public static DataTable Select (ConnectionSettings connSett, string query, out int er)
         {
-            switch (getTypeDB(strConn))
+            DataTable tableRes;
+            er = 0;
+
+            Error err;
+            DbConnection conn;
+
+            conn = connect(connSett, out err);
+
+            if (err == Error.NO_ERROR)
             {
-                case DB_TSQL_INTERFACE_TYPE.MySQL:
-                    query = query.Replace(@"[dbo].", string.Empty);
-                    query = query.Replace('[', '`');
-                    query = query.Replace(']', '`');
-                    break;
-                case DB_TSQL_INTERFACE_TYPE.MSSQL:
-                case DB_TSQL_INTERFACE_TYPE.Oracle:
-                    break;
-                default:
-                    break;
+                tableRes = Select(ref conn, query, null, null, out er);
+                err = (Error)er;
+
+                disconnect (ref conn, out err);
             }
+            else
+                tableRes = new DataTable ();
+
+            return tableRes;
         }
 
+        /// <summary>
+        /// Отправить/выполнить запрос асинхронно к источнику данных синхронного типа
+        /// </summary>
+        /// <param name="path">Путь к источнику данных (MS Excel, MS Access)</param>
+        /// <param name="query">Строка - запрос</param>
+        /// <param name="fCallback">Делегат(метод/функция) обратного вызова</param>
+        public static void Select (string path, string query, DelegateSelectAsync fCallback)
+        {
+            DataTable tableRes = new DataTable ();
+            Error err = Error.NO_ERROR;
+
+            int er = -1;
+
+            new Thread (new ParameterizedThreadStart(delegate (object obj) {
+                tableRes = Select (path, query, out er);
+
+                err = (Error)er;
+                fCallback (out tableRes, out err);
+            })).Start(null);
+        }
+
+        /// <summary>
+        /// Отправить/выполнить запрос(параметризованный) к источнику данных
+        /// </summary>
+        /// <param name="conn">Объект соединения с источником данных</param>
+        /// <param name="query">Строка - запрос к источнику данных</param>
+        /// <param name="types">Список типов параметров в запросе(НЕ РЕАЛИЗОВАНО)</param>
+        /// <param name="parametrs">Список параметров в запросе(НЕ РЕАЛИЗОВАНО)</param>
+        /// <param name="er">Признак ошибки при выпонении запроса</param>
+        /// <returns>Результат - таблица выполнения запроса</returns>
         public static DataTable Select(ref DbConnection conn, string query, DbType[] types, object[] parametrs, out int er)
         {
             er = (int)Error.NO_ERROR;
@@ -750,26 +928,36 @@ namespace HClassLibrary
             return dataTableRes;
         }
 
-        /*public static DataTable Select(ConnectionSettings connSett, string query, out int er)
+        /// <summary>
+        /// Отправить/выполнить запрос(параметризованный) асинхронно к источнику данных синхронного типа
+        /// </summary>
+        /// <param name="conn">Объект соединения с источником данных</param>
+        /// <param name="query">Строка - запрос</param>
+        /// <param name="types">Список типов параметров в запросе(НЕ РЕАЛИЗОВАНО)</param>
+        /// <param name="parametrs">Список значений параметров в запросе(НЕ РЕАЛИЗОВАНО)</param>
+        /// <param name="fCallback">Делегат(метод/функция) обратного вызова</param>
+        public static void Select (ref DbConnection conn, string query, DbType [] types, object [] parametrs, DelegateSelectAsync fCallback)
         {
-            er = 0;
+            DataTable tableRes = new DataTable ();
+            Error err = Error.NO_ERROR;
 
-            DataTable dataTableRes = null;
-            DbConnection conn;
-            conn = getConnection (connSett, out er);
+            DbConnection conn_ = conn;
+            int er = (int)Error.DBCONN_NOT_OPEN;
 
-            if (er == 0)
-            {
-                dataTableRes = Select(conn, query, null, null, out er);
+            new Thread (new ParameterizedThreadStart (delegate (object obj) {
+                tableRes = Select (ref conn_, query, types, parametrs, out er);
 
-                closeConnection (conn, out er);
-            }
-            else
-                dataTableRes = new DataTable();
+                err = (Error)er;
+                fCallback (out tableRes, out err);
+            })).Start (null);
+        }
 
-            return dataTableRes;
-        }*/
-
+        /// <summary>
+        /// Добавить параметр к запросу
+        /// </summary>
+        /// <param name="cmd">Объект 'команда' в составе запроса к источнику данных</param>
+        /// <param name="types">Тип парметра</param>
+        /// <param name="parametrs">Значение параметра</param>
         private static void ParametrsAdd(DbCommand cmd, DbType[] types, object[] parametrs)
         {
             if ((!(types == null)) && (!(parametrs == null)))
@@ -783,6 +971,12 @@ namespace HClassLibrary
                 ;
         }
 
+        /// <summary>
+        /// Проверить параметры для возможности использования в запросе
+        /// </summary>
+        /// <param name="types">Список типов параметров в запросе</param>
+        /// <param name="parametrs">Список значений параметров в запросе</param>
+        /// <param name="err">Признак ошибки при выполнеии метода</param>
         private static void ParametrsValidate(DbType[] types, object[] parametrs, out int err)
         {
             err = (int)Error.NO_ERROR;
@@ -811,6 +1005,14 @@ namespace HClassLibrary
                 ;
         }
 
+        /// <summary>
+        /// Выполнить запрос, не требущий возвращения результатат, синхронно 
+        /// </summary>
+        /// <param name="conn">Объект соединения с источником данных</param>
+        /// <param name="query">Строка - запрос</param>
+        /// <param name="types">Список типов параметров в запросе(НЕ РЕАЛИЗОВАНО)</param>
+        /// <param name="parametrs">Список значений параметров в запросе(НЕ РЕАЛИЗОВАНО)</param>
+        /// <param name="er">Признак ошибки при выполнеини запроса</param>
         public static void ExecNonQuery(ref DbConnection conn, string query, DbType[] types, object[] parametrs, out int er)
         {
             er = (int)Error.NO_ERROR;
@@ -868,24 +1070,39 @@ namespace HClassLibrary
                 ;
         }
 
-        /*public static void ExecNonQuery(ConnectionSettings connSett, string query, out int er)
+        /// <summary>
+        /// Выполнить запрос не требующий возвращения результата
+        /// </summary>
+        /// <param name="connSett">Объект с параметрами соединения</param>
+        /// <param name="query">Запрос для выполнения</param>
+        /// <param name="er">Признак ошибки при выполнении операции</param>
+        public static void ExecNonQuery(ConnectionSettings connSett, string query, out int er)
         {
             er = 0;
+            Error err;
 
             DbConnection conn;
 
-            conn = getConnection(connSett, out er);
+            conn = connect(connSett, out err);
 
-            if (er == 0)
+            if (err == Error.NO_ERROR)
             {
-                ExecNonQuery(conn, query, null, null, out er);
+                ExecNonQuery(ref conn, query, null, null, out er);
 
-                closeConnection (conn, out er);
+                disconnect (ref conn, out err);
             }
             else
                 ;
-        }*/
 
+            er = (int)err;
+        }
+
+        /// <summary>
+        /// Выполнить запрос не требующий возвращения результата
+        /// </summary>
+        /// <param name="path">Путь к источнику данных (файловому: MS Excel, MS Access)</param>
+        /// <param name="query">Запрос для выполнения</param>
+        /// <param name="er">Признак ошибки при выполнении операции</param>
         public static void ExecNonQuery(string path, string query, out int er)
         {
             er = 0;
@@ -932,6 +1149,7 @@ namespace HClassLibrary
             else
                 ;
         }
+
         /// <summary>
         /// Возвратить идентификатор для очередной записи в диапазоне [min...max]
         /// </summary>
@@ -940,7 +1158,7 @@ namespace HClassLibrary
         /// <param name="nameFieldID">Наименование целочисленного поля с идентификатором</param>
         /// <param name="min">Минимальное значение диапазона для поиска идентификатора</param>
         /// <param name="max">Максимальное значение диапазона для поиска идентификатора</param>
-        /// <returns></returns>
+        /// <returns>Очередной(по сквозной нумерации) идентификатор</returns>
         public static Int32 GetIdNext(ref DbConnection conn, string nameTable, out int err, string nameFieldID = @"ID", Int32 min = 0, Int32 max = Int32.MaxValue)
         {
             Int32 idRes = -1;
@@ -955,6 +1173,7 @@ namespace HClassLibrary
 
             return ++idRes;
         }
+
         /// <summary>
         /// Возвратить идентификатор для очередной записи в диапазоне [min...max]
         /// </summary>
@@ -984,6 +1203,7 @@ namespace HClassLibrary
 
             return ++idRes;
         }
+        
         /// <summary>
         /// Изменение (вставка), удаление
         /// </summary>
@@ -993,7 +1213,7 @@ namespace HClassLibrary
         /// <param name="unchangeableColumn">Наименования полей таблицы не подлежащие изменению</param>
         /// <param name="origin">Таблица со значениями - исходная</param>
         /// <param name="data">Таблица со значениями - с изменениями</param>
-        /// <param name="err">Признак выполнения функции</param>
+        /// <param name="err">Признак ошибки выполнения функции</param>
         public static void RecUpdateInsertDelete(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn, DataTable origin, DataTable data, out int err)
         {
             if (!(data.Rows.Count < origin.Rows.Count))
@@ -1008,6 +1228,12 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Возвратить предложение 'WHERE' для запроса
+        /// </summary>
+        /// <param name="fields">Список полей в предложении WHERE</param>
+        /// <param name="r">Строка со значенями для включения в результирующую строку</param>
+        /// <returns>Строка - предложение 'WHERE (часть запроса)'</returns>
         private static string getWhereSelect(string fields, DataRow r)
         {
             string strRes = string.Empty;
@@ -1031,7 +1257,16 @@ namespace HClassLibrary
             return strRes;
         }
 
-        //Изменение (вставка) в оригинальную таблицу записей измененных (добавленных) в измененную таблицу (обязательно наличие поля: ID)
+        /// <summary>
+        /// Изменение (вставка) в оригинальную таблицу записей измененных (добавленных) в измененную таблицу (обязательно наличие поля: ID)
+        /// </summary>
+        /// <param name="conn">Объект с параметрами соединения с БД</param>
+        /// <param name="nameTable">Наименование таблицы в БД</param>
+        /// <param name="keyFields">Набор ключевых полей по которым определяется изменение/добавление/удаление записи</param>
+        /// <param name="unchangeableColumn">Наименование поля, которое не проверяется на изменение/добавление/удаление</param>
+        /// <param name="origin">Оригинальная таблица со значениями</param>
+        /// <param name="data">Таблица с внесенными изменениями</param>
+        /// <param name="err">Признак ошибки выполнения функции</param>
         public static void RecUpdateInsert(ref DbConnection conn, string nameTable, string keyFields, string unchangeableColumn
             , DataTable origin, DataTable data, out int err)
         {
@@ -1109,7 +1344,15 @@ namespace HClassLibrary
             }
         }
 
-        //Удаление из оригинальной таблицы записей не существующих в измененной таблице (обязательно наличие поля: ID)
+        /// <summary>
+        /// Удаление из оригинальной таблицы записей не существующих в измененной таблице (обязательно наличие поля: ID)
+        /// </summary>
+        /// <param name="conn">Объект с параметрами соединения с БД</param>
+        /// <param name="nameTable">Наименование таблицы в БД</param>
+        /// <param name="keyFields">Набор ключевых полей по которым определяется изменение/добавление/удаление записи</param>
+        /// <param name="origin">Оригинальная(исходная) таблица со значениями</param>
+        /// <param name="data">Таблица с внесенными изменениями</param>
+        /// <param name="err">Признак ошибки выполнения функции</param>
         public static void RecDelete(ref DbConnection conn, string nameTable, string keyFields, DataTable origin, DataTable data, out int err)
         {
             err = (int)Error.NO_ERROR;
@@ -1142,6 +1385,11 @@ namespace HClassLibrary
             }
         }
 
+        /// <summary>
+        /// Признак наличия соединения с БД
+        /// </summary>
+        /// <param name="obj">Объект соединения с БД, подвергающийся проверке</param>
+        /// <returns>Признак наличия соединения с БД</returns>
         public static bool IsConnected(ref DbConnection obj)
         {
             return (!(obj == null)) && (!(obj.State == ConnectionState.Closed)) && (!(obj.State == ConnectionState.Broken));

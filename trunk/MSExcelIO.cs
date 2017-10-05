@@ -650,7 +650,7 @@ namespace HClassLibrary
         /// СОХРАНИТЬ текущий ДОКУМЕНТ
         /// </summary>
         /// <param name="name">Строка - полный путь документа - книги MS Excel</param>
-        /// <returns></returns>
+        /// <returns>Признак успеха/ошибки при выполнении метода</returns>
         public bool SaveExcel(string name)
         {
             bool bRes = true;

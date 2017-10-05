@@ -170,7 +170,7 @@ namespace HClassLibrary
                 //Выход из потоковой функции
                 Run(@"HHandler::Stop ()");
                 //Ожидать завершения потоковой функции
-                joined = taskThreadState.Join(666);
+                joined = taskThreadState.Join(DbInterface.WAIT_TIME_MS);
                 //Проверить корректное завершение потоковой функции
                 if (joined == false)
                     //Завершить аварийно потоковую функцию

@@ -310,7 +310,7 @@ namespace HClassLibrary
             string exePath = Application.ExecutablePath;
             try {
                 Application.Exit();
-                wait_allowingEvents(6666);
+                wait_allowingEvents(DbInterface.MAX_WATING);
             } catch (ArgumentException ex) {
                 throw;
             }
@@ -325,7 +325,7 @@ namespace HClassLibrary
             string exePath = Application.ExecutablePath;
             try {
                 Application.Exit();
-                wait_allowingEvents(6666);
+                wait_allowingEvents(DbInterface.MAX_WATING);
             } catch (ArgumentException ex) {
                 throw;
             }
