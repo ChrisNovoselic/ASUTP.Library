@@ -225,14 +225,17 @@ namespace HClassLibrary
                     return;
                 }
 
-                m_connectionSettings[i].id = Math.Abs(m_connectionSettingsEdit[i].id) > 1 ? m_connectionSettingsEdit[i].id : (int)ConnectionSettings.UN_ENUMERABLE_ID;
-                m_connectionSettings[i].server = m_connectionSettingsEdit[i].server;
-                m_connectionSettings[i].instance = m_connectionSettingsEdit[i].instance;
-                m_connectionSettings[i].port = m_connectionSettingsEdit[i].port;
-                m_connectionSettings[i].dbName = m_connectionSettingsEdit[i].dbName;
-                m_connectionSettings[i].userName = m_connectionSettingsEdit[i].userName;
-                m_connectionSettings[i].password = m_connectionSettingsEdit[i].password;
-                //m_connectionSettings[i].ignore = m_connectionSettingsEdit[i].ignore;
+                if (i < m_connectionSettings.Count) {
+                    m_connectionSettings [i].id = Math.Abs (m_connectionSettingsEdit [i].id) > 1 ? m_connectionSettingsEdit [i].id : (int)ConnectionSettings.UN_ENUMERABLE_ID;
+                    m_connectionSettings [i].server = m_connectionSettingsEdit [i].server;
+                    m_connectionSettings [i].instance = m_connectionSettingsEdit [i].instance;
+                    m_connectionSettings [i].port = m_connectionSettingsEdit [i].port;
+                    m_connectionSettings [i].dbName = m_connectionSettingsEdit [i].dbName;
+                    m_connectionSettings [i].userName = m_connectionSettingsEdit [i].userName;
+                    m_connectionSettings [i].password = m_connectionSettingsEdit [i].password;
+                    //m_connectionSettings[i].ignore = m_connectionSettingsEdit[i].ignore;
+                } else
+                    throw new Exception (string.Format($"Попытка сохранить значения (индекс={i}) в массив объектов с параметрами соединения с размером={m_connectionSettings.Count}"));
             }
 
             SaveSettings(m_idListener, m_connectionSettings, out m_iReady);
