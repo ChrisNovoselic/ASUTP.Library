@@ -99,10 +99,10 @@ namespace HClassLibrary
             }
 
             /// <summary>
-            /// Функция получения доступа
+            /// Функция получения значения права доступа
             /// </summary>
             /// <param name="id">ID типа(unit)</param>
-            /// <returns></returns>
+            /// <returns>Признак права доступа к элменту с указанным идентификатором</returns>
             public static object GetAllowed(int id)
             {
                 object objRes = false;

@@ -10,6 +10,11 @@ namespace HClassLibrary
     //    public HException(string msg) : base(msg) { }
     //}
 
+    /// <summary>
+    /// Базовая форма для главной формы приложения
+    ///  , обрабатывает файл конфигурации с параметрами для соединения с БД
+    ///  , отображает сообщение при аварийном завершении работы
+    /// </summary>
     public abstract class FormMainBase : Form
     {
         /// <summary>
@@ -56,6 +61,7 @@ namespace HClassLibrary
         /// Идентификатор основного источника данных
         /// </summary>
         public static int s_iMainSourceData = -1;
+
         /// <summary>
         /// Конструктор - основной (без параметров)
         /// </summary>
@@ -73,21 +79,24 @@ namespace HClassLibrary
             delegateStartWait = new DelegateFunc(startWait);
             delegateStopWait = new DelegateFunc(stopWait);
         }
+
         /// <summary>
         /// Инициализация индивидуальных параметров формы
         /// </summary>
         private void InitializeComponent()
         {
-            //TODO
+            //TODO:
         }
+
         /// <summary>
         /// Инициировать аварийное завершение работы
         /// </summary>
-        /// <param name="msg"></param>
+        /// <param name="msg">Сообщение при исключении (аврийном завершении работы)</param>
         protected void Abort(string msg)
         {
             throw new Exception(msg);
         }
+
         /// <summary>
         /// Инициировать (при необходимости) аврийное завершение
         ///  , отобразить сообщение
@@ -110,6 +119,7 @@ namespace HClassLibrary
             else
                 MessageBox.Show(this, msgThrow, "Ошибка в работе программы!", MessageBoxButtons.OK, MessageBoxIcon.Stop);
         }
+
         /// <summary>
         /// Запустить (отобразить) форму 'FormWait'
         /// </summary>
@@ -124,6 +134,7 @@ namespace HClassLibrary
             else
                 ;
         }
+
         /// <summary>
         /// Остановить (скрыть) форму 'FormWait' 
         /// </summary>
@@ -133,6 +144,7 @@ namespace HClassLibrary
 
             m_formWait.StopWaitForm();
         }
+
         /// <summary>
         /// Рекурсивная функция поиска элемента меню в указанном пункте меню
         /// </summary>
@@ -174,6 +186,7 @@ namespace HClassLibrary
 
             return itemRes;
         }
+
         /// <summary>
         /// Поиск в главном меню элемента с именнем
         /// </summary>
@@ -218,6 +231,11 @@ namespace HClassLibrary
                     ;
         }
 
+        /// <summary>
+        /// Удалить п.главного меню приложения (по тексту)
+        /// </summary>
+        /// <param name="text">Текст (под)пункта меню</param>
+        /// <returns>Признак выполнения удаления (-1 - ошибка, 0 - элемент не найден, 1 - пункт меню удален)</returns>
         public int RemoveMainMenuItemOfText(string text)
         {
             int iRes = 0; //-1 - ошибка, 0 - элемент не найден, 1 - пункт меню удален
@@ -242,11 +260,13 @@ namespace HClassLibrary
 
             return iRes;
         }
+
         /// <summary>
         /// Закрыть окно
         /// </summary>
         /// <param name="bForce">Признак немедленного закрытия окна</param>
         public virtual void Close(bool bForce) { base.Close(); }
+
         /// <summary>
         /// Обработчик события создания дескрипотра окна
         ///  для подсчета кол-ва отображаемых наследуемых форм
@@ -282,6 +302,7 @@ namespace HClassLibrary
                 //Console.WriteLine(@"FormMainBase::InitializeComponent () - formCounter=" + formCounter);
             }
         }
+
         /// <summary>
         /// Обработчик события - закрытие формы
         ///  для подсчета кол-ва отображаемых наследуемых форм
