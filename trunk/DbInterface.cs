@@ -487,6 +487,7 @@ namespace HClassLibrary
                                     case WaitHandle.WaitTimeout:
                                         // команда на аварийное завершение
                                         (waitHandleGetData [1] as AutoResetEvent).Set ();
+                                        needReconnect = true;
                                         break;
                                     default:                                        
                                         break;
