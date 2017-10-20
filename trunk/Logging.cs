@@ -17,17 +17,40 @@ namespace HClassLibrary
     //    //}
     //}
 
-    public class Logging //LoggingFS //: Logging
+    /// <summary>
+    /// Класс для объекта, обеспечивающего журналирование событий приложения/библиотеки
+    /// </summary>
+    public class Logging //: Logging
     {
-        public enum LOG_MODE { ERROR = -1, UNKNOWN, FILE_EXE, FILE_DESKTOP, FILE_LOCALDEV, FILE_NETDEV, DB };
+        /// <summary>
+        /// Перечисление - возможные режимы журналирования (классификация по признаку конечного устойства для размещения фиксируемымых событий)
+        /// </summary>
+        public enum LOG_MODE {
+            ERROR = -1,
+            UNKNOWN,
+            FILE_EXE,
+            FILE_DESKTOP,
+            FILE_LOCALDEV,
+            FILE_NETDEV,
+            /// <summary>
+            /// База данных, должен быть
+            /// </summary>
+            DB
+        };
+        /// <summary>
+        /// Перечисление - возможные типы сообщений
+        /// </summary>
         private enum ID_MESSAGE { START = 1, STOP, ACTION, DEBUG, EXCEPTION, EXCEPTION_DB, ERROR, WARNING };
+        /// <summary>
+        /// Перечисление - предустановленные подтипы сообщений
+        /// </summary>
         public enum INDEX_MESSAGE { NOT_SET = -1
-                                    , A_001, A_002, A_003
-                                    , D_001, D_002, D_003, D_004, D_005, D_006
-                                    , EXCPT_001, EXCPT_002, EXCPT_003, EXCPT_004, EXCPT_005, EXCPT_006
-                                    , EXCPT_DB_001, EXCPT_DB_002, EXCPT_DB_003, EXCPT_DB_004
+                                    , A_001, A_002, A_003 // 3 шт.
+                                    , D_001, D_002, D_003, D_004, D_005, D_006 // 8 шт.
+                                    , EXCPT_001, EXCPT_002, EXCPT_003, EXCPT_004 // 4 шт.
+                                    , EXCPT_DB_001, EXCPT_DB_002, EXCPT_DB_003, EXCPT_DB_004 // 4 шт.
                                     , ERR_001, ERR_002, ERR_003, ERR_004, ERR_005, ERR_006
-                                    , W_001, W_002, W_003
+                                    , W_001, W_002, W_003, W_004 // 4 шт.
                     , COUNT_INDEX_MESSAGE
         };
 
@@ -45,6 +68,9 @@ namespace HClassLibrary
         private LogStreamWriter m_sw;
         private FileInfo m_fi;
         private static LOG_MODE _mode = LOG_MODE.UNKNOWN;
+        /// <summary>
+        /// Режим работы журналирования
+        /// </summary>
         public static LOG_MODE s_mode
         {
             get { return _mode; }
@@ -74,8 +100,13 @@ namespace HClassLibrary
         private int logRotateFiles;
         private DateTime logRotateCheckLast; //Дата/время крайней проверки размера файла (для окончания записи)
         private int logRotateChekMaxSeconds; //Макс. кол-во сек. между проверки размера файла (для окончания записи)
-
+        /// <summary>
+        /// Строка - содержание разделителя в журнале между меткой времени и непосредственно сообщением
+        /// </summary>
         public static string DatetimeStampSeparator = new string ('-', 49); //"------------------------------------------------";
+        /// <summary>
+        /// Строка - содержание разделителя в журнале между меткой времени и непосредственно сообщением
+        /// </summary>
         public static string MessageSeparator = new string('=', 49); //"================================================";
 
         protected static Logging m_this = null;
@@ -85,7 +116,9 @@ namespace HClassLibrary
         private static ConnectionSettings s_connSett = null;
         private static int s_iIdListener = -1;
         private static DbConnection s_dbConn = null;
-        
+        /// <summary>
+        /// Объект с параметрами для соедиения с БД при режиме журналирования "БД"
+        /// </summary>
         public static ConnectionSettings ConnSett {
             //get { return s_connSett; }
             set {
@@ -103,8 +136,17 @@ namespace HClassLibrary
                 //s_connSett.ignore = value.ignore;
             }
         }
+        /// <summary>
+        /// Список сообщений, ожидающих(не обработанных) размещения в журнале
+        /// </summary>
         private static List<MESSAGE> m_listQueueMessage;
 
+        /// <summary>
+        /// Установить режим работы объекта
+        /// </summary>
+        /// <param name="LOG_KEY">Аргумент из состава командной строки</param>
+        /// <param name="log_mode">Режим работы</param>
+        /// <returns>Результат установки режима работы</returns>
         public static int SetMode(string LOG_KEY = @"log=", Logging.LOG_MODE log_mode = Logging.LOG_MODE.DB)
         {
             int iRes = 0;
@@ -135,23 +177,58 @@ namespace HClassLibrary
         private
             System.Threading.Timer
             //System.Windows.Forms.Timer
-                m_timerConnSett
+                m_timerDbConnect
                 ;
         private ManualResetEvent [] m_arEvtThread;
-        private ManualResetEvent m_evtConnSett;
-
+        private ManualResetEvent m_evtIsDbConnect;
+        /// <summary>
+        /// Массив для хранения пользовательских индексов/идентификаторов подтипов сообщений
+        /// , связанных с предустановленными индексами/идентификаторами
+        /// </summary>
         private static int[] s_arDebugLogMessageIds = new int [(int)INDEX_MESSAGE.COUNT_INDEX_MESSAGE];
+        /// <summary>
+        /// Набор признаков для указания признаков необходимости размещения подтипов(INDEX_MESSAGE) сообщений в журнале
+        /// </summary>
         private static HMark s_markDebugLog = new HMark(0);
+        /// <summary>
+        /// Делегат для определения пользовательской конфигурации размещения подтипов сообщений (по целочисленному идентификатору)
+        /// </summary>
         public static StringDelegateIntFunc DelegateGetINIParametersOfID;
+        /// <summary>
+        /// Делегат для определения пользовательской конфигурации размещения подтипов сообщений (по строковому идентификатору)
+        /// </summary>
         public static StringDelegateStringFunc DelegateGetINIParametersOfKEY;
 
-        public static void LinkId (INDEX_MESSAGE indx, int id) {
-            s_arDebugLogMessageIds [(int)indx] = id;
+        /// <summary>
+        /// Установить связь  пользовательским и предустановленным индексами
+        /// , для учета пользовательской конфигурации
+        /// </summary>
+        /// <param name="indx">Предустановленный индекс подтипа сообщений</param>
+        /// <param name="id">Пользовательский индекс (подтип) сообщений.
+        ///  Пользователь должен определить метод, возвращающий признак необходимости размещения сообщений этого подтипа в журнале.
+        ///  Если метод не определен, сообщения подтипа в журнал размещаются
+        ///  , если нет, то в соответсвии с возвращаемым значением (пользовательской конфигурацией).</param>
+        public static void LinkId (INDEX_MESSAGE indx, int id)
+        {
+            linked(indx, id);
         }
 
+        /// <summary>
+        /// Разорвать связь между пользовательским и предустановленным индексами
+        /// , отменить пользовательскую конфигурацию по отображению указанного в аргументе подтипа сообщения.
+        ///  Означает безусловное размещение в журнале сообщений этого подтипа.
+        /// </summary>
+        /// <param name="indx">Индекс подтипа сообщения</param>
         public static void UnLink(INDEX_MESSAGE indx)
         {
-            s_arDebugLogMessageIds[(int)indx] = (int)INDEX_MESSAGE.NOT_SET;
+            linked (indx, (int)INDEX_MESSAGE.NOT_SET);
+        }
+
+        private static void linked (INDEX_MESSAGE indx, int id)
+        {
+            s_arDebugLogMessageIds [(int)indx] = id;
+
+            updateMarkDebugLog (indx);
         }
 
         /// <summary>
@@ -209,6 +286,10 @@ namespace HClassLibrary
             s_dbConn = null;
         }
 
+        /// <summary>
+        /// Изменить режим работы объекта
+        /// </summary>
+        /// <param name="mode">Значение нового режима работы</param>
         public static void ReLogg(LOG_MODE mode)
         {
             if (! (s_mode == mode))
@@ -220,6 +301,10 @@ namespace HClassLibrary
                 ;
         }
 
+        /// <summary>
+        /// Возвратить объект для размещения сообщений в журнале
+        /// </summary>
+        /// <returns></returns>
         public static Logging Logg()
         {
             string pathToFile = string.Empty;
@@ -264,13 +349,16 @@ namespace HClassLibrary
             return m_this;
         }
 
+        /// <summary>
+        /// Запустить поток обработки событий по приему сообщений для дальнейщего их размещения в журнале
+        /// </summary>
         protected virtual void start () {
             m_arEvtThread = new ManualResetEvent[] { new ManualResetEvent(false), new ManualResetEvent(false) };            
 
             if (s_mode == LOG_MODE.DB) {
-                m_evtConnSett = new ManualResetEvent(false);
-                m_timerConnSett =
-                    new System.Threading.Timer (TimerConnSett_Tick, null, 0, 6666)
+                m_evtIsDbConnect = new ManualResetEvent(false);
+                m_timerDbConnect =
+                    new System.Threading.Timer (timerDbConnect, null, 0, 6666)
                     //new System.Windows.Forms.Timer ()
                     ;
                 //m_timerConnSett.Tick += new EventHandler(TimerConnSett_Tick);
@@ -291,11 +379,18 @@ namespace HClassLibrary
             UpdateMarkDebugLog ();
         }
 
+        /// <summary>
+        /// Разместить в журнале событие "Запуск" приложения
+        /// </summary>
+        /// <param name="message">Содержание сообщения "Запуск" приложения</param>
         public void PostStop (string message)
         {
             post(ID_MESSAGE.STOP, message, true, true, true);
         }
 
+        /// <summary>
+        /// Остановить поток приема событий для размещения их в журнале
+        /// </summary>
         public void Stop () {
             m_arEvtThread[(int)INDEX_SEMATHREAD.STOP].Set ();
 
@@ -308,14 +403,14 @@ namespace HClassLibrary
             else
                 ;
 
-            if ((s_mode == LOG_MODE.DB) && (! (m_timerConnSett == null))) {
-                m_timerConnSett.Change (System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+            if ((s_mode == LOG_MODE.DB) && (! (m_timerDbConnect == null))) {
+                m_timerDbConnect.Change (System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
                 //m_timerConnSett.Stop ();
-                m_timerConnSett.Dispose ();
-                m_timerConnSett = null;
+                m_timerDbConnect.Dispose ();
+                m_timerDbConnect = null;
 
                 disconnect();
-                m_evtConnSett.Reset();
+                m_evtIsDbConnect.Reset();
             }
             else
                 if (((s_mode == LOG_MODE.FILE_EXE) || (s_mode == LOG_MODE.FILE_DESKTOP) || (s_mode == LOG_MODE.FILE_LOCALDEV) || (s_mode == LOG_MODE.FILE_NETDEV))
@@ -346,31 +441,38 @@ namespace HClassLibrary
         }
 
         private void threadPost (object par) {
+            int err = -1
+                , indx_queue = -1
+                , cnt_running = -1;
+            string toPost = string.Empty;
+            INDEX_SEMATHREAD indx_semathread = INDEX_SEMATHREAD.STOP;
+
             if (s_mode == LOG_MODE.DB)
-                m_evtConnSett.WaitOne ();
+                m_evtIsDbConnect.WaitOne ();
             else
                 ;
 
             while (true) {
-                INDEX_SEMATHREAD indx_semathread = (INDEX_SEMATHREAD)WaitHandle.WaitAny(m_arEvtThread);
+                indx_semathread = (INDEX_SEMATHREAD)WaitHandle.WaitAny(m_arEvtThread);
 
                 //Отправление сообщений...
-                int err = -1;
-                string toPost = string.Empty;
+                err = -1;
+                toPost = string.Empty;
 
                 if (m_listQueueMessage.Count > 0)
                 {
                     switch (s_mode) {
                         case LOG_MODE.DB:
-                            if (m_evtConnSett.WaitOne (0, true) == true)
+                            if (m_evtIsDbConnect.WaitOne (0, true) == true)
                             {                                
                                 lock (m_objQueueMessage)
                                 {
                                     ////Отладка!!!
                                     //Console.WriteLine(@"Логгирование: сообщений на вХоде=" + m_listQueueMessage.Count);
                                     
-                                    int indx_queue = 0
-                                        , cnt_running = 0;
+                                    indx_queue =
+                                    cnt_running =
+                                        0;
                                     while ((indx_queue < m_listQueueMessage.Count) && (cnt_running < MAX_COUNT_MESSAGE_ONETIME))
                                     {
                                         if (m_listQueueMessage[indx_queue].m_state == STATE_MESSAGE.QUEUE)
@@ -394,7 +496,7 @@ namespace HClassLibrary
                                     retryQueueMessage ();
 
                                     disconnect();
-                                    m_evtConnSett.Reset ();
+                                    m_evtIsDbConnect.Reset ();
                                 }
                                 else
                                 { //Успех при записи сообщений...
@@ -421,7 +523,7 @@ namespace HClassLibrary
                             {
                                 lock (m_objQueueMessage)
                                 {
-                                    int indx_queue = 0;
+                                    indx_queue = 0;
                                     while (indx_queue < m_listQueueMessage.Count)
                                     {
                                         if (m_listQueueMessage[indx_queue].m_bSeparator == true)
@@ -570,18 +672,22 @@ namespace HClassLibrary
             }
         }
 
-        private void TimerConnSett_Tick (object par)
+        /// <summary>
+        /// Метод обратного вызова таймера проверки наличия соединения с БД
+        /// </summary>
+        /// <param name="par">Аргумент для события</param>
+        private void timerDbConnect (object par)
         //private void TimerConnSett_Tick(object par, EventArgs ev)
         {
-            if (m_evtConnSett.WaitOne (0, true) == false)
+            if (m_evtIsDbConnect.WaitOne (0, true) == false)
                 if (connect() == 0)
                 {
-                    m_evtConnSett.Set();
+                    m_evtIsDbConnect.Set();
                     m_arEvtThread[(int)INDEX_SEMATHREAD.MSG].Set ();
                 }
                 else {
                     disconnect();
-                    m_evtConnSett.Reset();
+                    m_evtIsDbConnect.Reset();
                 }
             else
                 ;
@@ -591,9 +697,9 @@ namespace HClassLibrary
         /// Конструктор
         /// </summary>
         /// <param name="name">имя лог-файла</param>
-        /// <param name="extLog">признак - внешнее логгирование</param>
-        /// <param name="updateLogText">функция записи во внешний лог-файл</param>
-        /// <param name="clearLogText">функция очистки внешнего лог-файла</param>
+        ///// <param name="extLog">признак - внешнее логгирование</param>
+        ///// <param name="updateLogText">функция записи во внешний лог-файл</param>
+        ///// <param name="clearLogText">функция очистки внешнего лог-файла</param>
         //private Logging(string name, bool extLog, DelegateStringFunc updateLogText, DelegateFunc clearLogText)
         private Logging(string name)
         {
@@ -626,30 +732,38 @@ namespace HClassLibrary
         private Logging () {
             start();
         }
+
         /// <summary>
-        /// Обновляет параметры журналирования "присоединенных" типов сообщений
+        /// Обновить признак необходимости размещения в журнале сообщения подтипа, указанного в аргументе
+        /// </summary>
+        /// <param name="indxDebugLogMessage">Индекс/идентификатор подтипа сообщения</param>
+        private static void updateMarkDebugLog (INDEX_MESSAGE indxDebugLogMessage)
+        {
+            bool bMarked = false;
+
+            if (!(s_arDebugLogMessageIds [(int)indxDebugLogMessage] == (int)INDEX_MESSAGE.NOT_SET)) {
+                bMarked = false;
+
+                if (!(DelegateGetINIParametersOfKEY == null))
+                    ; //bool.TryParse(FormMainBase.DelegateGetINIParametersOfKey(...). out bMarked);
+                else
+                    if (!(DelegateGetINIParametersOfID == null))
+                        bool.TryParse (DelegateGetINIParametersOfID (s_arDebugLogMessageIds [(int)indxDebugLogMessage]), out bMarked);
+                    else
+                        ;
+
+                s_markDebugLog.Set ((int)indxDebugLogMessage, bMarked);
+            } else
+                ;
+        }
+
+        /// <summary>
+        /// Обновляет параметры журналирования "присоединенных" на текущий момент подтипов сообщений
         /// , присоединение/отсоединение ('Link'/'UnLink')
         /// </summary>
         public static void UpdateMarkDebugLog()
         {
-            bool bMarked = false;
-            for (int i = 0; i < s_arDebugLogMessageIds.Length; i++)
-            {
-                if (! (s_arDebugLogMessageIds[i] == (int)INDEX_MESSAGE.NOT_SET))
-                {
-                    bMarked = false;
-                    if (!(DelegateGetINIParametersOfKEY == null))
-                        ; //bMarked = bool.Parse(FormMainBase.DelegateGetINIParametersOfKey(...));
-                    else
-                        if (!(DelegateGetINIParametersOfID == null))
-                            bMarked = bool.Parse(DelegateGetINIParametersOfID(s_arDebugLogMessageIds[i]));
-                        else
-                            ;
-                    s_markDebugLog.Set(i, bMarked);
-                }
-                else
-                    ;
-            }
+            Enum.GetValues (typeof (INDEX_MESSAGE)).OfType<INDEX_MESSAGE> ().ToList ().ForEach (indx => updateMarkDebugLog (indx));
         }
 
         /// <summary>
@@ -681,7 +795,7 @@ namespace HClassLibrary
         }
 
         /// <summary>
-        /// Восстановление гоггирования
+        /// Восстановление логгирования
         /// </summary>
         public void Resume()
         {
@@ -722,8 +836,25 @@ namespace HClassLibrary
             sema.Release();
         }
 
-        private enum STATE_MESSAGE { UNKNOWN, QUEUE, RUNNING };
+        /// <summary>
+        /// Перечисление - возможные состояние для сообщения
+        /// </summary>
+        private enum STATE_MESSAGE {
+            UNKNOWN,
+            /// <summary>
+            /// Поставлен в очередь
+            /// </summary>
+            QUEUE,
+            /// <summary>
+            /// В процессе сохранения
+            /// </summary>
+            RUNNING
+        };
+        /// <summary>
+        /// Перечисление - индексы для объектов синхронизации, определяющих выполнение журналирование или его прерывание
+        /// </summary>
         private enum INDEX_SEMATHREAD {MSG, STOP};
+
         private class MESSAGE {
             public int m_id;
             public STATE_MESSAGE m_state;
@@ -788,7 +919,7 @@ namespace HClassLibrary
                         //...запомнить очередное сообщение...
                         addMessage((int)id, message, true, true, true); //3 крайних параметра для БД ничего не значат...
 
-                        if (m_evtConnSett.WaitOne (0, true) == true) {
+                        if (m_evtIsDbConnect.WaitOne (0, true) == true) {
                             //Установить признак возможности для отправки
                             bAddMessage = true;
                         } else {
@@ -945,9 +1076,11 @@ namespace HClassLibrary
         public int LogRotateFiles
         {
             get { return logRotateFiles; }
+
             set
             {
-                if (value <= 0 || value > logRotateFilesMax)
+                if ((!(value > 0))
+                    || (value > logRotateFilesMax))
                     logRotateFiles = logRotateFilesMax;
                 else
                     logRotateFiles = value;
@@ -956,8 +1089,12 @@ namespace HClassLibrary
 
         private bool post (INDEX_MESSAGE indx)
         {
-            bool bRes = indx == INDEX_MESSAGE.NOT_SET;
+            bool bRes = false;
+            // если подтип не указан ('NOT_SET'), то сообщение размещается в журнале
+            bRes = indx == INDEX_MESSAGE.NOT_SET;
+
             if (bRes == false)
+            // подтип сообщения указан, требуется проверка пользовательской конфигурации
                 bRes = s_markDebugLog.IsMarked ((int)indx);
             else
                 ;
@@ -965,6 +1102,10 @@ namespace HClassLibrary
             return bRes;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public void PostStart (string message) {
             if (s_mode == Logging.LOG_MODE.UNKNOWN)
                 s_mode = Logging.LOG_MODE.FILE_EXE;
