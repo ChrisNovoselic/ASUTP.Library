@@ -1,4 +1,5 @@
-﻿using ASUTP.Database;
+﻿using ASUTP.Core;
+using ASUTP.Database;
 using ASUTP.PlugIn;
 using System;
 using System.Collections.Generic;
@@ -191,7 +192,7 @@ namespace ASUTP.Helper {
                     Logging.Logg().Exception(e, "HHandler::Stop () - semaState.Release(1)", Logging.INDEX_MESSAGE.NOT_SET);
                 }
                 //Ожидать завершения потоковой функции
-                joined = taskThreadQueue.Join(DbInterface.WAIT_TIME_MS);
+                joined = taskThreadQueue.Join(Constants.WAIT_TIME_MS);
                 //Проверить корректное завершение потоковой функции
                 if (joined == false)
                     //Завершить аварийно потоковую функцию

@@ -10,8 +10,6 @@ using System.Threading;
 namespace ASUTP
 {
     public interface ILoggingDbWriter {
-        int MAX_WAITING { get; }
-
         bool IsConnect { get; }
 
         int Connect();
@@ -386,7 +384,7 @@ namespace ASUTP
             m_arEvtThread [(int)INDEX_SEMATHREAD.STOP].Set ();
 
             if ((!(m_threadPost == null)) && (m_threadPost.IsAlive == true)) {
-                if ((m_threadPost.Join (DbWriter.MAX_WAITING) == false))
+                if ((m_threadPost.Join (Constants.MAX_WATING) == false))
                     m_threadPost.Abort ();
                 else
                     ;

@@ -39,6 +39,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileINI.cs" />
+    <Compile Include="HCmdArg.cs" />
     <Compile Include="HHandler.cs" />
     <Compile Include="HHandlerQueue.cs" />
     <Compile Include="IForm.cs" />

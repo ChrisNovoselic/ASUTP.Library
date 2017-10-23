@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ASUTP.Core;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -27,31 +28,7 @@ namespace ASUTP.Database {
             , Oracle
             /// <summary>Неизвестный тип</summary>
             , UNKNOWN
-        }
-        /// <summary>
-        /// Максимальное количество повторов
-        /// </summary>
-        public static volatile int MAX_RETRY = 3;
-        /// <summary>
-        /// Количество попыток проверки наличия результата в одном цикле
-        /// </summary>
-        public static volatile int MAX_WAIT_COUNT = 39;
-        /// <summary>
-        /// Интервал ожидания между проверками наличия результата
-        ///  , при условии что в предыдущей итерации результат не был получен
-        /// </summary>
-        public static volatile int WAIT_TIME_MS = 106;
-        /// <summary>
-        /// Максимальное время ожидания окончания длительно выполняющейся операции
-        /// </summary>
-        public static int MAX_WATING
-        {
-            get
-            {
-                return MAX_RETRY * MAX_WAIT_COUNT * WAIT_TIME_MS;
-                //return 6666;
-            }
-        }
+        }        
         /// <summary>
         /// Перечисление - возможные состояния подписчика на выполнение запросов
         /// </summary>
@@ -272,7 +249,7 @@ namespace ASUTP.Database {
                     Logging.Logg ().Exception (e, @"DbInterface::Stop () - ...", Logging.INDEX_MESSAGE.NOT_SET);
                 }
 
-                joined = dbThread.Join (MAX_WATING);
+                joined = dbThread.Join (Constants.MAX_WATING);
                 if (!joined)
                     dbThread.Interrupt ();
                 else
@@ -488,7 +465,7 @@ namespace ASUTP.Database {
                             // запуск потока
                             threadGetData.Start (waitHandleGetData [0]);
 
-                            if ((iGetData = WaitHandle.WaitAny (waitHandleGetData, MAX_WATING)) > 0) {
+                            if ((iGetData = WaitHandle.WaitAny (waitHandleGetData, Constants.MAX_WATING)) > 0) {
                                 switch (iGetData) {
                                     case WaitHandle.WaitTimeout:
                                         // команда на аварийное завершение
@@ -500,9 +477,9 @@ namespace ASUTP.Database {
                                 }
 
                                 // ждем мсек норм. завершения после исполнения команды на аварийное завершение внутр. потока
-                                if (waitHandleGetData [0].WaitOne (WAIT_TIME_MS) == false)
+                                if (waitHandleGetData [0].WaitOne (Constants.WAIT_TIME_MS) == false)
                                     // ждем еще мсек норм. завершения
-                                    if (threadGetData.Join (WAIT_TIME_MS) == false) {
+                                    if (threadGetData.Join (Constants.WAIT_TIME_MS) == false) {
                                         // аваавррийно завершаем
                                         threadGetData.Abort (string.Format (@"Аварийное завершение подпотока получения данных..."));
                                         //threadGetData.Interrupt ();

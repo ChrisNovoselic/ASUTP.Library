@@ -7,7 +7,7 @@ using System.IO;
 using System.Xml;
 using System.Reflection;
 
-namespace HClassLibrary
+namespace ASUTP.Helper
 {
     public class FileINI
     {

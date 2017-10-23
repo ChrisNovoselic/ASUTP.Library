@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ASUTP.Core;
+using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -45,14 +46,6 @@ namespace ASUTP.Database
                     && (!(s_dbConn == null))
                     && ((!(s_dbConn.State == System.Data.ConnectionState.Closed))
                         || (!(s_dbConn.State == System.Data.ConnectionState.Broken)));
-            }
-        }
-
-        public int MAX_WAITING
-        {
-            get
-            {
-                return DbInterface.MAX_WATING;
             }
         }
 

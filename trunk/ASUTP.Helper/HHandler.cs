@@ -7,6 +7,7 @@ using System.Threading;
 
 using ASUTP.Database;
 using ASUTP;
+using ASUTP.Core;
 
 namespace ASUTP.Helper
 {
@@ -171,7 +172,7 @@ namespace ASUTP.Helper
                 //Выход из потоковой функции
                 Run(@"HHandler::Stop ()");
                 //Ожидать завершения потоковой функции
-                joined = taskThreadState.Join(DbInterface.WAIT_TIME_MS);
+                joined = taskThreadState.Join(Constants.WAIT_TIME_MS);
                 //Проверить корректное завершение потоковой функции
                 if (joined == false)
                     //Завершить аварийно потоковую функцию
@@ -300,7 +301,7 @@ namespace ASUTP.Helper
                         bool error = true;
                         int dataPresent = -1;
                         object objRes = null;
-                        for (int i = 0; i < DbInterface.MAX_RETRY && (!(dataPresent == 0)) && (newState == false); i++)
+                        for (int i = 0; i < Constants.MAX_RETRY && (!(dataPresent == 0)) && (newState == false); i++)
                         {
                             if (error)
                             {
@@ -314,9 +315,9 @@ namespace ASUTP.Helper
                                 ;
 
                             error = false;
-                            for (int j = 0; j < DbInterface.MAX_WAIT_COUNT && (!(dataPresent == 0)) && (error == false) && (newState == false); j++)
+                            for (int j = 0; j < Constants.MAX_WAIT_COUNT && (!(dataPresent == 0)) && (error == false) && (newState == false); j++)
                             {
-                                System.Threading.Thread.Sleep(DbInterface.WAIT_TIME_MS);
+                                System.Threading.Thread.Sleep(Constants.WAIT_TIME_MS);
                                 dataPresent = StateCheckResponse(currentState, out error, out objRes);
                             }
                         }
