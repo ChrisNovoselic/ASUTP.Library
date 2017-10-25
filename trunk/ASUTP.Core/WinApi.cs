@@ -86,16 +86,19 @@ namespace ASUTP.Core
         public const int SW_SHOWNORMAL = 1;
         public const int SW_SHOWUNTRAY = 3;
         public const int SW_RESTORE = 9;
+        [DllImport ("user32.dll")]
         /// <summary>
-        /// Посылает сообщение оконной функции указанного окна
+        /// Модификатор extern используется для объявления метода с внешней реализацией. 
+        ///  Метод SendMessage (послать сообщение) импортируется из библиотеки User32.dll. 
         /// </summary>
-        /// <param name="hWnd">дескриптор окна</param>
-        /// <param name="Msg">сообщение</param>
-        /// <param name="wParam"></param>
-        /// <param name="lParam"></param>
+        /// <param name="hWnd">Дескриптор окна, которому отрправляется сообщение</param>
+        /// <param name="Msg">Сообщение</param>
+        /// <param name="wParam">Аргумент - 1</param>
+        /// <param name="lParam">Аргумент - 2</param>
         /// <returns></returns>
-        [DllImport("user32")]
-        public static extern bool SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+        public static extern IntPtr SendMessage (IntPtr hWnd, int Msg, int wParam, int lParam);
+        [DllImport ("user32.dll")]
+        public static extern IntPtr SendMessage (IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
         /// <summary>
         /// Отправить сообщение окну
         /// </summary>

@@ -364,7 +364,8 @@ namespace ASUTP
 
             for (int i = (int)INDEX_MESSAGE.A_001; i < (int)INDEX_MESSAGE.COUNT_INDEX_MESSAGE; i++)
                 UnLink ((INDEX_MESSAGE)i);
-            UpdateMarkDebugLog ();
+            // обновление происходит одновременно с 'UnLink'
+            //UpdateMarkDebugLog ();
         }
 
         /// <summary>
@@ -722,7 +723,13 @@ namespace ASUTP
         /// </summary>
         public static void UpdateMarkDebugLog ()
         {
-            Enum.GetValues (typeof (INDEX_MESSAGE)).OfType<INDEX_MESSAGE> ().ToList ().ForEach (indx => updateMarkDebugLog (indx));
+            Enum.GetValues (typeof (INDEX_MESSAGE)).OfType<INDEX_MESSAGE> ().ToList ().ForEach (indx => {
+                if ((indx > INDEX_MESSAGE.NOT_SET)
+                    && (indx < INDEX_MESSAGE.COUNT_INDEX_MESSAGE))
+                    updateMarkDebugLog (indx);
+                else
+                    ;
+            });
         }
 
         /// <summary>

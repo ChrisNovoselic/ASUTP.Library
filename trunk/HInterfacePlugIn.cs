@@ -187,7 +187,7 @@ namespace HClassLibrary
         /// <summary>
         /// Счетчик полученных команд/сообщений от подписчика по индексу
         /// </summary>
-        protected Dictionary<KeyValuePair <int, int>, uint> m_dictDataHostCounter;
+        private Dictionary<KeyValuePair <int, int>, uint> _dictDataHostCounter;
         
         public IPlugInHost Host
         {
@@ -202,10 +202,11 @@ namespace HClassLibrary
         public PlugInBase()
             : base()
         {
-            m_dictDataHostCounter = new Dictionary<KeyValuePair<int, int>, uint>();
+            _dictDataHostCounter = new Dictionary<KeyValuePair<int, int>, uint>();
             _types = new Dictionary<int, Type>();
             _objects = new Dictionary<int, object>();
         }
+
         /// <summary>
         /// Зарегистрировать тип объекта библиотеки
         /// </summary>
@@ -216,18 +217,32 @@ namespace HClassLibrary
             _types.Add (key, type);
         }
 
+        /// <summary>
+        /// Возвратить список наименований зарегистрированных типов библиотек
+        /// </summary>
+        /// <returns></returns>
         public List<string> GetListRegisterNameTypes()
         {
             List<string> listRes = new List<string> ();
 
-            return listRes;
+            return _types.Values.Select(type => {
+                return type.GetType ().Name; }).ToList();
         }
 
+        /// <summary>
+        /// Возвратить словарь зарегистрированных типов библиотек
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<int, Type> GetRegisterTypes()
         {
             return _types;
         }
 
+        /// <summary>
+        /// Возвратить признак регистрации типа библиотеки по ее идентификатору
+        /// </summary>
+        /// <param name="key">Ключ-идентификатор типа библиотеки</param>
+        /// <returns>Признак регистрации типа библиотеки</returns>
         public bool IsRegistred(int key)
         {
             return _types.Keys.Contains(key);
@@ -398,29 +413,82 @@ namespace HClassLibrary
         {
             base.DataAskedHost(new object[] { _Id, par  });
         }
-        
+
+        /// <summary>
+        /// Ключ(идентификатор) единственного зарегистрированного типа в объекте библиотеки
+        /// </summary>
+        public int KeySingleton
+        {
+            get
+            {
+                return (_objects.Count == 1) ? _objects.Keys.ElementAt (0) : -1;
+            }
+        }
+
         //protected bool _MarkReversed;
         /// <summary>
         /// Обработчик события ответа от главной формы
         /// </summary>
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public override void OnEvtDataRecievedHost(object obj) {
-            KeyValuePair<int, int> pair = new KeyValuePair<int, int>(((EventArgsDataHost)obj).id_main, ((EventArgsDataHost)obj).id_detail);
+            KeyValuePair<int, int> pair;
 
-            if (m_dictDataHostCounter.ContainsKey(pair) == true)
-                m_dictDataHostCounter[pair]++;
-            else
-                m_dictDataHostCounter.Add(pair, 1);
+            if (Monitor.TryEnter (this) == true) {
+                pair = new KeyValuePair<int, int> (((EventArgsDataHost)obj).id_main, ((EventArgsDataHost)obj).id_detail);
+
+                if (_dictDataHostCounter.ContainsKey (pair) == true)
+                    _dictDataHostCounter [pair]++;
+                else
+                    _dictDataHostCounter.Add (pair, 1);
+
+                Monitor.Exit (this);
+            } else
+                ;
 
             //Console.WriteLine(@"PlugInBase::OnEvtDataRecievedHost (id=" + pair.Key + @", key=" + pair.Value + @") - counter=" + m_dictDataHostCounter[pair]);
         }
 
+        /// <summary>
+        /// Установить принудительно признак использования элемента в объекте библиотеки
+        /// </summary>
+        /// <param name="id_obj">Идентификатор типа библиотеки</param>
+        /// <param name="key">Идентификатор элемента(??? экземпляр подкласса) в объекте библиотеки</param>
+        /// <param name="val">Признак использования</param>
+        public void SetDataHostMark (int id_obj, int key, bool val)
+        {
+            KeyValuePair<int, int> pair;
+
+            if (Monitor.TryEnter (this) == true) {
+                pair = new KeyValuePair<int, int> (id_obj, key);
+
+                if (_dictDataHostCounter.ContainsKey (pair) == true) {
+                    if (val == true)
+                        _dictDataHostCounter [pair]++;
+                    else
+                        if (val == false)
+                        _dictDataHostCounter [pair]--;
+                    else
+                        ; // недостижимый код
+
+                    //Console.WriteLine(@"PlugInULoader::SetMark (id=" + id_obj + @", key=" + key + @", val=" + val + @") - counter=" + m_dictDataHostCounter[pair] + @" ...");
+                } else
+                    ;
+            } else
+                ;
+        }
+
+        /// <summary>
+        /// Возвратить признак использования элемента в объекте библиотеки
+        /// </summary>
+        /// <param name="id_main">Идентификтор типа объекта библиотеки</param>
+        /// <param name="id_detail">Идентификатор элемента в объекте библиотеки</param>
+        /// <returns>Признак использования элемента</returns>
         protected bool isDataHostMarked(int id_main, int id_detail)
         {
             KeyValuePair<int, int> pair = new KeyValuePair<int, int>(id_main, id_detail);
 
-            return (m_dictDataHostCounter.ContainsKey(pair) == true)
-                && (m_dictDataHostCounter[pair] % 2 == 1);
+            return (_dictDataHostCounter.ContainsKey(pair) == true)
+                && (_dictDataHostCounter[pair] % 2 == 1);
         }
     }
     /// <summary>

@@ -403,9 +403,10 @@ namespace HClassLibrary
                 if (reconnection == true) {
                     Disconnect();
                     connected = false;
-                    if ((threadIsWorking == true) && (Connect() == true))
-                        connected = true;
-                    else
+                    if (threadIsWorking == true) {
+                        connected = Connect ();
+                        needReconnect = !connected;
+                    } else
                         needReconnect = true; // выставлять флаг можно без блокировки
                 } else
                     ;

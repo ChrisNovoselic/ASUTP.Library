@@ -144,7 +144,7 @@ namespace HClassLibrary
         /// Журналирование старта приложения
         /// </summary>
         /// <param name="bGUI">Признак наличия графического интерфейса с пользователем</param>
-        public static void Start(bool bGUI = true)
+        public static void Start(Logging.LOG_MODE log_mode, bool bGUI)
         {
             if (bGUI == true) {
                 Application.EnableVisualStyles();
@@ -165,8 +165,11 @@ namespace HClassLibrary
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            Logging.DelegateProgramAbort = Abort;
+            Logging.SetMode (log_mode);
             if (Logging.s_mode == Logging.LOG_MODE.UNKNOWN)
-                Logging.s_mode = Logging.LOG_MODE.FILE_EXE;
+                //Logging.DbWriter = new ASUTP.Database.Writer ()
+                    ;
             else
                 ;
             Logging.Logg().PostStart(MessageWellcome);

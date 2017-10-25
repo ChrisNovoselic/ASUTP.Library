@@ -384,9 +384,10 @@ namespace ASUTP.Database {
                 if (reconnection == true) {
                     Disconnect ();
                     connected = false;
-                    if ((threadIsWorking == true) && (Connect () == true))
-                        connected = true;
-                    else
+                    if (threadIsWorking == true) {
+                        connected = Connect ();
+                        needReconnect = !connected;
+                    } else
                         needReconnect = true; // выставлять флаг можно без блокировки
                 } else
                     ;
@@ -457,10 +458,8 @@ namespace ASUTP.Database {
                                 }
                             })) { // параметры для запуска потока
                                 IsBackground = true
-                                ,
-                                Name = string.Format (@"{0}:{1}", Name, pair.Key)
-                                ,
-                                Priority = ThreadPriority.AboveNormal
+                                , Name = string.Format (@"{0}:{1}", Name, pair.Key)
+                                , Priority = ThreadPriority.AboveNormal
                             };
                             // запуск потока
                             threadGetData.Start (waitHandleGetData [0]);

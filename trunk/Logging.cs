@@ -57,6 +57,8 @@ namespace HClassLibrary
         private int MAX_COUNT_MESSAGE_ONETIME = 66;
         private int MAXCOUNT_LISTQUEUEMESSAGE = 666;
 
+        public static DelegateFunc DelegateProgramAbort;
+
         private static string s_strDatetimeFrmt = @"yyyyMMdd HH:mm:ss.fff";
 
         private string m_fileNameStart;
@@ -144,33 +146,44 @@ namespace HClassLibrary
         /// <summary>
         /// ”становить режим работы объекта
         /// </summary>
-        /// <param name="LOG_KEY">јргумент из состава командной строки</param>
-        /// <param name="log_mode">–ежим работы</param>
+        /// <param name="log_mode">«начение дл€ режима работы с низким приоритетом. ”станавливаетс€ при отсутствии режима в командной строке</param>
+        /// <param name="LOG_KEY">јргумент из состава командной строки - ключ дл€ поиска режима журналировани€</param>        
         /// <returns>–езультат установки режима работы</returns>
-        public static int SetMode(string LOG_KEY = @"log=", Logging.LOG_MODE log_mode = Logging.LOG_MODE.DB)
+        public static void SetMode (LOG_MODE log_mode, string LOG_KEY = @"log=")
         {
-            int iRes = 0;
+            int iSetMode = 0;
 
-            if (LOG_KEY.Equals(string.Empty) == false) {
-                var arg_log = from arg in Environment.GetCommandLineArgs() where !(arg.IndexOf(LOG_KEY) < 0) select arg;
+            LOG_MODE cmd_log_mode = LOG_MODE.UNKNOWN;
 
-                if (arg_log.Count() == 1)
-                    if (Enum.IsDefined(typeof(Logging.LOG_MODE), arg_log.ElementAt(0).Substring(arg_log.ElementAt(0).IndexOf(LOG_KEY) + LOG_KEY.Length)) == true)
-                        log_mode = (Logging.LOG_MODE)Enum.Parse(typeof(Logging.LOG_MODE), arg_log.ElementAt(0).Substring(arg_log.ElementAt(0).IndexOf(LOG_KEY) + LOG_KEY.Length));
+            if (LOG_KEY.Equals (string.Empty) == false) {
+                var arg_log = from arg in Environment.GetCommandLineArgs () where !(arg.IndexOf (LOG_KEY) < 0) select arg;
+
+                if (arg_log.Count () == 1)
+                    if (Enum.IsDefined (typeof (Logging.LOG_MODE), arg_log.ElementAt (0).Substring (arg_log.ElementAt (0).IndexOf (LOG_KEY) + LOG_KEY.Length)) == true)
+                        cmd_log_mode = (Logging.LOG_MODE)Enum.Parse (typeof (Logging.LOG_MODE), arg_log.ElementAt (0).Substring (arg_log.ElementAt (0).IndexOf (LOG_KEY) + LOG_KEY.Length));
                     else
-                        iRes = -1; // режим не распознан
+                        iSetMode = -1; // режим не распознан
                 else
-                    if (arg_log.Count() == 0)
-                        iRes = 3; // режим не указан - значение по умолчанию
-                    else
-                        iRes = 2; // режим указан несколко раз - значение по умолчанию                    
+                    if (arg_log.Count () == 0)
+                    iSetMode = 2; // режим не указан - значение по умолчанию
+                else
+                    iSetMode = -2; // режим указан несколко раз - значение по умолчанию
             } else
-                iRes = 1; // ключ дл€ поиска аргумента не указан
+                iSetMode = 1; // режим не указан - ключ дл€ поиска аргумента не найден
 
-            //≈сли назначить неизвестный тип логировани€ - 1-е сообщени€ б. утер€ны
-            Logging.s_mode = log_mode;
+            //≈сли назначить неизвестный(UNKNOWN) тип логировани€ - 1-е сообщени€ б. утер€ны
+            Logging.s_mode = cmd_log_mode;
 
-            return iRes;
+            // попытка разобрать командную строку - найти указание на режим журналировани€
+            if (iSetMode < 0) {
+                // ошибка разбора
+                DelegateProgramAbort?.Invoke ();
+            } else if (iSetMode > 0) {
+                // разбор выполнен - режим не установлен
+                Logging.s_mode = log_mode;
+            } else
+                // режим установлен из командной строки
+                Logging.s_mode = cmd_log_mode;
         }
 
         private Thread m_threadPost;
@@ -376,7 +389,8 @@ namespace HClassLibrary
 
             for (int i = (int)INDEX_MESSAGE.A_001; i < (int)INDEX_MESSAGE.COUNT_INDEX_MESSAGE; i ++)
                 UnLink((INDEX_MESSAGE)i);
-            UpdateMarkDebugLog ();
+            // обновление происходит одновременно с 'UnLink'
+            //UpdateMarkDebugLog ();
         }
 
         /// <summary>
@@ -716,7 +730,7 @@ namespace HClassLibrary
             catch (Exception e) {
                 //Ќельз€ сообщить программе...
                 //throw new Exception(@"private Logging::Logging () - ...", e);
-                ProgramBase.Abort ();
+                DelegateProgramAbort?.Invoke ();
             }
 
             logRotateCheckLast = DateTime.Now;
@@ -763,7 +777,13 @@ namespace HClassLibrary
         /// </summary>
         public static void UpdateMarkDebugLog()
         {
-            Enum.GetValues (typeof (INDEX_MESSAGE)).OfType<INDEX_MESSAGE> ().ToList ().ForEach (indx => updateMarkDebugLog (indx));
+            Enum.GetValues (typeof (INDEX_MESSAGE)).OfType<INDEX_MESSAGE> ().ToList ().ForEach (indx => {
+                if ((indx > INDEX_MESSAGE.NOT_SET)
+                    && (indx < INDEX_MESSAGE.COUNT_INDEX_MESSAGE))
+                    updateMarkDebugLog (indx);
+                else
+                    ;
+            });
         }
 
         /// <summary>

@@ -305,29 +305,30 @@ namespace HClassLibrary
         /// <returns>Признак выполнения операции разъединения</returns>
         protected override bool Disconnect()
         {
-            if (m_dbConnection.State == ConnectionState.Closed)
-                return true;
-            else
-                ;
-
             bool result = false;
 
             try
             {
-                //Из-за этого кода не происходит возобновления обмена данными при разарыве/восстановлении соединения
-                //lock (lockListeners)
-                //{
-                //    m_listListeners.Clear();
-                //}
+                result = Equals (m_dbConnection, null);
 
-                m_dbConnection.Close();
-                result = true;
+                if (result == false) {
+                    result = (m_dbConnection.State == ConnectionState.Closed)
+                        || (m_dbConnection.State == ConnectionState.Broken);
 
-                if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) { logging_close_db(m_dbConnection); } else ;
+                    if (result == false) {
+                        m_dbConnection.Close ();
+                        result = true;
 
-            }
-            catch (Exception e)
-            {
+                        if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) {
+                            logging_close_db (m_dbConnection);
+                        } else
+                            ;
+                    } else
+                        ;
+                } else
+                    ;
+
+            } catch (Exception e) {
                 logging_catch_db(m_dbConnection, e);
             }
 
@@ -344,8 +345,8 @@ namespace HClassLibrary
 
             try
             {
-                if (!(m_dbConnection.State == ConnectionState.Closed))
-                {
+                if ((Equals(m_dbConnection, null) == false)
+                    && (!(m_dbConnection.State == ConnectionState.Closed))) {
                     m_dbConnection.Close();
 
                     logging_close_db(m_dbConnection);

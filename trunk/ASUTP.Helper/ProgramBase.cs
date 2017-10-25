@@ -148,8 +148,6 @@ namespace ASUTP.Helper
         /// <param name="bGUI">Признак наличия графического интерфейса с пользователем</param>
         public static void Start(Logging.LOG_MODE log_mode, bool bGUI)
         {
-            int iSetMode = -1;
-
             if (bGUI == true) {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
@@ -170,7 +168,7 @@ namespace ASUTP.Helper
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Logging.DelegateProgramAbort = Abort;
-            Logging.SetMode (log_mode);            
+            Logging.SetMode (log_mode);
             if (Logging.s_mode == Logging.LOG_MODE.DB)
                 Logging.DbWriter = new ASUTP.Database.Writer ();
             else
