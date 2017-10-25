@@ -65,5 +65,4 @@ namespace ASUTP.PlugIn {
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public abstract void OnEvtDataRecievedHost (object obj);
     }
-
 }

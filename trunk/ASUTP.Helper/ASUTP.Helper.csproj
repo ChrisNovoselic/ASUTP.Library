@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;_SEPARATE_APPDOMAIN</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -42,6 +42,7 @@
     <Compile Include="FileINI.cs" />
     <Compile Include="HCmdArg.cs" />
     <Compile Include="HHandler.cs" />
+    <Compile Include="HHandlerDb.cs" />
     <Compile Include="HHandlerQueue.cs" />
     <Compile Include="IForm.cs" />
     <Compile Include="Passwords.cs" />

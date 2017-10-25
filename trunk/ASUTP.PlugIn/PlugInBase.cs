@@ -136,7 +136,7 @@ namespace ASUTP.PlugIn {
                 try {
                     _objects.Add (key, Activator.CreateInstance (_types [key], this));
 
-                    if (_objects [key] is Control) {
+                    if (_objects [key] is System.Windows.Forms.Control) {
                         //if (_object is HPanelCommon)
                         //    (_object as HPanelCommon).Start();
                         //else

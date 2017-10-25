@@ -571,6 +571,8 @@ namespace HClassLibrary
             return 0;
         }
 #if _SEPARATE_APPDOMAIN
+        private UnhandledExceptionEventHandler fSeparateAppDomain_UnhandledException;
+
         /// <summary>
         /// Признак инициализации домена для загрузки в него плюгИнов
         /// </summary>
@@ -578,10 +580,12 @@ namespace HClassLibrary
         /// <summary>
         /// Инициализация домена для загрузки в него плюгИнов
         /// </summary>
-        private void initPluginDomain(string name)
+        private void initPluginDomain(string name, UnhandledExceptionEventHandler delegateSeparateAppDomain_UnhandledException)
         {
+            fSeparateAppDomain_UnhandledException = delegateSeparateAppDomain_UnhandledException;
+
             m_appDomain = AppDomain.CreateDomain("PlugInAppDomain::" + name, s_domEvidence, s_domSetup);
-            m_appDomain.UnhandledException += new UnhandledExceptionEventHandler(ProgramBase.SeparateAppDomain_UnhandledException);
+            m_appDomain.UnhandledException += new UnhandledExceptionEventHandler(fSeparateAppDomain_UnhandledException);
 
             Type type = typeof(ProxyAppDomain);
             m_proxyAppDomain = (ProxyAppDomain)m_appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
@@ -595,7 +599,7 @@ namespace HClassLibrary
 #if _SEPARATE_APPDOMAIN
             if (isInitPluginAppDomain == true)
             {
-                m_appDomain.UnhandledException -= ProgramBase.SeparateAppDomain_UnhandledException;
+                m_appDomain.UnhandledException -= new UnhandledExceptionEventHandler (fSeparateAppDomain_UnhandledException);
                 AppDomain.Unload(m_appDomain);
 
                 m_appDomain = null;
@@ -610,9 +614,16 @@ namespace HClassLibrary
         /// Загрузить плюгИн с указанным наименованием
         /// </summary>
         /// <param name="name">Наименование плюгИна</param>
+#if _SEPARATE_APPDOMAIN
+        /// <param name="delegateSeparateAppDomain_UnhandledException">Обработчик необработанных секциями try/catch исключений</param>
+#endif
         /// <param name="iRes">Результат загрузки (код ошибки)</param>
         /// <returns>Загруженный плюгИн</returns>
-        protected PlugInBase load(string name, out int iRes)
+        protected PlugInBase load(string name
+#if _SEPARATE_APPDOMAIN
+            , UnhandledExceptionEventHandler delegateSeparateAppDomain_UnhandledException
+#endif
+            , out int iRes)
         {
             PlugInBase plugInRes = null;
             Assembly ass = null;
@@ -623,7 +634,7 @@ namespace HClassLibrary
             {
 #if _SEPARATE_APPDOMAIN
                 if (isInitPluginAppDomain == false)
-                    initPluginDomain(name);
+                    initPluginDomain(name, delegateSeparateAppDomain_UnhandledException);
                 else
                     ;
 #endif

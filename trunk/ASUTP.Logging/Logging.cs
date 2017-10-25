@@ -17,6 +17,11 @@ namespace ASUTP
         void Disconnect ();
 
         void Exec (string message, out int err);
+
+        object ConnSett
+        {
+            set;
+        }
     }
 
     /// <summary>
@@ -130,6 +135,18 @@ namespace ASUTP
         /// Список сообщений, ожидающих(не обработанных) размещения в журнале
         /// </summary>
         private static List<MESSAGE> m_listQueueMessage;
+
+        /// <summary>
+        /// Объект с параметрами для соедиения с БД при режиме журналирования "БД"
+        /// </summary>
+        public object ConnSett
+        {
+            //get { return s_connSett; }
+            set
+            {
+                DbWriter.ConnSett = value;
+            }
+        }
 
         /// <summary>
         /// Установить режим работы объекта

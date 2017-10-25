@@ -9,31 +9,36 @@ namespace ASUTP.Database
 {
     public class Writer : ASUTP.ILoggingDbWriter
     {
-        private static ConnectionSettings s_connSett = null;
+        private static bool _created = false;
 
-        private static int s_iIdListener = -1;
+        private ConnectionSettings _connSett = null;
 
-        private static DbConnection s_dbConn = null;
+        private int _iIdListener = -1;
+
+        private DbConnection _dbConn = null;
+
+        private Writer () { _created = true; }
+
+        public static ASUTP.ILoggingDbWriter Create () {
+            if (_created == true)
+                throw new Exception ("Повторное создание объекта для сохранения событий приложения в БД...");
+            else
+                ;
+
+            return new Writer ();
+        }
 
         /// <summary>
         /// Объект с параметрами для соедиения с БД при режиме журналирования "БД"
         /// </summary>
-        public static ConnectionSettings ConnSett
+        public object ConnSett
         {
             set
             {
-                s_connSett = new ConnectionSettings ();
-
-                s_connSett.id = value.id;
-                s_connSett.name = value.name;
-                s_connSett.server = value.server;
-                s_connSett.instance = value.instance;
-                s_connSett.port = value.port;
-                s_connSett.dbName = value.dbName;
-                s_connSett.userName = value.userName;
-                s_connSett.password = value.password;
-
-                //s_connSett.ignore = value.ignore;
+                if (value is ConnectionSettings) {
+                    _connSett = new ConnectionSettings (value as ConnectionSettings);
+                } else
+                    throw new Exception ("Попытка установить параметры соединения с БД значениями объекта неразрешенного типа...");
             }
         }
 
@@ -41,11 +46,11 @@ namespace ASUTP.Database
         {
             get
             {
-                return (!(s_connSett == null))
-                    && (s_iIdListener > 0)
-                    && (!(s_dbConn == null))
-                    && ((!(s_dbConn.State == System.Data.ConnectionState.Closed))
-                        || (!(s_dbConn.State == System.Data.ConnectionState.Broken)));
+                return (!(_connSett == null))
+                    && (_iIdListener > 0)
+                    && (!(_dbConn == null))
+                    && ((!(_dbConn.State == System.Data.ConnectionState.Closed))
+                        || (!(_dbConn.State == System.Data.ConnectionState.Broken)));
             }
         }
 
@@ -54,10 +59,10 @@ namespace ASUTP.Database
             int err = IsConnect == true ? 0 : -1;
 
             if (err < 0) {
-                s_iIdListener = DbSources.Sources ().Register (s_connSett, false, @"LOGGING_DB");
+                _iIdListener = DbSources.Sources ().Register (_connSett, false, @"LOGGING_DB");
                 //Console.WriteLine(@"Logging::connect (active=false) - s_iIdListener=" + s_iIdListener);
-                if (!(s_iIdListener < 0))
-                    s_dbConn = DbSources.Sources ().GetConnection (s_iIdListener, out err);
+                if (!(_iIdListener < 0))
+                    _dbConn = DbSources.Sources ().GetConnection (_iIdListener, out err);
                 else
                     ;
             } else
@@ -68,17 +73,17 @@ namespace ASUTP.Database
 
         public void Disconnect ()
         {
-            if (!(s_iIdListener < 0))
-                DbSources.Sources ().UnRegister (s_iIdListener);
+            if (!(_iIdListener < 0))
+                DbSources.Sources ().UnRegister (_iIdListener);
             else
                 ;
-            s_iIdListener = -1;
-            s_dbConn = null;
+            _iIdListener = -1;
+            _dbConn = null;
         }
 
         public void Exec (string message, out int err)
         {
-            DbTSQLInterface.ExecNonQuery (ref s_dbConn, message, null, null, out err);
+            DbTSQLInterface.ExecNonQuery (ref _dbConn, message, null, null, out err);
         }
     }
 }
