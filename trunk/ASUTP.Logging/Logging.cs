@@ -62,7 +62,20 @@ namespace ASUTP
                     , COUNT_INDEX_MESSAGE
         };
 
-        public static ILoggingDbWriter DbWriter;
+        private static ILoggingDbWriter _dbWriter;
+
+        public static ILoggingDbWriter DbWriter
+        {
+            set
+            {
+                _dbWriter = value;
+            }
+
+            private get
+            {
+                return _dbWriter;
+            }
+        }
 
         public static Action DelegateProgramAbort; // ProgramBase.Abort
 
@@ -139,12 +152,12 @@ namespace ASUTP
         /// <summary>
         /// Объект с параметрами для соедиения с БД при режиме журналирования "БД"
         /// </summary>
-        public object ConnSett
+        public static object ConnSett
         {
             //get { return s_connSett; }
             set
             {
-                DbWriter.ConnSett = value;
+                _dbWriter.ConnSett = value;
             }
         }
 
@@ -414,8 +427,7 @@ namespace ASUTP
                 //m_timerConnSett.Stop ();
                 m_timerDbConnect.Dispose ();
                 m_timerDbConnect = null;
-
-                DbWriter.Disconnect ();
+                _dbWriter.Disconnect ();
                 m_evtIsDbConnect.Reset ();
             } else
                 if (((s_mode == LOG_MODE.FILE_EXE) || (s_mode == LOG_MODE.FILE_DESKTOP) || (s_mode == LOG_MODE.FILE_LOCALDEV) || (s_mode == LOG_MODE.FILE_NETDEV))
@@ -488,12 +500,11 @@ namespace ASUTP
                                     }
                                 }
 
-                                DbWriter.Exec (toPost, out err);
+                                _dbWriter.Exec (toPost, out err);
 
                                 if (!(err == 0)) { //Ошибка при записи сообщений...
                                     retryQueueMessage ();
-
-                                    DbWriter.Disconnect ();
+                                    _dbWriter.Disconnect ();
                                     m_evtIsDbConnect.Reset ();
                                 } else { //Успех при записи сообщений...
                                     clearQueueMessage ();
@@ -660,11 +671,11 @@ namespace ASUTP
         //private void TimerConnSett_Tick(object par, EventArgs ev)
         {
             if (m_evtIsDbConnect.WaitOne (0, true) == false) {
-                if (DbWriter.Connect () == 0) {
+                if (_dbWriter.Connect () == 0) {
                     m_evtIsDbConnect.Set ();
                     m_arEvtThread [(int)INDEX_SEMATHREAD.MSG].Set ();
                 } else {
-                    DbWriter.Disconnect ();
+                    _dbWriter.Disconnect ();
                     m_evtIsDbConnect.Reset ();
                 }
             } else
