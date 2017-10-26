@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ASUTP.Database
 {
-    public class Writer : ASUTP.ILoggingDbWriter
+    public class Writer : ASUTP.ILoggingWriter
     {
         private static bool _created = false;
 
@@ -19,7 +19,7 @@ namespace ASUTP.Database
 
         private Writer () { _created = true; }
 
-        public static ASUTP.ILoggingDbWriter Create () {
+        public static ASUTP.ILoggingWriter Create () {
             if (_created == true)
                 throw new Exception ("Повторное создание объекта для сохранения событий приложения в БД...");
             else
@@ -46,9 +46,9 @@ namespace ASUTP.Database
         {
             get
             {
-                return (!(_connSett == null))
+                return (Equals (_connSett, null) == false)
                     && (_iIdListener > 0)
-                    && (!(_dbConn == null))
+                    && (Equals(_dbConn, null) == false)
                     && ((!(_dbConn.State == System.Data.ConnectionState.Closed))
                         || (!(_dbConn.State == System.Data.ConnectionState.Broken)));
             }
@@ -58,7 +58,8 @@ namespace ASUTP.Database
         {
             int err = IsConnect == true ? 0 : -1;
 
-            if (err < 0) {
+            if ((err < 0)
+                && (Equals(_connSett, null) == false)) {
                 _iIdListener = DbSources.Sources ().Register (_connSett, false, @"LOGGING_DB");
                 //Console.WriteLine(@"Logging::connect (active=false) - s_iIdListener=" + s_iIdListener);
                 if (!(_iIdListener < 0))

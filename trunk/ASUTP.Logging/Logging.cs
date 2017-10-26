@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace ASUTP
 {
-    public interface ILoggingDbWriter {
+    public interface ILoggingWriter {
         bool IsConnect { get; }
 
         int Connect();
@@ -62,9 +62,9 @@ namespace ASUTP
                     , COUNT_INDEX_MESSAGE
         };
 
-        private static ILoggingDbWriter _dbWriter;
+        private static ILoggingWriter _dbWriter;
 
-        public static ILoggingDbWriter DbWriter
+        public static ILoggingWriter DbWriter
         {
             set
             {
@@ -103,7 +103,7 @@ namespace ASUTP
                 return _mode;
             }
 
-            set
+            private set
             {
                 _mode = value;
 
@@ -262,49 +262,50 @@ namespace ASUTP
             updateMarkDebugLog (indx);
         }
 
-        public int AppId
-        {// ProgramBase.s_iAppID
-            get;
-
-            set;
-        }
-
+        //??? значение устанавливаем не в конструкторе, а при объявлении, т.к. конструктор вызывается позднее, чем вызов 'set' статического свойства
+        private static int _userId = -1;
         /// <summary>
-        /// Имя приложения без расширения
+        /// Идентификатор пользователя
         /// </summary>
-        public static string AppName
-        {
-            get
+        public static int UserId
+        {// HUsers.Id
+            private get
             {
-                string appName = string.Empty;
-                string [] args = System.Environment.GetCommandLineArgs ();
-                int posAppName = -1
-                    , posDelim = -1;
+                return _userId;
+            }
 
-                posAppName = args [0].LastIndexOf ('\\') + 1;
-
-                //Отсечь параметры (после пробела)
-                posDelim = args [0].IndexOf (' ', posAppName);
-                if (!(posDelim < 0))
-                    appName = args [0].Substring (posAppName, posDelim - posAppName - 1);
-                else
-                    appName = args [0].Substring (posAppName);
-                //Отсечь расширение
-                posDelim = appName.IndexOf ('.');
-                if (!(posDelim < 0))
-                    appName = appName.Substring (0, posDelim);
-                else
-                    ;
-
-                return appName;
+            set
+            {
+                _userId = value;
             }
         }
 
-        public int UserId
-        {// HUsers.Id
-            get;
+        /// <summary>
+        /// Идентификатор(строковый) приложения, назначаемый пользователем (не GUID!)
+        /// </summary>
+        public static string AppName
+        {// ProgramBase.s_iAppID
+            private get;
 
             set;
+        }
+
+        //??? значение устанавливаем не в конструкторе, а при объявлении, т.к. конструктор вызывается позднее, чем вызов 'set' статического свойства
+        private static int _appId = -1;
+        /// <summary>
+        /// Идентификатор(целочисленный) приложения, назначаемый пользователем (не GUID!)
+        /// </summary>
+        public static int AppId
+        {// ProgramBase.s_iAppID
+            private get
+            {
+                return _appId;
+            }
+
+            set
+            {
+                _appId = value;
+            }
         }
 
         /// <summary>
@@ -718,6 +719,11 @@ namespace ASUTP
 
         private Logging ()
         {
+            //??? значение устанавливаем не в конструкторе, а при объявлении, т.к. конструктор вызывается позднее, чем вызов 'set' статического свойства
+            //_appId =
+            //_userId =
+            //    -1;
+
             start ();
         }
 
@@ -889,14 +895,20 @@ namespace ASUTP
 
         private string getInsertQuery (MESSAGE msg)
         {
+            if ((AppId < 0)
+                || (UserId < 0))
+                throw new System.Exception ($"Не установлено одно из обязательных значений: AppId={AppId}. UserId={UserId}");
+            else
+                ;
+
             return $@"INSERT INTO [dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE], [INSERT_DATETIME])VALUES" +
                 $"({msg.m_id}, {AppId}, {UserId}, '{msg.m_strDatetimeReg}', '{msg.m_text.Replace ('\'', '`')}', GETDATE())";
         }
 
         private string getInsertQuery (int id, string text)
         {
-            return $"INSERT INTO [dbo].[logging]([ID_LOGMSG],[ID_APP],[ID_USER],[DATETIME_WR],[MESSAGE], [INSERT_DATETIME])VALUES" +
-                $"({id}, {AppId}, {UserId}, GETDATE (), '{text.Replace ('\'', '`')}', GETDATE())";
+            //??? 3 крайних параметра не имеют смысла при журналировании в БД
+            return getInsertQuery (new MESSAGE ((int)id, HDateTime.ToMoscowTimeZone (DateTime.Now), text, false, false, false));
         }
 
         /// <summary>
@@ -1085,13 +1097,13 @@ namespace ASUTP
         }
 
         /// <summary>
-        /// 
+        /// Зафиксировать сообщение о запуске приложения в журнале
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">Содержание сообщения о запуске</param>
         public void PostStart (string message)
         {
             if (s_mode == Logging.LOG_MODE.UNKNOWN)
-                s_mode = Logging.LOG_MODE.FILE_EXE;
+                throw new System.Exception ($"Не установлен тип журналирования...");
             else
                 ;
 

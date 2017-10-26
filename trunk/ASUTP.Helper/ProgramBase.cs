@@ -89,6 +89,7 @@ namespace ASUTP.Helper
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            Logging.AppId = ProgramBase.s_iAppID;
             Logging.DelegateProgramAbort = Abort;
             Logging.SetMode (log_mode);
             if (Logging.s_mode == Logging.LOG_MODE.DB)
@@ -201,6 +202,37 @@ namespace ASUTP.Helper
         //???
         public static void Abort() { }
 
+        /// <summary>
+        /// Имя приложения без расширения
+        /// </summary>
+        public static string s_AppName
+        {
+            get
+            {
+                string appName = string.Empty;
+                string [] args = System.Environment.GetCommandLineArgs ();
+                int posAppName = -1
+                    , posDelim = -1;
+
+                posAppName = args [0].LastIndexOf ('\\') + 1;
+
+                //Отсечь параметры (после пробела)
+                posDelim = args [0].IndexOf (' ', posAppName);
+                if (!(posDelim < 0))
+                    appName = args [0].Substring (posAppName, posDelim - posAppName - 1);
+                else
+                    appName = args [0].Substring (posAppName);
+                //Отсечь расширение
+                posDelim = appName.IndexOf ('.');
+                if (!(posDelim < 0))
+                    appName = appName.Substring (0, posDelim);
+                else
+                    ;
+
+                return appName;
+            }
+        }
+
         public static int s_iAppID = -1;
         public static int s_iMessageShowUnhandledException = -1;
         public static int s_iMessageShowUnhandledExceptionDetail = -1;
@@ -212,7 +244,7 @@ namespace ASUTP.Helper
         {
             get
             {
-                return Logging.AppName + ".exe";
+                return s_AppName + ".exe";
             }
         }
 
