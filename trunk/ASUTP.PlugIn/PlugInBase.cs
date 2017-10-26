@@ -263,21 +263,30 @@ namespace ASUTP.PlugIn {
         /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public override void OnEvtDataRecievedHost (object obj)
         {
-            KeyValuePair<int, int> pair;
+            SetDataHostMark (((EventArgsDataHost)obj).id_main, ((EventArgsDataHost)obj).id_detail, true);
 
+            //Console.WriteLine(@"PlugInBase::OnEvtDataRecievedHost (id=" + pair.Key + @", key=" + pair.Value + @") - counter=" + m_dictDataHostCounter[pair]);
+        }
+
+        public void SetDataHostMark (KeyValuePair<int, int> pair, bool val)
+        {
             if (Monitor.TryEnter (this) == true) {
-                pair = new KeyValuePair<int, int> (((EventArgsDataHost)obj).id_main, ((EventArgsDataHost)obj).id_detail);
+                if (_dictDataHostCounter.ContainsKey (pair) == true) {
+                    if (val == true)
+                        _dictDataHostCounter [pair]++;
+                    else
+                        if (val == false)
+                            _dictDataHostCounter [pair]--;
+                        else
+                            ; // недостижимый код
 
-                if (_dictDataHostCounter.ContainsKey (pair) == true)
-                    _dictDataHostCounter [pair]++;
-                else
-                    _dictDataHostCounter.Add (pair, 1);
+                    //Console.WriteLine(@"PlugInULoader::SetMark (id=" + id_obj + @", key=" + key + @", val=" + val + @") - counter=" + m_dictDataHostCounter[pair] + @" ...");
+                } else
+                    _dictDataHostCounter.Add (pair, (uint)((val == true) ? 1 : 0));
 
                 Monitor.Exit (this);
             } else
                 ;
-
-            //Console.WriteLine(@"PlugInBase::OnEvtDataRecievedHost (id=" + pair.Key + @", key=" + pair.Value + @") - counter=" + m_dictDataHostCounter[pair]);
         }
 
         /// <summary>
@@ -288,25 +297,13 @@ namespace ASUTP.PlugIn {
         /// <param name="val">Признак использования</param>
         public void SetDataHostMark (int id_obj, int key, bool val)
         {
-            KeyValuePair<int, int> pair;
+            SetDataHostMark (new KeyValuePair<int, int> (id_obj, key), val);
+        }
 
-            if (Monitor.TryEnter (this) == true) {
-                pair = new KeyValuePair<int, int> (id_obj, key);
-
-                if (_dictDataHostCounter.ContainsKey (pair) == true) {
-                    if (val == true)
-                        _dictDataHostCounter [pair]++;
-                    else
-                        if (val == false)
-                        _dictDataHostCounter [pair]--;
-                    else
-                        ; // недостижимый код
-
-                    //Console.WriteLine(@"PlugInULoader::SetMark (id=" + id_obj + @", key=" + key + @", val=" + val + @") - counter=" + m_dictDataHostCounter[pair] + @" ...");
-                } else
-                    ;
-            } else
-                ;
+        protected bool isDataHostMarked (KeyValuePair<int, int> pair)
+        {
+            return (_dictDataHostCounter.ContainsKey (pair) == true)
+                && (_dictDataHostCounter [pair] % 2 == 1);
         }
 
         /// <summary>
@@ -317,10 +314,7 @@ namespace ASUTP.PlugIn {
         /// <returns>Признак использования элемента</returns>
         protected bool isDataHostMarked (int id_main, int id_detail)
         {
-            KeyValuePair<int, int> pair = new KeyValuePair<int, int> (id_main, id_detail);
-
-            return (_dictDataHostCounter.ContainsKey (pair) == true)
-                && (_dictDataHostCounter [pair] % 2 == 1);
+            return isDataHostMarked(new KeyValuePair<int, int> (id_main, id_detail));
         }
     }
 }

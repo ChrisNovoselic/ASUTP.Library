@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HDataHost.cs" />
+    <Compile Include="HPlugInMenuItem.cs" />
     <Compile Include="HPlugIns.cs" />
     <Compile Include="Interfaces.cs" />
     <Compile Include="PlugInBase.cs" />

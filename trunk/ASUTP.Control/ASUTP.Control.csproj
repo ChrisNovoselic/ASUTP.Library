@@ -40,6 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Button.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Calendar.cs" />
     <Compile Include="DataGridView.cs" />
     <Compile Include="HLabel.cs">

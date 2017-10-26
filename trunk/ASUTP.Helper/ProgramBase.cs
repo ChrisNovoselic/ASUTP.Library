@@ -90,6 +90,7 @@ namespace ASUTP.Helper
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Logging.AppId = ProgramBase.s_iAppID;
+            Logging.AppName = ProgramBase.s_AppName;
             Logging.DelegateProgramAbort = Abort;
             Logging.SetMode (log_mode);
             if (Logging.s_mode == Logging.LOG_MODE.DB)
