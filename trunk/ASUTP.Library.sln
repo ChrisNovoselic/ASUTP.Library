@@ -21,7 +21,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASUTP.Core", "ASUTP.Core\AS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASUTP.Database", "ASUTP.Database\ASUTP.Database.csproj", "{358980AC-98E5-4491-A27D-43CF384634E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HClassLibrary", "HClassLibrary.csproj", "{A4F24CAA-ACAA-4923-AA4F-CEF6CBA46291}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASUTP.Library", "ASUTP.Library.csproj", "{A4F24CAA-ACAA-4923-AA4F-CEF6CBA46291}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
