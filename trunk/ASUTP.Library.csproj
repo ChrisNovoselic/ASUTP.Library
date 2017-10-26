@@ -8,8 +8,8 @@
     <ProjectGuid>{A4F24CAA-ACAA-4923-AA4F-CEF6CBA46291}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HClassLibrary</RootNamespace>
-    <AssemblyName>HClassLibrary</AssemblyName>
+    <RootNamespace>ASUTP</RootNamespace>
+    <AssemblyName>ASUTP</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -23,7 +23,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\HClassLibrary.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\ASUTP.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -103,20 +103,49 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="ASUTP.Control\ASUTP.Control.csproj">
+      <Project>{f0fb03c7-1913-4f80-8d08-dbfc5ab1c65c}</Project>
+      <Name>ASUTP.Control</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.Core\ASUTP.Core.csproj">
+      <Project>{fce97844-5285-4c26-bc9c-0a66b81f52a0}</Project>
+      <Name>ASUTP.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.Database\ASUTP.Database.csproj">
+      <Project>{358980ac-98e5-4491-a27d-43cf384634e9}</Project>
+      <Name>ASUTP.Database</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.Forms\ASUTP.Forms.csproj">
+      <Project>{c80d3057-23de-4034-9dfb-4e1e71bf81c5}</Project>
+      <Name>ASUTP.Forms</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.Helper\ASUTP.Helper.csproj">
+      <Project>{51acdb2b-a241-4321-8cda-20ee57fa179d}</Project>
+      <Name>ASUTP.Helper</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.Logging\ASUTP.Logging.csproj">
+      <Project>{a686b761-cdb6-457f-be0e-11cd14b5490c}</Project>
+      <Name>ASUTP.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.MSExcel\ASUTP.MSExcel.csproj">
+      <Project>{b18788d7-f141-4f25-adba-6b13fd3d5abc}</Project>
+      <Name>ASUTP.MSExcel</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.Network\ASUTP.Network.csproj">
+      <Project>{1b2d594a-ff9e-462e-99aa-bcc5baf20ef2}</Project>
+      <Name>ASUTP.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="ASUTP.PlugIn\ASUTP.PlugIn.csproj">
+      <Project>{dfde592f-e18c-4871-a888-54c906ae61fb}</Project>
+      <Name>ASUTP.PlugIn</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
