@@ -85,6 +85,10 @@ namespace ASUTP.Helper {
                 }
             } else
                 ; //нет ни одного аргумента
+
+            Console.WriteLine (string.Format(@"Приняты к обработке аргументы: {0}, значения: {1}..."
+                , m_dictCmdArgs.Count > 0 ? string.Join (", ", m_dictCmdArgs.Keys.ToArray ()) : "нет"
+                , m_dictCmdArgs.Count > 0 ? string.Join (", ", m_dictCmdArgs.Values.ToArray ()) : "нет"));
         }
 
         /// <summary>
@@ -172,11 +176,15 @@ namespace ASUTP.Helper {
                 {
                     bool bRes;
 
-                    Logging.Logg ().Debug (@"SingleInstance::IsOnlyInstance - s_NameMutex = " + s_NameMutex, Logging.INDEX_MESSAGE.NOT_SET);
+                    string msgDbg = $"SingleInstance::IsOnlyInstance - s_NameMutex = {s_NameMutex}";
+
+                    Logging.Logg ().Debug (msgDbg, Logging.INDEX_MESSAGE.NOT_SET);
 
                     try {
                         s_mutex = new Mutex (true, s_NameMutex, out bRes);
                     } catch { bRes = false; }
+
+                    Console.WriteLine ($"IsOnly = {bRes.ToString()} ({msgDbg})");
 
                     return bRes;
                 }
@@ -245,6 +253,9 @@ namespace ASUTP.Helper {
                 procDup = ProcessDup;
                 hDupWnd = getHandleDupWnd(procDup);
 
+                Console.WriteLine (string.Format("HCmd_Arg.SingleInstatnce.StopDupApp () - дубликат [процесс={0}, окно={1}] ..."
+                    , !(ProcessDup == null) ? ProcessDup.Id.ToString() : "не найден", !(hDupWnd == IntPtr.Zero) ? hDupWnd.ToString() : "не найдено"));
+
                 //procDup.Exited += (object obj, EventArgs ev) => { };
                 iRes =
                     //sendMsg
@@ -261,10 +272,14 @@ namespace ASUTP.Helper {
                         else
                             msecProcDupToExit = ASUTP.Core.Constants.MAX_WATING;
 
-                        if (ProcessDup.WaitForExit(msecProcDupToExit) == false) {
-                        // приложение не обработало сообщение в течение 'MAX_WATING'
-                            ProcessDup.Kill ();
-                        } else
+                        if (Equals(ProcessDup, null) == false)
+                            if (ProcessDup.WaitForExit(msecProcDupToExit) == false) {
+                            // приложение не обработало сообщение в течение 'MAX_WATING'
+                                ProcessDup.Kill ();
+                            } else
+                                ;
+                        else
+                        // процесс уже завешился
                             ;
                     }
                 } catch {
@@ -305,6 +320,10 @@ namespace ASUTP.Helper {
                             procRes = processes.ElementAt (0);
                         else
                             ;
+
+                        Logging.Logg ().Debug (string.Format ("Текущий процесс[ProcessName={0}] - поиск процесса дубликата: рез-т= {1}..."
+                                , cur_process.ProcessName, processes.Count ())
+                            , Logging.INDEX_MESSAGE.NOT_SET);
                     } catch {
                     }
 
@@ -341,10 +360,9 @@ namespace ASUTP.Helper {
             private static IntPtr getHandleDupWnd()
             {
                 IntPtr hWndRes = IntPtr.Zero;
-                Process procDup = null;
 
                 try {
-                    hWndRes = getHandleDupWnd (procDup);     
+                    hWndRes = getHandleDupWnd (ProcessDup);
                 } catch { }
 
                 return hWndRes;
@@ -457,6 +475,9 @@ namespace ASUTP.Helper {
         /// <param name="bIsOnlyInstance">Признак уникальности текущего экземпляра</param>
         static public void execCmdLine (bool bIsExecute, bool bIsOnlyInstance)
         {
+            Console.WriteLine (string.Format("HCmd_Arg::execCmdLine (bIsExecute={0}, bIsOnlyInstance = {1}) - ..."
+                , bIsExecute, bIsOnlyInstance));
+
             if (bIsExecute == true) {
             // требование продолжения выполнения
                 if (bIsOnlyInstance == false) {
