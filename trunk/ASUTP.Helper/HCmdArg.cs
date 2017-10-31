@@ -31,12 +31,12 @@ namespace ASUTP.Helper {
 
             bool bIsOnlyInstance = SingleInstance.IsOnlyInstance;
 
-            if (m_dictCmdArgs.ContainsKey ("stop") == true)
-                execCmdLine (false, bIsOnlyInstance);
+            if ((bIsOnlyInstance == false)
+                || (m_dictCmdArgs.ContainsKey ("stop") == true))
+            // экземпляр НЕ единственный указана ИЛИ указана команда "стоп"
+                execCmdLine (!m_dictCmdArgs.ContainsKey ("stop"), bIsOnlyInstance);
             else
-                if (bIsOnlyInstance == false)
-                execCmdLine (true, bIsOnlyInstance);
-            else
+                // экземпляр единственный И нет команды "стоп"
                 ;
         }
 
@@ -78,7 +78,7 @@ namespace ASUTP.Helper {
 
                         m_dictCmdArgs.Add (key, value);
                     } else {//параметр не учитывается - ошибка
-                        m_dictCmdArgs.Add (@"stop", string.Empty);
+                        m_dictCmdArgs.Add (@"stop", (ASUTP.Core.Constants.MAX_WATING / 1000).ToString());
 
                         break;
                     }
@@ -159,7 +159,7 @@ namespace ASUTP.Helper {
         /// <summary>
         /// Класс по работе с запущенным приложением
         /// </summary>
-        static public class SingleInstance {
+        public static class SingleInstance {
             static private string s_NameMutex = ProgramInfo.NameMtx.ToString ();
             static Mutex s_mutex;
 
@@ -187,18 +187,38 @@ namespace ASUTP.Helper {
             /// для его активации
             /// </summary>
             /// <param name="hWnd">дескриптор окна</param>
-            static private void sendMsg (IntPtr hWnd, int iMsg, IntPtr wParam)
+            private static int sendMsg (IntPtr hWnd, int iMsg, IntPtr wParam)
             {
-                //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
+                int iRes = 0;
 
-                WinApi.SendMessage (hWnd, iMsg, wParam, IntPtr.Zero);
+                Thread thread;
+                IntPtr iRet = IntPtr.Zero;
+
+                thread = new Thread (new ParameterizedThreadStart ((object obj) => {
+                    iRet = WinApi.SendMessage (hWnd, iMsg, wParam, IntPtr.Zero);
+                })) {
+                    IsBackground = true
+                    , Name = $"ASUTP.Helper.HCmdArgs.SingleInstance.SendMassage-{(int)hWnd}-{iMsg}"
+                };
+                thread.Start ();
+
+                if (thread.Join (ASUTP.Core.Constants.MAX_WATING) == false) {
+                    thread.Abort();
+
+                    iRes = -1;
+                } else
+                    ;
+
+                //Logging.Logg ().Debug (@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
+
+                return iRes;
             }
 
-            static private void postMsg (IntPtr hWnd, uint iMsg, IntPtr wParam)
+            private static bool postMsg (IntPtr hWnd, uint iMsg, IntPtr wParam)
             {
                 //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-                WinApi.PostMessage (hWnd, iMsg, wParam, IntPtr.Zero);
+                return WinApi.PostMessage (hWnd, iMsg, wParam, IntPtr.Zero);
             }
 
             /// <summary>
@@ -214,53 +234,120 @@ namespace ASUTP.Helper {
             /// <summary>
             /// Остановка работы дублирующего приложения
             /// </summary>
-            static public void StopApp ()
+            public static int StopDupApp ()
             {
-                sendMsg (HandleWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
+                int iRes = 0;
+
+                Process procDup = null;
+                IntPtr hDupWnd = IntPtr.Zero;
+                int msecProcDupToExit = -1;
+
+                procDup = ProcessDup;
+                hDupWnd = getHandleDupWnd(procDup);
+
+                //procDup.Exited += (object obj, EventArgs ev) => { };
+                iRes =
+                    //sendMsg
+                    postMsg
+                        (hDupWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE) == true ? 0 : -1;
+
+                try {
+                    if (iRes < 0)
+                    // приложению не было отправлено сообщение
+                        ProcessDup.Kill ();
+                    else {
+                        if (int.TryParse (m_dictCmdArgs ["stop"], out msecProcDupToExit) == true)
+                            msecProcDupToExit *= 1000;
+                        else
+                            msecProcDupToExit = ASUTP.Core.Constants.MAX_WATING;
+
+                        if (ProcessDup.WaitForExit(msecProcDupToExit) == false) {
+                        // приложение не обработало сообщение в течение 'MAX_WATING'
+                            ProcessDup.Kill ();
+                        } else
+                            ;
+                    }
+                } catch {
+                }
+
+                return iRes;
             }
 
             /// <summary>
             /// Прерывание запуска основного(текущего) приложения
             /// </summary>
-            static public void InterruptReApp ()
+            public static void InterruptReApp ()
             {
                 Environment.Exit (0);
             }
 
-            /// <summary>
-            /// Дескриптор окна дублирующего процесса
-            /// </summary>
-            static public IntPtr HandleWnd
+            private static Process ProcessDup
             {
                 get
                 {
-                    IntPtr hWndRes = IntPtr.Zero;
-                    Process cur_process = Process.GetCurrentProcess ();
-                    Process [] processes = Process.GetProcessesByName (cur_process.ProcessName);
-                    foreach (Process process in processes)
+                    Process procRes = null
+                        , cur_process = null;
+   
+                    try {
+                        cur_process = Process.GetCurrentProcess ();
                         // Get the first instance that is not this instance, has the
                         // same process name and was started from the same file name
                         // and location. Also check that the process has a valid
                         // window handle in this session to filter out other user's
                         // processes.
-                        try {
-                            if ((!(process.Id == cur_process.Id))
-                                && (process.MainModule.FileName == cur_process.MainModule.FileName)
-                                && (process.Handle.Equals (IntPtr.Zero) == false)) {
-                                hWndRes = process.MainWindowHandle;
+                        IEnumerable<Process> processes = from proc in Process.GetProcessesByName (cur_process.ProcessName)
+                            where ((!(proc.Id == cur_process.Id))
+                                && (proc.MainModule.FileName == cur_process.MainModule.FileName)
+                                && (proc.Handle.Equals (IntPtr.Zero) == false))
+                            select proc;
 
-                                if (hWndRes == IntPtr.Zero)
-                                    hWndRes = getWindowThreadProcessId (process.Id);
-                                else
-                                    ;
+                        if (processes.Count () > 0)
+                            procRes = processes.ElementAt (0);
+                        else
+                            ;
+                    } catch {
+                    }
 
-                                break;
-                            } else
-                                ;
-                        } catch { }
-
-                    return hWndRes;
+                    return procRes;
                 }
+            }
+
+            /// <summary>
+            /// Дескриптор окна дублирующего процесса
+            /// </summary>
+            private static IntPtr getHandleDupWnd (Process procDup)
+            {
+                IntPtr hWndRes = IntPtr.Zero;
+
+                try {
+                    if (Equals (procDup, null) == false) {
+                        hWndRes = procDup.MainWindowHandle;
+
+                        if (Equals (hWndRes, IntPtr.Zero) == true)
+                            hWndRes = getWindowThreadProcessId (procDup.Id);
+                        else
+                            ;
+                    } else
+                        ;
+
+                } catch { }
+
+                return hWndRes;
+            }
+
+            /// <summary>
+            /// Дескриптор окна дублирующего процесса
+            /// </summary>
+            private static IntPtr getHandleDupWnd()
+            {
+                IntPtr hWndRes = IntPtr.Zero;
+                Process procDup = null;
+
+                try {
+                    hWndRes = getHandleDupWnd (procDup);     
+                } catch { }
+
+                return hWndRes;
             }
 
             /// <summary>
@@ -312,21 +399,28 @@ namespace ASUTP.Helper {
             /// <summary>
             /// Активация окна
             /// </summary>
-            static public void SwitchToCurrentInstance ()
+            static public void SwitchToDupInstance ()
             {
-                IntPtr hWnd = HandleWnd;
-                sendMsg (hWnd, WinApi.SW_RESTORE, IntPtr.Zero);
+                IntPtr hDupWnd = IntPtr.Zero;
+                int iResponse = -1;
 
-                if (hWnd.Equals (IntPtr.Zero) == false) {
-                    // Restore window if minimised. Do not restore if already in
-                    // normal or maximised window state, since we don't want to
-                    // change the current state of the window.
-                    if (!(WinApi.IsIconic (hWnd) == 0))
-                        WinApi.ShowWindow (hWnd, WinApi.SW_RESTORE);
-                    else
-                        ;
-                    // Set foreground window.
-                    WinApi.SetForegroundWindow (hWnd);
+                hDupWnd = getHandleDupWnd();
+
+                if (hDupWnd.Equals (IntPtr.Zero) == false) {
+                    iResponse = sendMsg (hDupWnd, WinApi.SW_RESTORE, IntPtr.Zero);
+
+                    try {
+                        // Restore window if minimised. Do not restore if already in
+                        // normal or maximised window state, since we don't want to
+                        // change the current state of the window.
+                        if (!(WinApi.IsIconic (hDupWnd) == 0))
+                            WinApi.ShowWindow (hDupWnd, WinApi.SW_RESTORE);
+                        else
+                            ;
+                        // Set foreground window.
+                        WinApi.SetForegroundWindow (hDupWnd);
+                    } catch {
+                    }
                 } else
                     ;
             }
@@ -364,18 +458,25 @@ namespace ASUTP.Helper {
         static public void execCmdLine (bool bIsExecute, bool bIsOnlyInstance)
         {
             if (bIsExecute == true) {
+            // требование продолжения выполнения
                 if (bIsOnlyInstance == false) {
-                    SingleInstance.SwitchToCurrentInstance ();
+                // экземпляр не единственный
+                    // активировать дубликат
+                    SingleInstance.SwitchToDupInstance ();
+                    // прекратить собственную работу
                     SingleInstance.InterruptReApp ();
                 } else
+                // экземпляр единственный - продолжить работу
                     ;
-            } else
-                if (bIsExecute == false) {
+            } else if (bIsExecute == false) {
+            // требование прекратить выполнение
                 if (bIsOnlyInstance == false)
-                    SingleInstance.StopApp ();
+                // экземпляр не единственный
+                    // остановить дубликат
+                    SingleInstance.StopDupApp ();
                 else
                     ;
-
+                // прекратить собственную работу
                 SingleInstance.InterruptReApp ();
             } else
                 ;
