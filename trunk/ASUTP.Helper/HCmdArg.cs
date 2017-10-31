@@ -254,7 +254,7 @@ namespace ASUTP.Helper {
                 hDupWnd = getHandleDupWnd(procDup);
 
                 Console.WriteLine (string.Format("HCmd_Arg.SingleInstatnce.StopDupApp () - дубликат [процесс={0}, окно={1}] ..."
-                    , !(ProcessDup == null) ? ProcessDup.Id.ToString() : "не найден", !(hDupWnd == IntPtr.Zero) ? hDupWnd.ToString() : "не найдено"));
+                    , !(procDup == null) ? procDup.Id.ToString() : "не найден", !(hDupWnd == IntPtr.Zero) ? hDupWnd.ToString() : "не найдено"));
 
                 //procDup.Exited += (object obj, EventArgs ev) => { };
                 iRes =
@@ -265,17 +265,17 @@ namespace ASUTP.Helper {
                 try {
                     if (iRes < 0)
                     // приложению не было отправлено сообщение
-                        ProcessDup.Kill ();
+                        procDup.Kill ();
                     else {
                         if (int.TryParse (m_dictCmdArgs ["stop"], out msecProcDupToExit) == true)
                             msecProcDupToExit *= 1000;
                         else
                             msecProcDupToExit = ASUTP.Core.Constants.MAX_WATING;
 
-                        if (Equals(ProcessDup, null) == false)
-                            if (ProcessDup.WaitForExit(msecProcDupToExit) == false) {
+                        if (Equals(procDup, null) == false)
+                            if (procDup.WaitForExit(msecProcDupToExit) == false) {
                             // приложение не обработало сообщение в течение 'MAX_WATING'
-                                ProcessDup.Kill ();
+                                procDup.Kill ();
                             } else
                                 ;
                         else
@@ -328,13 +328,17 @@ namespace ASUTP.Helper {
                         //        && (proc.Handle.Equals (IntPtr.Zero) == false))
                         //    select proc;
 
-                        if (processes.Count () > 0)
-                            procRes = processes.ElementAt (0);
-                        else
-                            ;
+                        //if (processes.Count () > 0)
+                        //    procRes = processes.ElementAt (0);
+                        //else
+                        //    ;
 
                         Logging.Logg ().Debug (string.Format ("Текущий процесс[ProcessName={0}] - поиск процесса дубликата: рез-т= {1}..."
-                                , cur_process.ProcessName, processes.Count ())
+                                , cur_process.ProcessName
+                                , 
+                                    //processes.Count ()
+                                    (procRes == null).ToString()
+                                )
                             , Logging.INDEX_MESSAGE.NOT_SET);
                     } catch {
                     }
