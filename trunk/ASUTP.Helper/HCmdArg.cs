@@ -174,17 +174,14 @@ namespace ASUTP.Helper {
             {
                 get
                 {
-                    bool bRes;
-
-                    string msgDbg = $"SingleInstance::IsOnlyInstance - s_NameMutex = {s_NameMutex}";
-
-                    Logging.Logg ().Debug (msgDbg, Logging.INDEX_MESSAGE.NOT_SET);
+                    bool bRes = false;            
 
                     try {
                         s_mutex = new Mutex (true, s_NameMutex, out bRes);
                     } catch { bRes = false; }
 
-                    Console.WriteLine ($"IsOnly = {bRes.ToString()} ({msgDbg})");
+                    Logging.Logg ().Debug ($"IsOnly = {bRes.ToString ()} (SingleInstance::IsOnlyInstance - s_NameMutex = {s_NameMutex})"
+                        , Logging.INDEX_MESSAGE.NOT_SET);
 
                     return bRes;
                 }
