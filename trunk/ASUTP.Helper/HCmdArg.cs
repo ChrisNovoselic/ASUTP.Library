@@ -33,7 +33,7 @@ namespace ASUTP.Helper {
 
             if ((bIsOnlyInstance == false)
                 || (m_dictCmdArgs.ContainsKey ("stop") == true))
-            // экземпляр НЕ единственный указана ИЛИ указана команда "стоп"
+            // экземпляр НЕ единственный ИЛИ указана команда "стоп"
                 execCmdLine (!m_dictCmdArgs.ContainsKey ("stop"), bIsOnlyInstance);
             else
                 // экземпляр единственный И нет команды "стоп"
@@ -191,7 +191,7 @@ namespace ASUTP.Helper {
             /// Отправка сообщения приложению
             /// для его активации
             /// </summary>
-            /// <param name="hWnd">дескриптор окна</param>
+            /// <param name="hWnd">Дескриптор окна</param>
             private static int sendMsg (IntPtr hWnd, int iMsg, IntPtr wParam)
             {
                 int iRes = 0;
@@ -227,7 +227,7 @@ namespace ASUTP.Helper {
             }
 
             /// <summary>
-            /// освобождение мьютекса
+            /// Освобождение объекта синхронизации
             /// </summary>
             static public void ReleaseMtx ()
             {
@@ -250,8 +250,9 @@ namespace ASUTP.Helper {
                 procDup = ProcessDup;
                 hDupWnd = getHandleDupWnd(procDup);
 
-                Console.WriteLine (string.Format("HCmd_Arg.SingleInstatnce.StopDupApp () - дубликат [процесс={0}, окно={1}] ..."
-                    , !(procDup == null) ? procDup.Id.ToString() : "не найден", !(hDupWnd == IntPtr.Zero) ? hDupWnd.ToString() : "не найдено"));
+                Logging.Logg().Debug (string.Format("HCmd_Arg.SingleInstatnce.StopDupApp () - дубликат [процесс={0}, окно={1}] ..."
+                        , !(procDup == null) ? procDup.Id.ToString() : "не найден", !(hDupWnd == IntPtr.Zero) ? hDupWnd.ToString() : "не найдено")
+                    , Logging.INDEX_MESSAGE.NOT_SET);
 
                 //procDup.Exited += (object obj, EventArgs ev) => { };
                 iRes =
@@ -279,7 +280,8 @@ namespace ASUTP.Helper {
                         // процесс уже завешился
                             ;
                     }
-                } catch {
+                } catch (Exception e) {
+                    Logging.Logg ().Exception (e, string.Format ($"HCmd_Arg.SingleInstance::StopDupApp () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
                 }
 
                 return iRes;
@@ -333,11 +335,12 @@ namespace ASUTP.Helper {
                         Logging.Logg ().Debug (string.Format ("Текущий процесс[ProcessName={0}] - поиск процесса дубликата: рез-т= {1}..."
                                 , cur_process.ProcessName
                                 , 
-                                    //processes.Count ()
-                                    (procRes == null).ToString()
+                                    //processes.Count () == 1 // вар.№1
+                                    (!Equals(procRes, null)).ToString() // вар.№2
                                 )
                             , Logging.INDEX_MESSAGE.NOT_SET);
-                    } catch {
+                    } catch (Exception e) {
+                        Logging.Logg ().Exception (e, string.Format($"HCmd_Arg.SingleInstance::ProcessDup () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
                     }
 
                     return procRes;
@@ -488,8 +491,9 @@ namespace ASUTP.Helper {
         /// <param name="bIsOnlyInstance">Признак уникальности текущего экземпляра</param>
         static public void execCmdLine (bool bIsExecute, bool bIsOnlyInstance)
         {
-            Console.WriteLine (string.Format("HCmd_Arg::execCmdLine (bIsExecute={0}, bIsOnlyInstance = {1}) - ..."
-                , bIsExecute, bIsOnlyInstance));
+            Logging.Logg().Debug (string.Format("HCmd_Arg::execCmdLine (bIsExecute={0}, bIsOnlyInstance = {1}) - ..."
+                    , bIsExecute, bIsOnlyInstance)
+                , Logging.INDEX_MESSAGE.NOT_SET);
 
             if (bIsExecute == true) {
             // требование продолжения выполнения
