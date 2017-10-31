@@ -310,11 +310,23 @@ namespace ASUTP.Helper {
                         // and location. Also check that the process has a valid
                         // window handle in this session to filter out other user's
                         // processes.
-                        IEnumerable<Process> processes = from proc in Process.GetProcessesByName (cur_process.ProcessName)
-                            where ((!(proc.Id == cur_process.Id))
+                        IEnumerable<Process> processes;
+                        processes = Process.GetProcessesByName (cur_process.ProcessName);
+                        foreach (Process proc in processes) {
+                            if ((!(proc.Id == cur_process.Id))
                                 && (proc.MainModule.FileName == cur_process.MainModule.FileName)
-                                && (proc.Handle.Equals (IntPtr.Zero) == false))
-                            select proc;
+                                && (proc.Handle.Equals (IntPtr.Zero) == false)) {
+                                procRes = proc;
+
+                                break;
+                            } else
+                                ;
+                        }
+                        //processes = from proc in Process.GetProcessesByName (cur_process.ProcessName)
+                        //    where ((!(proc.Id == cur_process.Id))
+                        //        && (proc.MainModule.FileName == cur_process.MainModule.FileName)
+                        //        && (proc.Handle.Equals (IntPtr.Zero) == false))
+                        //    select proc;
 
                         if (processes.Count () > 0)
                             procRes = processes.ElementAt (0);
