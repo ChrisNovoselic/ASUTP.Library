@@ -76,7 +76,7 @@ namespace ASUTP.Forms {
             // 
             // параметрыПриложения
             // 
-            this.параметрыПриложения.Location = new System.Drawing.Point(149, 91);
+            this.btnCancel.Location = new System.Drawing.Point(149, 91);
             // 
             // FormSetPassword
             // 

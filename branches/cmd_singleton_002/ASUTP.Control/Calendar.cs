@@ -40,11 +40,17 @@ namespace ASUTP.Control {
         }
     }
 
+    /// <summary>
+    /// Класс для ячейки представления с внедренным календарем
+    /// </summary>
     public class CalendarCell : DataGridViewTextBoxCell {
         private Button btn = new Button ();
         private static int counter = 0;
         private int thisButtonCount;
 
+        /// <summary>
+        /// Конструктор - основной (без параметров)
+        /// </summary>
         public CalendarCell ()
             : base ()
         {
@@ -56,6 +62,12 @@ namespace ASUTP.Control {
             this.btn.Text = thisButtonCount.ToString ();
         }
 
+        /// <summary>
+        /// Инициализация элемента интерфейса
+        /// </summary>
+        /// <param name="rowIndex">Номер/индекс строки</param>
+        /// <param name="initialFormattedValue">Объект правила для форматирования</param>
+        /// <param name="dataGridViewCellStyle">Стиль для оформления ячейки</param>
         public override void InitializeEditingControl (int rowIndex, object initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle)
         {
             // Set the value of the editing control to the current cell value.
@@ -64,6 +76,20 @@ namespace ASUTP.Control {
             ctl.Value = (DateTime)this.Value;
         }
 
+        /// <summary>
+        /// Обработчик события(переопределенный) - "прорисовка" объекта
+        /// </summary>
+        /// <param name="graphics">Контекст устройства для рисования</param>
+        /// <param name="clipBounds">Область для рисования</param>
+        /// <param name="cellBounds">Область для рисования</param>
+        /// <param name="rowIndex">Индекс строки</param>
+        /// <param name="cellState">Состояние ячейки</param>
+        /// <param name="value">Значение ячейки</param>
+        /// <param name="formattedValue">Правила для форматирования ???текста</param>
+        /// <param name="errorText">Строка сообщения при ошибке ввода</param>
+        /// <param name="cellStyle">Стиль для отображения ячейки</param>
+        /// <param name="advancedBorderStyle">Дополнительные стили для отображения границ ячейки</param>
+        /// <param name="paintParts">Дополн. стили для отдельных частей элемента</param>
         protected override void Paint (System.Drawing.Graphics graphics
                                         , System.Drawing.Rectangle clipBounds
                                         , System.Drawing.Rectangle cellBounds
@@ -85,6 +111,9 @@ namespace ASUTP.Control {
             this.DataGridView.Controls.Add (btn);
         }
 
+        /// <summary>
+        /// ??? Свойство - объект "кнопка"
+        /// </summary>
         public Button GetControl
         {
             get
@@ -93,6 +122,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Свойство(переопределенное) - тип объекта в ячейке представления
+        /// </summary>
         public override Type EditType
         {
             get
@@ -102,6 +134,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Свойство(переопределенное) - тип значения в ячейке представления
+        /// </summary>
         public override Type ValueType
         {
             get
@@ -111,6 +146,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Свойство(переопределенное) - значение по умолчанию в ячейке представления
+        /// </summary>
         public override object DefaultNewRowValue
         {
             get

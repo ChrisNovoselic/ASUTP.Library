@@ -14,6 +14,9 @@ namespace ASUTP.Control {
     public class DataGridViewPasswordTextBoxCell : DataGridViewTextBoxCell {
         private TextBox _textBox;
 
+        /// <summary>
+        /// Конструктор - основной (без аргументов)
+        /// </summary>
         public DataGridViewPasswordTextBoxCell ()
             : base ()
         {
@@ -30,6 +33,20 @@ namespace ASUTP.Control {
             //ctrl.Text = this.Value as string;
         }
 
+        /// <summary>
+        /// Обработчик события(переопределенный) - "прорисовка" объекта
+        /// </summary>
+        /// <param name="graphics">Контекст устройства для рисования</param>
+        /// <param name="clipBounds">Область для рисования</param>
+        /// <param name="cellBounds">Область для рисования</param>
+        /// <param name="rowIndex">Индекс строки</param>
+        /// <param name="cellState">Состояние ячейки</param>
+        /// <param name="value">Значение ячейки</param>
+        /// <param name="formattedValue">Правила для форматирования ???текста</param>
+        /// <param name="errorText">Строка сообщения при ошибке ввода</param>
+        /// <param name="cellStyle">Стиль для отображения ячейки</param>
+        /// <param name="advancedBorderStyle">Дополнительные стили для отображения границ ячейки</param>
+        /// <param name="paintParts">Дополн. стили для отдельных частей элемента</param>
         protected override void Paint (System.Drawing.Graphics graphics
             , System.Drawing.Rectangle clipBounds
             , System.Drawing.Rectangle cellBounds, int rowIndex
@@ -51,6 +68,9 @@ namespace ASUTP.Control {
             this.DataGridView.Controls.Add (_textBox);
         }
 
+        /// <summary>
+        /// ??? Свойство - объект ячейки
+        /// </summary>
         public TextBox GetControl
         {
             get
@@ -59,6 +79,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Свойство(переопределенное) - тип объекта в ячейке представления
+        /// </summary>
         public override Type EditType
         {
             get
@@ -72,6 +95,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Свойство(переопределенное) - тип значения в ячейке представления
+        /// </summary>
         public override Type ValueType
         {
             get
@@ -81,6 +107,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Свойство(переопределенное) - значение по умолчанию в ячейке представления
+        /// </summary>
         public override object DefaultNewRowValue
         {
             get
@@ -90,6 +119,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Установить значение, связанное с ячейкой
+        /// </summary>
         public void SetValue ()
         {
             _textBox.Text = Value.ToString ();
@@ -100,7 +132,9 @@ namespace ASUTP.Control {
     /// </summary>
     public class DataGridViewDisableButtonCell : DataGridViewButtonCell {
         private bool enabledValue;
-
+        /// <summary>
+        /// Признак вкл./выкл. элемент граф./интерфейса
+        /// </summary>
         public bool Enabled
         {
             get
@@ -114,7 +148,10 @@ namespace ASUTP.Control {
             }
         }
 
-        // Override the Clone method so that the Enabled property is copied.
+        /// <summary>
+        /// Override the Clone method so that the Enabled property is copied.
+        /// </summary>
+        /// <returns>Копия объекта</returns>
         public override object Clone ()
         {
             DataGridViewDisableButtonCell cell = (DataGridViewDisableButtonCell)base.Clone ();
@@ -124,12 +161,28 @@ namespace ASUTP.Control {
             return cell;
         }
 
-        // By default, enable the button cell.
+        /// <summary>
+        /// By default, enable the button cell.
+        /// </summary>
         public DataGridViewDisableButtonCell ()
         {
             this.enabledValue = true;
         }
 
+        /// <summary>
+        /// Обработчик события(переопределенный) - "прорисовка" объекта
+        /// </summary>
+        /// <param name="graphics">Контекст устройства для рисования</param>
+        /// <param name="clipBounds">Область для рисования</param>
+        /// <param name="cellBounds">Область для рисования</param>
+        /// <param name="rowIndex">Индекс строки</param>
+        /// <param name="elementState">Состояние ячейки</param>
+        /// <param name="value">Значение ячейки</param>
+        /// <param name="formattedValue">Правила для форматирования ???текста</param>
+        /// <param name="errorText">Строка сообщения при ошибке ввода</param>
+        /// <param name="cellStyle">Стиль для отображения ячейки</param>
+        /// <param name="advancedBorderStyle">Дополнительные стили для отображения границ ячейки</param>
+        /// <param name="paintParts">Дополн. стили для отдельных частей элемента</param>
         protected override void Paint (Graphics graphics,
                                     Rectangle clipBounds, Rectangle cellBounds, int rowIndex,
                                     DataGridViewElementStates elementState, object value,
@@ -193,6 +246,9 @@ namespace ASUTP.Control {
     /// Столбец для представления с типом ячеек "кнопка", с возможностью включения/отключения
     /// </summary>
     public class DataGridViewDisableButtonColumn : DataGridViewButtonColumn {
+        /// <summary>
+        /// Конструктор - основной (без аргументов)
+        /// </summary>
         public DataGridViewDisableButtonColumn ()
         {
             this.CellTemplate = new DataGridViewDisableButtonCell ();
@@ -241,6 +297,7 @@ namespace ASUTP.Control {
 
             return cell;
         }
+
         /// <summary>
         /// By default, not pressed the button cell
         /// </summary>
@@ -249,6 +306,20 @@ namespace ASUTP.Control {
             this.pressedValue = false;
         }
 
+        /// <summary>
+        /// Обработчик события(переопределенный) - "прорисовка" объекта
+        /// </summary>
+        /// <param name="graphics">Контекст устройства для рисования</param>
+        /// <param name="clipBounds">Область для рисования</param>
+        /// <param name="cellBounds">Область для рисования</param>
+        /// <param name="rowIndex">Индекс строки</param>
+        /// <param name="elementState">Состояние ячейки</param>
+        /// <param name="value">Значение ячейки</param>
+        /// <param name="formattedValue">Правила для форматирования ???текста</param>
+        /// <param name="errorText">Строка сообщения при ошибке ввода</param>
+        /// <param name="cellStyle">Стиль для отображения ячейки</param>
+        /// <param name="advancedBorderStyle">Дополнительные стили для отображения границ ячейки</param>
+        /// <param name="paintParts">Дополн. стили для отдельных частей элемента</param>
         protected override void Paint (Graphics graphics
             , Rectangle clipBounds
             , Rectangle cellBounds
@@ -313,6 +384,9 @@ namespace ASUTP.Control {
         //        ;
         //}
 
+        /// <summary>
+        /// Делегат обработки события - изменение состояния
+        /// </summary>
         public DelegateIntFunc delegatePressChanged;
     }
     /// <summary>

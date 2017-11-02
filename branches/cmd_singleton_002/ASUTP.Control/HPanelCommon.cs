@@ -12,6 +12,11 @@ namespace ASUTP.Control
     /// </summary>
     public abstract class HPanelCommon : TableLayoutPanel//, IDisposable
     {
+        /// <summary>
+        /// Конструктор - основной (с аргументами)
+        /// </summary>
+        /// <param name="iColumnCount">Количество столбцов</param>
+        /// <param name="iRowCount">Количество строк</param>
         public HPanelCommon (int iColumnCount/* = 16*/, int iRowCount/* = 16*/)
         {
             if (iColumnCount > 0)
@@ -28,6 +33,12 @@ namespace ASUTP.Control
             iActive = -1;
         }
 
+        /// <summary>
+        /// Конструктор - дополнительный (с аргументами)
+        /// </summary>
+        /// <param name="container">Родительский контейнер для элемента интерфейса</param>
+        /// <param name="iColumnCount">Количество столбцов</param>
+        /// <param name="iRowCount">Количество строк</param>
         public HPanelCommon (IContainer container, int iColumnCount/* = 16*/, int iRowCount/* = 16*/)
         {
             container.Add (this);

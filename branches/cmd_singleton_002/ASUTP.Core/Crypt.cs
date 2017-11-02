@@ -6,7 +6,13 @@ using System.Security.Cryptography;
 using System.Text;
 
 namespace ASUTP.Core {
+    /// <summary>
+    /// Класс для хранения значения ключа при (де)шифрации
+    /// </summary>
     public class Crypt {
+        /// <summary>
+        /// 1-ая (публичная) часть ключа (де)шифрования
+        /// </summary>
         public static string KEY = "AsDfGhJkL;";
 
         private static uint MAGIC = 0xA5A55A5A;
@@ -55,11 +61,19 @@ namespace ASUTP.Core {
                                 0x01c36ae4,   0xd6ebe1f9,   0x90d4f869,   0xa65cdea0,   0x3f09252d,   0xc208e69f
                             };
 
+        /// <summary>
+        /// Конструктор - дополнительный (без параметров)
+        /// </summary>
         private Crypt ()
         {
         }
 
         private static Crypt m_this;
+
+        /// <summary>
+        /// Конструктор - основной (без параметров)
+        /// </summary>
+        /// <returns>Объект класса</returns>
         public static Crypt Crypting ()
         {
             if (m_this == null) {
@@ -70,6 +84,13 @@ namespace ASUTP.Core {
             return m_this;
         }
 
+        /// <summary>
+        /// Дешифровать значение
+        /// </summary>
+        /// <param name="src">Массив символов для дешифрации</param>
+        /// <param name="count">??? Количество символов в массиве</param>
+        /// <param name="msgErr">Сообщение при ошибке выполнения метода</param>
+        /// <returns>Дешифрованное значение</returns>
         public StringBuilder Decrypt (char [] src, int count, out string msgErr)
         {
             msgErr = string.Empty;
@@ -154,6 +175,62 @@ namespace ASUTP.Core {
             return res;
         }
 
+        /// <summary>
+        /// Дешифровать массив байт
+        /// </summary>
+        /// <param name="data">Массив байт для дешифрации</param>
+        /// <param name="password">1-ая (публичная) часть ключа</param>
+        /// <returns>Массив байт после дешифрации</returns>
+        public byte [] Decrypt (byte [] data, string password)
+        {
+            BinaryReader br = new BinaryReader (InternalDecrypt (data, password));
+
+            return br.ReadBytes ((int)br.BaseStream.Length);
+        }
+
+        /// <summary>
+        /// Дешифровать строку
+        /// </summary>
+        /// <param name="data">Строка для дешифрации</param>
+        /// <param name="password">1-ая (публичная) часть ключа</param>
+        /// <returns>Строка после дешифрации</returns>
+        public string Decrypt (string data, string password)
+        {
+            String result = "";
+            try {
+                CryptoStream cs = InternalDecrypt (Convert.FromBase64String (data), password);
+                StreamReader sr = new StreamReader (cs);
+                result = sr.ReadToEnd ();
+                return result;
+            } catch {
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Возвратить поток с дешифрованным значением
+        /// </summary>
+        /// <param name="data">Массив байт для дешифрации</param>
+        /// <param name="password">1-ая (публичная) часть ключа</param>
+        /// <returns>Поток с дешифрованным значением</returns>
+        CryptoStream InternalDecrypt (byte [] data, string password)
+        {
+            SymmetricAlgorithm sa = Rijndael.Create ();
+            ICryptoTransform ct = sa.CreateDecryptor (
+                (new PasswordDeriveBytes (password, null)).GetBytes (16),
+                new byte [16]);
+
+            MemoryStream ms = new MemoryStream (data);
+
+            return new CryptoStream (ms, ct, CryptoStreamMode.Read);
+        }
+
+        /// <summary>
+        /// Зашифровать значение
+        /// </summary>
+        /// <param name="src">Строка для шифрования</param>
+        /// <param name="err">Признак ошибки при выполнении метода</param>
+        /// <returns>Массив символов после шифрации</returns>
         public char [] Encrypt (StringBuilder src, out int err)
         {
             err = 1;
@@ -215,6 +292,12 @@ namespace ASUTP.Core {
             return res;
         }
 
+        /// <summary>
+        /// Зашифровать значение
+        /// </summary>
+        /// <param name="data">Массив байт для шифрации</param>
+        /// <param name="password">1-ая (публичная) часть ключа</param>
+        /// <returns>>Массив байт после шифрации</returns>
         public byte [] Encrypt (byte [] data, string password)
         {
             SymmetricAlgorithm sa = Rijndael.Create ();
@@ -231,43 +314,18 @@ namespace ASUTP.Core {
             return ms.ToArray ();
         }
 
+        /// <summary>
+        /// Зашифровать значение
+        /// </summary>
+        /// <param name="data">Строка для шифрации</param>
+        /// <param name="password">1-ая (публичная) часть ключа</param>
+        /// <returns>Строка после шифрации</returns>
         public string Encrypt (string data, string password)
         {
             if (data.Equals (string.Empty) == false)
                 return Convert.ToBase64String (Encrypt (Encoding.UTF8.GetBytes (data), password));
             else
                 return string.Empty;
-        }
-
-        public byte [] Decrypt (byte [] data, string password)
-        {
-            BinaryReader br = new BinaryReader (InternalDecrypt (data, password));
-
-            return br.ReadBytes ((int)br.BaseStream.Length);
-        }
-
-        public string Decrypt (string data, string password)
-        {
-            String result = "";
-            try {
-                CryptoStream cs = InternalDecrypt (Convert.FromBase64String (data), password);
-                StreamReader sr = new StreamReader (cs);
-                result = sr.ReadToEnd ();
-                return result;
-            } catch {
-                return result;
-            }
-        }
-
-        CryptoStream InternalDecrypt (byte [] data, string password)
-        {
-            SymmetricAlgorithm sa = Rijndael.Create ();
-            ICryptoTransform ct = sa.CreateDecryptor (
-                (new PasswordDeriveBytes (password, null)).GetBytes (16),
-                new byte [16]);
-
-            MemoryStream ms = new MemoryStream (data);
-            return new CryptoStream (ms, ct, CryptoStreamMode.Read);
         }
     }
 }

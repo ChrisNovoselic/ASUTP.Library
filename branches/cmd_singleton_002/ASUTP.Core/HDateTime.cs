@@ -4,12 +4,30 @@ using System.Linq;
 using System.Text;
 
 namespace ASUTP.Core {
+    /// <summary>
+    /// Класс для хранения даты/времени и выполнения дополнительных специальных преобразований
+    /// </summary>
     public class HDateTime {
         /// <summary>
         /// Перечисление - идентификаторы периодов времени
         /// </summary>
         public enum INTERVAL : short {
-            UNKNOWN = -1, MINUTES, HOURS, COUNT_ID_TIME
+            /// <summary>
+            /// Неизвестный
+            /// </summary>
+            UNKNOWN = -1,
+            /// <summary>
+            /// Интервал - vинуты
+            /// </summary>
+            MINUTES,
+            /// <summary>
+            /// Интервал - часы
+            /// </summary>
+            HOURS,
+            /// <summary>
+            /// Количество элементов в перчислении
+            /// </summary>
+                COUNT_ID_TIME
         }
         /// <summary>
         /// Массив со строковыми наименованиями месяцев в году

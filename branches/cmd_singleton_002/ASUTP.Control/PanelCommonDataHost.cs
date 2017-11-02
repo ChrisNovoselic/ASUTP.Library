@@ -53,19 +53,20 @@ namespace ASUTP.Control {
         /// <summary>
         /// Отправить запрос главной форме
         /// </summary>
-        /// <param name="idOwner">Идентификатор панели, отправляющей запрос</param>
-        /// <param name="par"></param>
+        /// <param name="par">Набор параметров</param>
         public void DataAskedHost (object par)
         {
             EvtDataAskedHost.BeginInvoke (new EventArgsDataHost (-1, -1, new object [] { par }), new AsyncCallback (this.dataRecievedHost), new Random ());
         }
+
         /// <summary>
         /// Обработчик события ответа от главной формы
         /// </summary>
-        /// <param name="obj">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
+        /// <param name="res">объект класса 'EventArgsDataHost' с идентификатором/данными из главной формы</param>
         public virtual void OnEvtDataRecievedHost (object res)
         {
         }
+
         /// <summary>
         /// Метод обратного вызова при окончании обработки события 'EvtDataAskedHost'
         /// </summary>
@@ -78,6 +79,12 @@ namespace ASUTP.Control {
                 ;
         }
 
+        /// <summary>
+        /// Инициализировать макет для размещения дочерних элементов
+        /// , определить парметры "решетки"
+        /// </summary>
+        /// <param name="cols">Количество столбцов</param>
+        /// <param name="rows">Количество строк</param>
         protected override void initializeLayoutStyle (int cols = -1, int rows = -1)
         {
             initializeLayoutStyleEvenly (cols, rows);

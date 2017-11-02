@@ -7,14 +7,28 @@ namespace ASUTP.Helper
 {
     partial class HUsers
     {
+        /// <summary>
+        /// Класс для возвращения/установки значений параметров профиля пользователя
+        /// </summary>
         protected class HProfiles
         {
+            /// <summary>
+            /// Наименование таблиц в БД
+            /// </summary>
             public static string s_nameTableProfilesData = @"profiles"
                 , s_nameTableProfilesUnit = @"profiles_unit";
-
+            /// <summary>
+            /// Таблица БД со значениями параметров профиля
+            /// </summary>
             protected static DataTable m_tblValues;
+            /// <summary>
+            /// Таблица БД с описанием всех возможных параметров профиля
+            /// </summary>
             protected static DataTable m_tblTypes;
-
+            /// <summary>
+            /// Таблица БД с описанием всех возможных параметров профиля
+            /// ??? (Get в наименовании следует исключить)
+            /// </summary>
             public static DataTable GetTableUnits
             {
                 get
@@ -31,6 +45,13 @@ namespace ASUTP.Helper
                 Update (iListenerId, id_role, id_user, true);
             }
 
+            /// <summary>
+            /// Обновить(прочитать) значения параметров профиля, список параметров
+            /// </summary>
+            /// <param name="iListenerId">Идентификатор подписчика объекта обращения к данным</param>
+            /// <param name="id_role">Идентификатор группы(роли) пользователей</param>
+            /// <param name="id_user">Идентификатор пользователя</param>
+            /// <param name="bThrow">Признак инициирования исключения при ошибке</param>
             public void Update (int iListenerId, int id_role, int id_user, bool bThrow)
             {
                 int err = -1;
@@ -135,7 +156,8 @@ namespace ASUTP.Helper
             }
 
             /// <summary>
-            /// Функция добавления прав доступа для пользователя
+            /// Установить значение для параметра профиля
+            /// , если параметр не определен - добавить в таблицу БД
             /// </summary>
             public static void SetAllowed (int iListenerId, int id, string val)
             {

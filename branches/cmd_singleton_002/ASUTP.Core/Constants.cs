@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 
 namespace ASUTP.Core {
+    /// <summary>
+    /// Класс для хранения статических констант
+    /// </summary>
     public class Constants {
         /// <summary>
         /// Максимальное количество повторов

@@ -13,7 +13,9 @@ namespace ASUTP.Core {
         /// Совокупность значений признаков
         /// </summary>
         private Int32 m_mark;
-
+        /// <summary>
+        /// Делегат при обработке события - изменение значения
+        /// </summary>
         public DelegateIntFunc ValueChanged;
         /// <summary>
         /// Конструктор объекта
