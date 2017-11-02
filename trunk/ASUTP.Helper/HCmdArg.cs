@@ -274,11 +274,19 @@ namespace ASUTP.Helper {
                             if (procDup.WaitForExit(msecProcDupToExit) == false) {
                             // приложение не обработало сообщение в течение 'MAX_WATING'
                                 procDup.Kill ();
+
+                                Logging.Logg ().Debug (string.Format ("HCmd_Arg.SingleInstatnce.StopDupApp () - дублирующий процесс [{0}] аварийно завершен ..."
+                                        , procDup.Id)
+                                    , Logging.INDEX_MESSAGE.NOT_SET);
                             } else
                                 ;
                         else
                         // процесс уже завешился
                             ;
+
+                        Logging.Logg ().Debug (string.Format ("HCmd_Arg.SingleInstatnce.StopDupApp () - дублирующий процесс [{0}] завершен ..."
+                                , !(procDup == null) ? procDup.Id.ToString () : "не найден")
+                            , Logging.INDEX_MESSAGE.NOT_SET);
                     }
                 } catch (Exception e) {
                     Logging.Logg ().Exception (e, string.Format ($"HCmd_Arg.SingleInstance::StopDupApp () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
@@ -301,7 +309,7 @@ namespace ASUTP.Helper {
                 {
                     Process procRes = null
                         , cur_process = null;
-   
+
                     try {
                         cur_process = Process.GetCurrentProcess ();
                         // Get the first instance that is not this instance, has the
@@ -309,35 +317,28 @@ namespace ASUTP.Helper {
                         // and location. Also check that the process has a valid
                         // window handle in this session to filter out other user's
                         // processes.
-                        IEnumerable<Process> processes;
-                        processes = Process.GetProcessesByName (cur_process.ProcessName);
+                        IEnumerable<Process> processes = Process.GetProcessesByName (cur_process.ProcessName);
                         foreach (Process proc in processes) {
-                            if ((!(proc.Id == cur_process.Id))
-                                && (proc.MainModule.FileName == cur_process.MainModule.FileName)
-                                && (proc.Handle.Equals (IntPtr.Zero) == false)) {
-                                procRes = proc;
+                            try {
+                                if ((!(proc.Id == cur_process.Id))
+                                    && (proc.MainModule.FileName == cur_process.MainModule.FileName)
+                                    && (proc.Handle.Equals (IntPtr.Zero) == false)) {
+                                    procRes = proc;
 
-                                break;
-                            } else
-                                ;
+                                    break;
+                                } else
+                                    ;
+                            } catch (Exception e) {
+                            // возможно нарушение прав доступа
+                            // обработаем событие для продолжения итераций
+                                Logging.Logg().Warning ($"HCmd_Arg.SingleInstance::ProcessDup: {e.Message}", Logging.INDEX_MESSAGE.NOT_SET);
+                            }
                         }
-                        //processes = from proc in Process.GetProcessesByName (cur_process.ProcessName)
-                        //    where ((!(proc.Id == cur_process.Id))
-                        //        && (proc.MainModule.FileName == cur_process.MainModule.FileName)
-                        //        && (proc.Handle.Equals (IntPtr.Zero) == false))
-                        //    select proc;
-
-                        //if (processes.Count () > 0)
-                        //    procRes = processes.ElementAt (0);
-                        //else
-                        //    ;
 
                         Logging.Logg ().Debug (string.Format ("Текущий процесс[ProcessName={0}] - поиск процесса дубликата: рез-т= {1}..."
                                 , cur_process.ProcessName
-                                , 
-                                    //processes.Count () == 1 // вар.№1
-                                    (!Equals(procRes, null)).ToString() // вар.№2
-                                )
+                                , (!Equals(procRes, null)).ToString()
+                            )
                             , Logging.INDEX_MESSAGE.NOT_SET);
                     } catch (Exception e) {
                         Logging.Logg ().Exception (e, string.Format($"HCmd_Arg.SingleInstance::ProcessDup () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
@@ -399,7 +400,7 @@ namespace ASUTP.Helper {
                 //  происходит проверка: принадлежит ли процессу(по идентификатору) окно(по дескриптору) 
                 WinApi.EnumWindowsProcDel winEnumerateProc = (wParam, lParam) => {
                     if ((WinApi.IsWindowVisible (wParam) == true)
-                        && (!(WinApi.GetWindowTextLength (wParam) == 0))) {
+                        && (WinApi.GetWindowTextLength (wParam) > 0)) {
                         if ((!(WinApi.IsIconic (wParam) == 0))
                             && (WinApi.GetPlacement (wParam).showCmd == WinApi.ShowWindowCommands.Minimized)
                             && (bIsSuccess == false))

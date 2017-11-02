@@ -10,6 +10,9 @@ using System.Text;
 using System.Windows.Forms;
 
 namespace ASUTP.Control {
+    /// <summary>
+    /// Класс для элемента управления "Контейнер для вкладок"
+    /// </summary>
     public partial class HTabCtrlEx : System.Windows.Forms.TabControl {
         /// <summary>
         /// Признак разрешения изменения порядка следования вкладок
@@ -18,11 +21,24 @@ namespace ASUTP.Control {
         /// <summary>
         /// Перечисление - типы вкладок (фиксированные, плавающие)
         /// </summary>
-        public enum TYPE_TAB { FIXED, FLOAT };
+        public enum TYPE_TAB {
+            /// <summary>
+            /// Фиксированная
+            /// </summary>
+            FIXED
+            /// <summary>
+            /// Плавающая
+            /// </summary>
+            , FLOAT };
         /// <summary>
         /// Структура для хранения свойств вкладки
         /// </summary>
         protected struct PropertyTab {
+            /// <summary>
+            /// Конструктор - основной (с аргументами)
+            /// </summary>
+            /// <param name="id">Идентификатор вкладки</param>
+            /// <param name="type">Тип вкладки из перечисления 'TYPE_TAB'</param>
             public PropertyTab (int id, TYPE_TAB type)
             {
                 this.id = id;
@@ -109,6 +125,10 @@ namespace ASUTP.Control {
             iPrevSelectedIndex = -1; // предыдущей активной вкладки нет
         }
 
+        /// <summary>
+        /// Конструктор - дополню (с параметрами)
+        /// </summary>
+        /// <param name="container">Родительский для элемента контейнер</param>
         public HTabCtrlEx (IContainer container)
         {
             container.Add (this);
@@ -118,6 +138,7 @@ namespace ASUTP.Control {
             this.AllowDrop = ALLOW_DROP;
             iPrevSelectedIndex = -1;
         }
+
         /// <summary>
         /// Возвратить пиктограмму для отображения по ее типу и состоянию
         /// </summary>
@@ -128,10 +149,10 @@ namespace ASUTP.Control {
         {
             return m_arBitmap [(int)indx * (int)INDEX_STATE_BITMAP.COUNT_STATE_BITMAP + (int)state].ToBitmap ();
         }
-        /// <span class="code-SummaryComment"><summary></span>
-        /// override to draw the close button
-        /// <span class="code-SummaryComment"></summary></span>
-        /// <span class="code-SummaryComment"><param name="e"></param></span>
+
+        /// <summary><span class="code-SummaryComment">override to draw</span>
+        /// <span class="code-SummaryComment"> the close button</span></summary>
+        /// <span class="code-SummaryComment"><param name="e">Аргумент события</param></span>
         protected override void OnDrawItem (DrawItemEventArgs e)
         {
             RectangleF tabTextAreaText = RectangleF.Empty
@@ -175,11 +196,11 @@ namespace ASUTP.Control {
                 }
             }
         }
-        /// <span class="code-SummaryComment"><summary></span>
-        /// Get the stream of the embedded bitmap image
-        /// <span class="code-SummaryComment"></summary></span>
+
+        /// <summary><span class="code-SummaryComment">Get the stream of the</span>
+        /// <span class="code-SummaryComment"> embedded bitmap image</span></summary>
         /// <span class="code-SummaryComment"><param name="filename"></param></span>
-        /// <span class="code-SummaryComment"><returns></returns></span>
+        /// <span class="code-SummaryComment"><returns>Поток внедренного ресурса</returns></span>
         private Stream GetContentFromResource (string filename)
         {
             Assembly asm = Assembly.GetExecutingAssembly ();
@@ -188,6 +209,10 @@ namespace ASUTP.Control {
             return stream;
         }
 
+        /// <summary>
+        /// Обработчик события - движение курсора "мыши"
+        /// </summary>
+        /// <param name="e">Аргумент события</param>
         protected override void OnMouseMove (MouseEventArgs e)
         {
             if (DesignMode == false) {
@@ -243,6 +268,10 @@ namespace ASUTP.Control {
                 ;
         }
 
+        /// <summary>
+        /// Обработчик события - нажатие кнопки "мыши"
+        /// </summary>
+        /// <param name="e">Аргумент события</param>
         protected override void OnMouseDown (MouseEventArgs e)
         {
             if ((DesignMode == false)
@@ -289,6 +318,7 @@ namespace ASUTP.Control {
 
         //    m_listTypeTabs.Clear ();
         //}
+
         /// <summary>
         /// Добавить вкладку
         /// </summary>
@@ -302,6 +332,7 @@ namespace ASUTP.Control {
             this.TabPages.Add (name, getNameTab (name, typeTab));
             this.TabPages [TabCount - 1].Controls.Add (tab);
         }
+
         /// <summary>
         /// Удалить активную вкладку
         /// </summary>
@@ -317,6 +348,7 @@ namespace ASUTP.Control {
 
             return bRes;
         }
+
         ///// <summary>
         ///// Удалить вкладку по заголовку
         ///// </summary>
@@ -332,6 +364,7 @@ namespace ASUTP.Control {
 
         //    return bRes;
         //}
+
         /// <summary>
         /// Удалить вкладку по индексу
         /// </summary>
@@ -357,6 +390,7 @@ namespace ASUTP.Control {
 
             return bRes;
         }
+
         /// <summary>
         /// Возвратить строку для заголовка вкладки с учетом размещения пиктограмм
         /// </summary>
@@ -374,6 +408,7 @@ namespace ASUTP.Control {
 
             return new string (' ', 1) + text + new string (' ', cntSpace);
         }
+
         /// <summary>
         /// Возвратить индекс вкладки по ее идентификатору
         /// </summary>
@@ -394,11 +429,20 @@ namespace ASUTP.Control {
             return iRes;
         }
 
+        /// <summary>
+        /// Возвратить идентификатор текущей вкладки
+        /// </summary>
+        /// <returns>Идентификатор текущей вкладки</returns>
         public int GetTabPageId ()
         {
             return GetTabPageId (SelectedIndex);
         }
 
+        /// <summary>
+        /// Возвратить идентификатор вкладки по индексу
+        /// </summary>
+        /// <param name="indx">Индекс вкладки</param>
+        /// <returns>Идентификатор вкладки</returns>
         public int GetTabPageId (int indx)
         {
             int iRes = -1;
@@ -420,6 +464,7 @@ namespace ASUTP.Control {
 
             return iRes;
         }
+
         /// <summary>
         /// Возвратить строку-перечисление с идентификаторами отображаемых вкладок через разделитель ','
         /// </summary>
@@ -445,6 +490,10 @@ namespace ASUTP.Control {
         /// </summary>
         private TabPage _draggedTab;
 
+        /// <summary>
+        /// Обработчик события - освобождение ранее нажатой кнопки "мыши"
+        /// </summary>
+        /// <param name="e">Аргумент события</param>
         protected override void OnMouseUp (MouseEventArgs e)
         {
             _draggedTab = null;
@@ -452,14 +501,18 @@ namespace ASUTP.Control {
             base.OnMouseUp (e);
         }
 
-        protected override void OnDragOver (DragEventArgs drgevent)
+        /// <summary>
+        /// Обработчик события - перемещение вкладки
+        /// </summary>
+        /// <param name="drgEvent">Аргумент события</param>
+        protected override void OnDragOver (DragEventArgs drgEvent)
         {
-            TabPage draggedTab = (TabPage)drgevent.Data.GetData (typeof (TabPage));
+            TabPage draggedTab = (TabPage)drgEvent.Data.GetData (typeof (TabPage));
             TabPage pointedTab = getPointedTab ();
 
             if ((draggedTab == _draggedTab)
                 && (!(pointedTab == null))) {
-                drgevent.Effect = DragDropEffects.Move;
+                drgEvent.Effect = DragDropEffects.Move;
 
                 if (pointedTab != draggedTab)
                     swapTabPages (draggedTab, pointedTab);
@@ -467,8 +520,9 @@ namespace ASUTP.Control {
                     ;
             }
 
-            base.OnDragOver (drgevent);
+            base.OnDragOver (drgEvent);
         }
+
         /// <summary>
         /// Возвратить вкладку по текущей позиции курсора указателя
         /// </summary>
@@ -483,6 +537,7 @@ namespace ASUTP.Control {
 
             return null;
         }
+
         /// <summary>
         /// Поменять местами индексы, объекты на вкладках
         /// </summary>
@@ -505,18 +560,28 @@ namespace ASUTP.Control {
         }
     }
 
+    /// <summary>
+    /// Класс для хранения значения аргумента специального события
+    /// </summary>
     public class HTabCtrlExEventArgs : EventArgs {
         private int nTabIndex = -1;
         private string strHeaderText = string.Empty;
         private HTabCtrlEx.TYPE_TAB typeTab;
         private int nId;
 
+        /// <summary>
+        /// Конструктор - основной (с аргументами)
+        /// </summary>
+        /// <param name="nId"></param>
+        /// <param name="nTabIndex"></param>
+        /// <param name="text"></param>
         public HTabCtrlExEventArgs (int nId, int nTabIndex, string text)
         {
             this.nTabIndex = nTabIndex;
             this.strHeaderText = text;
             this.nId = nId;
         }
+
         /// <summary>
         /// Get/Set the tab index value where the close button is clicked
         /// </summary>
@@ -547,6 +612,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Тип вкладки
+        /// </summary>
         public HTabCtrlEx.TYPE_TAB TabType
         {
             get
@@ -559,6 +627,9 @@ namespace ASUTP.Control {
             }
         }
 
+        /// <summary>
+        /// Идентификатор вкладки
+        /// </summary>
         public int Id
         {
             get

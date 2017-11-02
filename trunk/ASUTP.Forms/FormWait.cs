@@ -94,7 +94,7 @@ namespace ASUTP.Forms {
         /// <summary>
         /// Вызвать на отображение окно
         /// </summary>
-        /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
+        /// <param name="ptParent">Позиция отображения родительского окна</param>
         /// <param name="szParent">Размер родительского окна</param>
         public void StartWaitForm(Point ptParent, Size szParent)
         {
@@ -132,7 +132,7 @@ namespace ASUTP.Forms {
         /// <summary>
         /// Снять с отображения окно
         /// </summary>
-        /// <param name="bStopped"></param>
+        /// <param name="bExit">Признак принудительного снятия с отображения</param>
         public void StopWaitForm(bool bExit = false)
         {
             lock (lockState)
@@ -193,7 +193,7 @@ namespace ASUTP.Forms {
         /// Установить позицию окна
         ///  в зависимости от позиции родительского
         /// </summary>
-        /// <param name="ptLocationParent">Позиция отображения родительского окна</param>
+        /// <param name="ptParent">Позиция отображения родительского окна</param>
         /// <param name="szParent">Размер родительского окна</param>
         private void setLocation(Point ptParent, Size szParent)
         {

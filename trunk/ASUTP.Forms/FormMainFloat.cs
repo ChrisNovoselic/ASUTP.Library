@@ -5,16 +5,27 @@ using System.Drawing;
 using ASUTP.Control;
 using ASUTP.Core;
 
-namespace ASUTP.Forms {    
+namespace ASUTP.Forms {
+    /// <summary>
+    /// Класс базовый для форм, с возможностью "открепления" от главного окна приложения
+    /// </summary>
     public class FormMainFloatBase : FormMainBaseWithStatusStrip
     {
         private const int ROW_COUNT = 22;
-        
+        /// <summary>
+        /// Делегаты обработки событий: снятие с отображения, загрузка формы
+        /// </summary>
         public DelegateObjectFunc delegateFormClosing
             , delegateFormLoad;
         private TableLayoutPanel m_container;
         private Label m_label;
 
+        /// <summary>
+        /// Конструктор - основной (с параметрами)
+        /// </summary>
+        /// <param name="text">Заголовок окна</param>
+        /// <param name="child">Дочерняя панель для размещения на форме</param>
+        /// <param name="bLabel">Признак наличия подписи(дублирование заголовка)</param>
         public FormMainFloatBase(string text, Panel child, bool bLabel = true)
         {
             Text = text;
@@ -92,14 +103,30 @@ namespace ASUTP.Forms {
             this.FormClosing += new FormClosingEventHandler(FormMainFloat_FormClosing);
         }
 
+        /// <summary>
+        /// Обработчик события - изменение значения графических параметров
+        /// , на форму не влияет - ничего не делаем
+        /// </summary>
+        /// <param name="type">Тип изменившихся графических параметров</param>
         protected override void UpdateActiveGui(int type) { }
 
+        /// <summary>
+        /// Снять с отображения окно для настроек графических параметров
+        /// (окна для настроек нет - ничего не делаем)
+        /// </summary>
         protected override void HideGraphicsSettings() { }
 
+        /// <summary>
+        /// Метод обратного вызова при 1-ом 
+        /// </summary>
         protected override void timer_Start()
         {
         }
 
+        /// <summary>
+        /// Обновить строку состояния
+        /// </summary>
+        /// <returns></returns>
         protected override int UpdateStatusString()
         {
             int have_msg = -1;
