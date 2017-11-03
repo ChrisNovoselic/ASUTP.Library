@@ -50,14 +50,35 @@ namespace ASUTP.Database {
         /// Класс для описания подписчика еа выполнение запросов к БД
         /// </summary>
         protected class DbInterfaceListener {
+            private volatile STATE_LISTENER _state;
             /// <summary>
             /// Состояние подписчика
             /// </summary>
-            public volatile STATE_LISTENER state;
-            /// <summary>
-            /// Признак наличия данных в результате запроса
-            /// </summary>
-            public volatile bool dataPresent;
+            public STATE_LISTENER State
+            {
+                get
+                {
+                    return _state;
+                }
+
+                set
+                {
+                    if (!(_state == value)) {
+                        _state = value;
+
+                        if (_state == STATE_LISTENER.BUSY)
+                            if (Equals (dataTable, null) == true)
+                                dataTable = new DataTable ();
+                            else
+                                ;
+                    } else
+                        ;
+                }
+            }
+            ///// <summary>
+            ///// Признак наличия данных в результате запроса
+            ///// </summary>
+            //public volatile bool dataPresent;
             /// <summary>
             /// Признак ошибки по результатам запроса
             /// </summary>
@@ -75,13 +96,48 @@ namespace ASUTP.Database {
             /// </summary>
             public DbInterfaceListener ()
             {
-                state = STATE_LISTENER.READY;
-                dataPresent =
+                _state = STATE_LISTENER.READY;
+                //dataPresent =
                 dataError =
                     false;
 
                 requestDB = null; //new object ();
                 dataTable = new DataTable ();
+            }
+
+            /// <summary>
+            /// Привести объект в исходное состояние
+            /// </summary>
+            public void Reset ()
+            {
+                requestDB = null;
+                State = STATE_LISTENER.READY;
+            }
+
+            /// <summary>
+            /// Привести объект в состояние для использования в запросе
+            /// </summary>
+            /// <param name="req">Содержание запроса</param>
+            public void SetRequest (string req)
+            {
+                requestDB = req;
+                State = STATE_LISTENER.REQUEST;
+                //dataPresent =
+                dataError =
+                    false;
+            }
+
+            /// <summary>
+            /// Установить финальное состояние (после выполнения запроса)
+            /// </summary>
+            /// <param name="bResult">Результатт выполнения запроса</param>
+            public void SetResult (bool bResult)
+            {
+                //dataPresent = bResult;
+                dataError = !bResult;
+
+                requestDB = null;
+                State = STATE_LISTENER.READY;
             }
         }
         /// <summary>
@@ -200,7 +256,7 @@ namespace ASUTP.Database {
                 return;
 
             foreach (DbInterfaceListener listener in m_dictListeners.Values)
-                if (listener.state == STATE_LISTENER.BUSY) {
+                if (listener.State == STATE_LISTENER.BUSY) {
                     ////if (m_threadGetData.CancellationPending == false)
                     //    m_threadGetData.CancelAsync();
                     ////else
@@ -234,11 +290,10 @@ namespace ASUTP.Database {
             bool joined;
             threadIsWorking = false;
             lock (lockListeners) {
-                foreach (KeyValuePair<int, DbInterfaceListener> pair in m_dictListeners) {
-                    pair.Value.requestDB = null;
-                    pair.Value.state = STATE_LISTENER.READY;
-                }
+                foreach (KeyValuePair<int, DbInterfaceListener> pair in m_dictListeners)
+                    pair.Value.Reset();
             }
+
             if (dbThread.IsAlive == true) {
                 try {
                     if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0))
@@ -273,10 +328,7 @@ namespace ASUTP.Database {
                 else
                     ;
 
-                m_dictListeners [listenerId].requestDB = request;
-                m_dictListeners [listenerId].state = STATE_LISTENER.REQUEST;
-                m_dictListeners [listenerId].dataPresent = false;
-                m_dictListeners [listenerId].dataError = false;
+                m_dictListeners [listenerId].SetRequest(request);
 
                 try {
                     if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0/*WaitHandle.WaitTimeout*/))
@@ -306,14 +358,12 @@ namespace ASUTP.Database {
                 if ((m_dictListeners.ContainsKey (listenerId) == false) || listenerId < 0) {
                     error = true;
                     table = null;
-
-                    iRes = -1;
                 } else {
                     error = m_dictListeners [listenerId].dataError;
                     table = m_dictListeners [listenerId].dataTable;
-
-                    iRes = m_dictListeners [listenerId].dataPresent == true ? 0 : -1;
                 }
+
+                iRes = error == false ? 0 : -1;
             }
 
             //Logging.Logg().Debug(@"DbInterface::Response (int, out bool , out DataTable) - listenerId = " + listenerId + @", error = " + error.ToString() + @", m_dictListeners[listenerId].dataPresent = " + m_dictListeners[listenerId].dataPresent);
@@ -413,7 +463,7 @@ namespace ASUTP.Database {
 
                         //lock (lockListeners)
                         //{
-                        if (pair.Value.state == STATE_LISTENER.READY) {
+                        if (pair.Value.State == STATE_LISTENER.READY) {
                             continue;
                         } else
                             ;
@@ -428,7 +478,7 @@ namespace ASUTP.Database {
                         //}
 
                         result = false;
-                        pair.Value.state = STATE_LISTENER.BUSY;
+                        pair.Value.State = STATE_LISTENER.BUSY;
 
                         //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - GetData(...) - request = " + request);
 
@@ -497,13 +547,9 @@ namespace ASUTP.Database {
                                 , Logging.INDEX_MESSAGE.NOT_SET);
                         } finally {
                             if (request == pair.Value.requestDB) {
-                                pair.Value.dataPresent = result;
-                                pair.Value.dataError = !result;
-
-                                pair.Value.requestDB = null;
-                                pair.Value.state = STATE_LISTENER.READY;
+                                pair.Value.SetResult(result);
                             } else
-                                pair.Value.state = STATE_LISTENER.REQUEST;
+                                pair.Value.State = STATE_LISTENER.REQUEST;
                         }
 
                         //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - pair.Value.dataPresent = " + pair.Value.dataPresent + @", pair.Value.dataError = " + pair.Value.dataError.ToString ());
