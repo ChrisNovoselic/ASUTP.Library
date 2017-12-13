@@ -268,8 +268,8 @@ namespace ASUTP.Helper
             int /*StatesMachine*/ currentState;
             bool bRes = false;
 
-            int requestIsOk = 0
-                , responseIsOk = 0;
+            int requestSent = 0
+                , responseReceived = 0;
             INDEX_WAITHANDLE_REASON reason = INDEX_WAITHANDLE_REASON.SUCCESS;
 
             while (!(threadStateIsWorking < 0))
@@ -289,24 +289,28 @@ namespace ASUTP.Helper
                             ;
 
                         currentState = states[_indexCurState];
-                        newState = false;                    
+                        newState = false;
                     }
 
                     while (true)
                     {
-                        requestIsOk =
-                        responseIsOk = 0;
+                        requestSent =
+                        responseReceived = 0;
                         reason = INDEX_WAITHANDLE_REASON.SUCCESS;
 
                         bool error = true;
-                        int dataPresent = -1;
+                        int requestDone = -1;
                         object objRes = null;
-                        for (int i = 0; i < Constants.MAX_RETRY && (!(dataPresent == 0)) && (newState == false); i++)
+                        for (int i = 0;
+                            i < Constants.MAX_RETRY
+                                && (!(requestDone == 0))
+                                && (newState == false);
+                            i++)
                         {
                             if (error)
                             {
-                                requestIsOk = StateRequest(currentState);
-                                if (!(requestIsOk == 0))
+                                requestSent = StateRequest(currentState);
+                                if (!(requestSent == 0))
                                     break;
                                 else
                                     ;
@@ -315,29 +319,39 @@ namespace ASUTP.Helper
                                 ;
 
                             error = false;
-                            for (int j = 0; j < Constants.MAX_WAIT_COUNT && (!(dataPresent == 0)) && (error == false) && (newState == false); j++)
+                            for (int j = 0;
+                                j < Constants.MAX_WAIT_COUNT
+                                    && (!(requestDone == 0))
+                                    && (error == false)
+                                    && (newState == false);
+                                j++)
                             {
                                 System.Threading.Thread.Sleep(Constants.WAIT_TIME_MS);
-                                dataPresent = StateCheckResponse(currentState, out error, out objRes);
+                                requestDone = StateCheckResponse(currentState, out error, out objRes);
                             }
                         }
 
-                        if (requestIsOk == 0)
+                        if (requestSent == 0)
                         {
-                            if ((dataPresent == 0) && (error == false) && (newState == false))
-                                responseIsOk = StateResponse(currentState, objRes);
+                            if ((requestDone == 0)
+                                && (error == false)
+                                && (newState == false))
+                                responseReceived = StateResponse(currentState, objRes);
                             else
-                                responseIsOk = -1;
+                                responseReceived = -1;
 
-                            if (responseIsOk == -102)
+                            if (responseReceived == -102)
                                 //Для алгоритма сигнализации 'TecView::AlarmEventRegistred () - ...'
                                 reason = INDEX_WAITHANDLE_REASON.BREAK;
                             else
-                                if (((!(responseIsOk == 0)) || (!(dataPresent == 0)) || (error == true)) && (newState == false))
+                                if (((!(responseReceived == 0))
+                                        || (!(requestDone == 0))
+                                        || (error == true))
+                                    && (newState == false))
                                 {
-                                    if (responseIsOk < 0)
+                                    if (responseReceived < 0)
                                     {
-                                        reason = StateErrors(currentState, requestIsOk, responseIsOk);
+                                        reason = StateErrors(currentState, requestSent, responseReceived);
                                         lock (m_lockState)
                                         {
                                             if (newState == false)
@@ -350,7 +364,7 @@ namespace ASUTP.Helper
                                         }
                                     }
                                     else
-                                        StateWarnings(currentState, requestIsOk, responseIsOk);
+                                        StateWarnings(currentState, requestSent, responseReceived);
                                 }
                                 else
                                     ;

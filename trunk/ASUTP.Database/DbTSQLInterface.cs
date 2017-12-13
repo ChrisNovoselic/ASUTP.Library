@@ -370,7 +370,7 @@ namespace ASUTP.Database {
             try {
                 m_dbCommand.CommandText = query.ToString ();
             } catch (Exception e) {
-                Console.Write (e.Message);
+                logging_catch_db(m_dbConnection, e);
             }
 
             table.Reset ();
@@ -380,11 +380,11 @@ namespace ASUTP.Database {
                 m_dbAdapter.Fill (table);
                 result = true;
             } catch (DbException e) {
-                needReconnect = true;
                 logging_catch_db (m_dbConnection, e);
             } catch (Exception e) {
-                needReconnect = true;
                 logging_catch_db (m_dbConnection, e);
+            } finally {
+                needReconnect = !result;
             }
 
             if (needReconnect == true)

@@ -63,16 +63,28 @@ namespace ASUTP.Database {
 
                 set
                 {
-                    if (!(_state == value)) {
-                        _state = value;
+                    //if ((_state == STATE_LISTENER.READY) && value == STATE_LISTENER.REQUEST) { // штатно
+                        
+                    ////} else if ((_state == STATE_LISTENER.READY) && value == STATE_LISTENER.BUSY) { // невозможно
 
-                        if (_state == STATE_LISTENER.BUSY)
-                            if (Equals (dataTable, null) == true)
-                                dataTable = new DataTable ();
-                            else
-                                ;
-                    } else
-                        ;
+                    //} else if ((_state == STATE_LISTENER.REQUEST) && value == STATE_LISTENER.BUSY) { // штатно
+
+                    //} else if ((_state == STATE_LISTENER.REQUEST) && value == STATE_LISTENER.READY) { // только при 'Reset'
+
+                    //} else if ((_state == STATE_LISTENER.BUSY) && value == STATE_LISTENER.READY) { // штатно
+
+                    //} else if ((_state == STATE_LISTENER.BUSY) && value == STATE_LISTENER.REQUEST) { // только при неудачной попытке
+
+                    //} else if ((_state == STATE_LISTENER.READY) && value == STATE_LISTENER.READY) { // только при 'Reset'
+
+                    //} else if ((_state == STATE_LISTENER.REQUEST) && value == STATE_LISTENER.REQUEST) { // только при неудачной попытке
+
+                    ////} else if ((_state == STATE_LISTENER.BUSY) && value == STATE_LISTENER.BUSY) { // невозможно
+
+                    //} else
+                    //    ;
+
+                    _state = value;
                 }
             }
             ///// <summary>
@@ -96,12 +108,11 @@ namespace ASUTP.Database {
             /// </summary>
             public DbInterfaceListener ()
             {
-                _state = STATE_LISTENER.READY;
-                //dataPresent =
-                dataError =
-                    false;
+                dataError = false;
 
                 requestDB = null; //new object ();
+                _state = STATE_LISTENER.READY;
+
                 dataTable = new DataTable ();
             }
 
@@ -110,8 +121,12 @@ namespace ASUTP.Database {
             /// </summary>
             public void Reset ()
             {
+                dataError = false;
+
                 requestDB = null;
                 State = STATE_LISTENER.READY;
+
+                dataTable = null;
             }
 
             /// <summary>
@@ -120,11 +135,20 @@ namespace ASUTP.Database {
             /// <param name="req">Содержание запроса</param>
             public void SetRequest (string req)
             {
+                dataError = false;
+
+                if (Equals(requestDB, null) == false)
+                    requestDB = null;
+                else
+                    ;
                 requestDB = req;
                 State = STATE_LISTENER.REQUEST;
-                //dataPresent =
-                dataError =
-                    false;
+
+                if (Equals(dataTable, null) == false)
+                    dataTable = null;
+                else
+                    ;
+                dataTable = new DataTable();
             }
 
             /// <summary>
@@ -133,11 +157,13 @@ namespace ASUTP.Database {
             /// <param name="bResult">Результатт выполнения запроса</param>
             public void SetResult (bool bResult)
             {
-                //dataPresent = bResult;
                 dataError = !bResult;
 
-                requestDB = null;
-                State = STATE_LISTENER.READY;
+                // requestDB сохранить до очередного назначения
+                // , чтобы результат соответствовал запросу
+                State = bResult == true
+                    ? STATE_LISTENER.READY
+                        : STATE_LISTENER.REQUEST; // для возможности повтрной обработки(если успеем)
             }
         }
         /// <summary>
@@ -355,7 +381,8 @@ namespace ASUTP.Database {
             int iRes = -1;
 
             lock (lockListeners) {
-                if ((m_dictListeners.ContainsKey (listenerId) == false) || listenerId < 0) {
+                if ((m_dictListeners.ContainsKey (listenerId) == false)
+                    || listenerId < 0) {
                     error = true;
                     table = null;
                 } else {
@@ -546,10 +573,12 @@ namespace ASUTP.Database {
                                 , string.Format ("DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - request = {0}", request)
                                 , Logging.INDEX_MESSAGE.NOT_SET);
                         } finally {
-                            if (request == pair.Value.requestDB) {
+                            //??? непонятна необъодимость проверки
+                            if (request.Equals(pair.Value.requestDB) == true) {
                                 pair.Value.SetResult(result);
                             } else
-                                pair.Value.State = STATE_LISTENER.REQUEST;
+                            //??? очевидно, недостижимый код
+                                throw new Exception($"::DbInterface_ThreadFunction () - запросы не совпадают в одной итерации...");
                         }
 
                         //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - pair.Value.dataPresent = " + pair.Value.dataPresent + @", pair.Value.dataError = " + pair.Value.dataError.ToString ());
