@@ -165,6 +165,16 @@ namespace ASUTP.Database {
                     ? STATE_LISTENER.READY
                         : STATE_LISTENER.REQUEST; // для возможности повтрной обработки(если успеем)
             }
+
+            public bool Error
+            {
+                get
+                {
+                    return (dataError == true)
+                        || (Equals(requestDB, null) == true)
+                        || (dataTable.Columns.Count == 0);
+                }
+            }
         }
         /// <summary>
         /// Словарь с подписчиками для выполнения запросов
@@ -386,7 +396,7 @@ namespace ASUTP.Database {
                     error = true;
                     table = null;
                 } else {
-                    error = m_dictListeners [listenerId].dataError;
+                    error = m_dictListeners [listenerId].Error;
                     table = m_dictListeners [listenerId].dataTable;
                 }
 
