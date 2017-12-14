@@ -352,6 +352,11 @@ namespace ASUTP.Database {
             }
         }
 
+        protected override void GetDataCancel ()
+        {
+            m_dbCommand?.Cancel ();
+        }
+
         /// <summary>
         /// Получить результат запроса (KhryapinAN DD.09.2017 выполняется в отдельном потоке)
         /// </summary>

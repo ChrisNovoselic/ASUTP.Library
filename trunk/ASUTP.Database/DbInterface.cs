@@ -172,7 +172,8 @@ namespace ASUTP.Database {
                 {
                     return (dataError == true)
                         || (Equals(requestDB, null) == true)
-                        || (dataTable.Columns.Count == 0);
+                        || ((((string)requestDB).StartsWith("SELECT", StringComparison.InvariantCultureIgnoreCase) == true)
+                            && (dataTable.Columns.Count == 0));
                 }
             }
         }
@@ -555,6 +556,8 @@ namespace ASUTP.Database {
                                 switch (iGetData) {
                                     case WaitHandle.WaitTimeout:
                                         // команда на аварийное завершение
+                                        GetDataCancel();
+                                        //??? установить в сигнальное состояние для дальнейшего использования
                                         (waitHandleGetData [1] as AutoResetEvent).Set ();
                                         needReconnect = true;
                                         break;
@@ -626,6 +629,8 @@ namespace ASUTP.Database {
         /// </summary>
         /// <param name="err">Результат попытки разорвать соединенние с БД</param>
         public abstract void Disconnect (out int err);
+
+        protected abstract void GetDataCancel ();
         /// <summary>
         /// Заполнить таблицу значениями - результатом запроса
         /// </summary>
