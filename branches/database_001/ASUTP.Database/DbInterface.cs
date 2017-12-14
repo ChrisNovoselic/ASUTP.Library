@@ -49,7 +49,8 @@ namespace ASUTP.Database {
         /// <summary>
         /// Класс для описания подписчика еа выполнение запросов к БД
         /// </summary>
-        protected class DbInterfaceListener {
+        protected class DbInterfaceListener
+        {
             private volatile STATE_LISTENER _state;
             /// <summary>
             /// Состояние подписчика
@@ -108,7 +109,7 @@ namespace ASUTP.Database {
             /// </summary>
             public DbInterfaceListener ()
             {
-                dataError = false;
+                dataError = true;
 
                 requestDB = null; //new object ();
                 _state = STATE_LISTENER.READY;
@@ -121,7 +122,7 @@ namespace ASUTP.Database {
             /// </summary>
             public void Reset ()
             {
-                dataError = false;
+                dataError = true;
 
                 requestDB = null;
                 State = STATE_LISTENER.READY;
@@ -135,7 +136,7 @@ namespace ASUTP.Database {
             /// <param name="req">Содержание запроса</param>
             public void SetRequest (string req)
             {
-                dataError = false;
+                dataError = true;
 
                 if (Equals(requestDB, null) == false)
                     requestDB = null;
@@ -172,7 +173,8 @@ namespace ASUTP.Database {
                 {
                     return (dataError == true)
                         || (Equals(requestDB, null) == true)
-                        || ((((string)requestDB).StartsWith("SELECT", StringComparison.InvariantCultureIgnoreCase) == true)
+                        || (((((string)requestDB).StartsWith("INSERT", StringComparison.InvariantCultureIgnoreCase) == false)
+                                || (((string)requestDB).StartsWith("UPDATE", StringComparison.InvariantCultureIgnoreCase) == false))
                             && (dataTable.Columns.Count == 0));
                 }
             }
@@ -205,7 +207,7 @@ namespace ASUTP.Database {
         protected object lockConnectionSettings;
 
         private Thread dbThread;
-        private Semaphore sem;
+        //private Semaphore sem;
         private volatile bool threadIsWorking;
         /// <summary>
         /// Наименование интерфейса
@@ -246,7 +248,7 @@ namespace ASUTP.Database {
             //Name = name;
             dbThread.IsBackground = true;
 
-            sem = new Semaphore (0, 1);
+            m_eventDbInterface_ThreadFunctionRun = new ManualResetEvent(false);
         }
 
         /// <summary>
@@ -292,17 +294,9 @@ namespace ASUTP.Database {
             if (m_dictListeners.ContainsKey (listenerId) == false)
                 return;
 
-            foreach (DbInterfaceListener listener in m_dictListeners.Values)
-                if (listener.State == STATE_LISTENER.BUSY) {
-                    ////if (m_threadGetData.CancellationPending == false)
-                    //    m_threadGetData.CancelAsync();
-                    ////else
-                    ////    ;
-                    m_eventGetDataBreak.Set ();
-
-                    break;
-                } else
-                    ;
+            if (m_dictListeners[listenerId].State == STATE_LISTENER.BUSY)
+            // команда на аварийное завершение
+                GetDataCancel();
 
             lock (lockListeners) {
                 m_dictListeners.Remove (listenerId);
@@ -333,8 +327,14 @@ namespace ASUTP.Database {
 
             if (dbThread.IsAlive == true) {
                 try {
-                    if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0))
-                        sem.Release (1);
+                    if (dbThread.Join(Constants.WAIT_TIME_MS) == false)
+                        // проверить текущее состояние
+                        if ((Equals(m_eventDbInterface_ThreadFunctionRun, null) == false)
+                            && (m_eventDbInterface_ThreadFunctionRun.WaitOne(0) == false))
+                        // разрешить обработку пустых запросов (для завершения потоковой ф-и)
+                            m_eventDbInterface_ThreadFunctionRun.Set();
+                        else
+                            ;
                     else
                         ;
                 } catch (Exception e) {
@@ -368,8 +368,10 @@ namespace ASUTP.Database {
                 m_dictListeners [listenerId].SetRequest(request);
 
                 try {
-                    if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0/*WaitHandle.WaitTimeout*/))
-                        sem.Release (1);
+                    // проверить текущее состояние
+                    if (m_eventDbInterface_ThreadFunctionRun?.WaitOne(0) == false)
+                    // разрешить обработку запросов
+                        m_eventDbInterface_ThreadFunctionRun?.Set ();
                     else
                         ;
                 } catch (Exception e) {
@@ -415,9 +417,15 @@ namespace ASUTP.Database {
         protected void SetConnectionSettings ()
         {
             try {
-                sem.Release (1);
+                // проверить текущее состояние
+                if (m_eventDbInterface_ThreadFunctionRun?.WaitOne(0) == false)
+                // разрешить обработку запросов
+                    m_eventDbInterface_ThreadFunctionRun?.Set();
+                else
+                    ;
             } catch (Exception e) {
-                Logging.Logg ().Exception (e, "DbInterface::SetConnectionSettings () - обращение к переменной sem (вызов: sem.Release ())", Logging.INDEX_MESSAGE.NOT_SET);
+                Logging.Logg ().Exception (e, "DbInterface::SetConnectionSettings () - m_eventDbInterface_ThreadFunctionRun.Set()..."
+                    , Logging.INDEX_MESSAGE.NOT_SET);
             }
         }
 
@@ -428,10 +436,12 @@ namespace ASUTP.Database {
         /// <param name="bStarted">Признак немедленной активации объекта доступа к источнику данных</param>
         public abstract void SetConnectionSettings (object cs, bool bStarted);
 
+        protected abstract int Timeout { get; set; }
+
         /// <summary>
         /// Объект синхронизации для распознования команды на аварийное завершение подпотока получения данных запроса
         /// </summary>
-        private AutoResetEvent m_eventGetDataBreak;
+        private ManualResetEvent m_eventDbInterface_ThreadFunctionRun;
 
         private void DbInterface_ThreadFunction (object data)
         {
@@ -440,28 +450,13 @@ namespace ASUTP.Database {
             bool reconnection/* = false*/;
             Thread threadGetData;
             // Массив объектов синхронизации текущего потока и подпотока ожидания
-            // 0 - нормальное завершение, 1 - аврийное завершение
-            WaitHandle [] waitHandleGetData = new WaitHandle [] { new AutoResetEvent (false), m_eventGetDataBreak = new AutoResetEvent (false) };
-            int iGetData = -1;
-
-            //m_threadGetData = new BackgroundWorker() {
-            //    WorkerReportsProgress = true
-            //    , WorkerSupportsCancellation = true
-            //};
-            //m_threadGetData.DoWork += new DoWorkEventHandler((object sender, DoWorkEventArgs e) => {
-            //    e.Result = GetData((e.Argument as object[])[0] as DataTable, (string)(e.Argument as object[])[1]);
-            //});
-            //m_threadGetData.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender, RunWorkerCompletedEventArgs e) => {
-            //    if (e.Cancelled == false) {
-            //        result = (bool)e.Result;
-
-            //        (waitHandleGetData[0] as AutoResetEvent).Set();
-            //    } else
-            //        (waitHandleGetData[1] as AutoResetEvent).Set();
-            //});
+            // 0 - внешний инициатор, 1 - внутренний (при большом количестве отмененных запросов)
+            WaitHandle [] waitHandleGetData = new WaitHandle [] { m_eventDbInterface_ThreadFunctionRun, new AutoResetEvent (false) };
+            int iReason = -1
+                , counterFillError = -1;
 
             while (threadIsWorking) {
-                sem.WaitOne ();
+                iReason = WaitHandle.WaitAny(waitHandleGetData);
 
                 lock (lockConnectionSettings) // атомарно читаю и сбрасываю флаг, чтобы при параллельной смене настроек не сбросить повторно выставленный флаг
                 {
@@ -485,22 +480,16 @@ namespace ASUTP.Database {
                 else
                     ;
 
+                Timeout = Constants.MAX_WATING / 1000;
+
                 //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - m_listListeners.Count = " + m_listListeners.Count);
 
                 lock (lockListeners) {
                     // в новом цикле - новое состояние для прерывания
-                    iGetData = -1;
+                    counterFillError = 0;
 
                     //??? внутри цикла при аварийном прерывании из словаря удаляется элемент
                     foreach (KeyValuePair<int, DbInterfaceListener> pair in m_dictListeners) {
-                        //??? если прервали обработку запроса одного из подписчиков, то остальные продолжаем обрабатывать
-                        //if (iGetData > 0)
-                        //    break;
-                        //else
-                        //    ;
-
-                        //lock (lockListeners)
-                        //{
                         if (pair.Value.State == STATE_LISTENER.READY) {
                             continue;
                         } else
@@ -513,7 +502,6 @@ namespace ASUTP.Database {
                             continue;
                         } else
                             ;
-                        //}
 
                         result = false;
                         pair.Value.State = STATE_LISTENER.BUSY;
@@ -521,94 +509,71 @@ namespace ASUTP.Database {
                         //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - GetData(...) - request = " + request);
 
                         try {
-                            //m_threadGetData.RunWorkerAsync(new object[] { pair.Value.dataTable, request });
-                            threadGetData = new Thread (new ParameterizedThreadStart (delegate (object obj) {
+                            threadGetData = new Thread(new ParameterizedThreadStart((obj) => {
                                 try {
-                                    result = GetData (pair.Value.dataTable, request);
-
-                                    (obj as AutoResetEvent).Set ();
-                                } catch (ThreadAbortException ae) {
-                                    Logging.Logg ().ExceptionDB (string.Format (@"::DbInterface_ThreadFunction () - {1}:{2}{0}{3}{0}{4}"
-                                        , Environment.NewLine
-                                        , Name, pair.Key
-                                        , ((!(ae.Data == null)) && (ae.Data.Count > 0))
-                                            ? string.Format (@"внешний объект(индекс-0)={0}", ae.Data [0])
-                                                : "внешний объект не указан"
-                                        , ae.Message, ae.StackTrace));
-
-                                    Thread.ResetAbort ();
-                                } catch (Exception e) {
-                                    Logging.Logg ().ExceptionDB (string.Format (@"DbInterface_ThreadFunction () - {1}:{2}{0}{3}{0}{4}"
-                                        , Environment.NewLine
-                                        , Name, pair.Key
-                                        , e.Message, e.StackTrace));
+                                    result = GetData(pair.Value.dataTable, request);
+                                    // сброс счетчика при успехе
+                                    counterFillError = 0;
+                                } catch (ApplicationException e) {
+                                    // штатное завершение по превышению установленного лимита времени или другой ошибке (getData_OnFillError)
+                                    counterFillError++;
                                 } finally {
                                 }
-                            })) { // параметры для запуска потока
+                            })) {
                                 IsBackground = true
-                                , Name = string.Format (@"{0}:{1}", Name, pair.Key)
                                 , Priority = ThreadPriority.AboveNormal
                             };
-                            // запуск потока
-                            threadGetData.Start (waitHandleGetData [0]);
+                            threadGetData.Start();
 
-                            if ((iGetData = WaitHandle.WaitAny (waitHandleGetData, Constants.MAX_WATING)) > 0) {
-                                switch (iGetData) {
-                                    case WaitHandle.WaitTimeout:
-                                        // команда на аварийное завершение
-                                        GetDataCancel();
-                                        //??? установить в сигнальное состояние для дальнейшего использования
-                                        (waitHandleGetData [1] as AutoResetEvent).Set ();
-                                        needReconnect = true;
-                                        break;
-                                    default:
-                                        break;
-                                }
+                            if (threadGetData.Join(Constants.MAX_WATING) == false) {
+                                GetDataCancel();
 
-                                // ждем мсек норм. завершения после исполнения команды на аварийное завершение внутр. потока
-                                if (waitHandleGetData [0].WaitOne (Constants.WAIT_TIME_MS) == false)
-                                    // ждем еще мсек норм. завершения
-                                    if (threadGetData.Join (Constants.WAIT_TIME_MS) == false) {
-                                        // аваавррийно завершаем
-                                        threadGetData.Abort (string.Format (@"Аварийное завершение подпотока получения данных..."));
-                                        //threadGetData.Interrupt ();
-                                        //// перейти к следующему подписчику
-                                        //continue;
-                                    } else
-                                        ;
-                                else
+                                if (threadGetData.Join(Constants.WAIT_TIME_MS) == false) {
+                                    threadGetData.Abort(string.Format(@"Аварийное завершение подпотока получения данных..."));
+                                } else
                                     ;
                             } else
                                 ;
-                            threadGetData = null;
-                        } catch (DbException e) {
-                            Logging.Logg ().Exception (e
-                                , string.Format ("DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - request = {0}", request)
+                        } catch (ThreadAbortException ae) {
+                            counterFillError++;
+
+                            Logging.Logg().Exception(ae, string.Format(@"::DbInterface_ThreadFunction () - {0}:{1}"
+                                    , Name, pair.Key)
+                                , Logging.INDEX_MESSAGE.NOT_SET);
+
+                            Thread.ResetAbort();
+                        } catch (Exception e) {
+                            counterFillError++;
+
+                            Logging.Logg ().Exception (e, string.Format (@"DbInterface_ThreadFunction () - {0}:{1}"
+                                    , Name, pair.Key)
                                 , Logging.INDEX_MESSAGE.NOT_SET);
                         } finally {
-                            //??? непонятна необъодимость проверки
-                            if (request.Equals(pair.Value.requestDB) == true) {
-                                pair.Value.SetResult(result);
-                            } else
-                            //??? очевидно, недостижимый код
-                                throw new Exception($"::DbInterface_ThreadFunction () - запросы не совпадают в одной итерации...");
+                            pair.Value.SetResult(result);
+
+                            needReconnect = counterFillError > 1;
                         }
 
+                        threadGetData = null;
+
+                        if (needReconnect == true) {
+                            //??? установить в сигнальное состояние для дальнейшего использования
+                            (waitHandleGetData[1] as AutoResetEvent).Set();
+                            // выйти из цикла обработки текущего списка запросов
+                            break;
+                        } else
+                            ;
+
                         //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - pair.Value.dataPresent = " + pair.Value.dataPresent + @", pair.Value.dataError = " + pair.Value.dataError.ToString ());
-                        //}
-                    }
-                }
-            }
+                    } // foreach
+                } // lock
+            } // while
             try {
-                if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0))
-                    sem.Release (1);
-                else
-                    ;
+                foreach (WaitHandle eventAuto in waitHandleGetData)
+                    eventAuto.Close();
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, "DbInterface::DbInterface_ThreadFunction () - выход...", Logging.INDEX_MESSAGE.NOT_SET);
             } finally {
-                foreach (WaitHandle eventAuto in waitHandleGetData)
-                    eventAuto.Close ();
             }
 
             Disconnect ();
@@ -630,7 +595,14 @@ namespace ASUTP.Database {
         /// <param name="err">Результат попытки разорвать соединенние с БД</param>
         public abstract void Disconnect (out int err);
 
-        protected abstract void GetDataCancel ();
+        protected abstract void GetDataCancel();
+
+        protected void getData_OnFillError(object sender, FillErrorEventArgs e)
+        {
+            e.Continue = false;
+
+            throw new ApplicationException($"::getData_OnFillError() - ...", e.Errors);
+        }
         /// <summary>
         /// Заполнить таблицу значениями - результатом запроса
         /// </summary>

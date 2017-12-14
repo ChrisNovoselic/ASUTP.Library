@@ -123,6 +123,20 @@ namespace ASUTP.Database {
             }
 
             m_dbAdapter.SelectCommand = m_dbCommand;
+            m_dbAdapter.FillError += getData_OnFillError;
+        }
+
+        protected override int Timeout
+        {
+            get
+            {
+                return m_dbCommand.CommandTimeout;
+            }
+
+            set
+            {
+                m_dbCommand.CommandTimeout = value;
+            }
         }
 
         /// <summary>
