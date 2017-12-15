@@ -219,8 +219,7 @@ namespace ASUTP.Database {
 
             string conn_str = string.Empty;
 
-            bool result = false
-                , bRes = false;
+            bool bRes = false;
 
             bRes = m_dbConnection.State == ConnectionState.Open;
 
@@ -242,7 +241,7 @@ namespace ASUTP.Database {
                 ;
 
             lock (lockConnectionSettings) {
-                if (!(needReconnect == RECONNECT.NOT_REQ)) // если перед приходом в данную точку повторно были изменены настройки, то подключения со старыми настройками не делаем
+                if (needReconnect == RECONNECT.NEW) // если перед приходом в данную точку повторно были изменены настройки, то подключения со старыми настройками не делаем
                     return false;
                 else
                     ;
@@ -264,7 +263,7 @@ namespace ASUTP.Database {
                         break;
                 }
 
-                bRes = string.IsNullOrEmpty (conn_str);
+                bRes = !(string.IsNullOrEmpty (conn_str));
 
                 if (bRes == true)
                     m_dbConnection.ConnectionString = conn_str;
@@ -273,18 +272,23 @@ namespace ASUTP.Database {
             }
 
             try {
-                if (needReconnect == RECONNECT.HARD) {
-                    m_dbAdapter.FillError -= new FillErrorEventHandler (getData_OnFillError); m_dbAdapter.SelectCommand = null; m_dbAdapter.Dispose (); m_dbAdapter = null;
-                    m_dbCommand.Connection = null; m_dbCommand.Dispose (); m_dbCommand = null;
+                if (bRes == true) {
+                    if (needReconnect == RECONNECT.HARD) {
+                        m_dbAdapter.FillError -= new FillErrorEventHandler(getData_OnFillError); m_dbAdapter.SelectCommand = null; m_dbAdapter.Dispose(); m_dbAdapter = null;
+                        m_dbCommand.Connection = null; m_dbCommand.Dispose(); m_dbCommand = null;
 
-                    createDbAccessories ();
-                } else
-                    ;
+                        createDbAccessories();
+                    } else
+                        ;
 
-                m_dbConnection.Open ();
-                result = true;
-                if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) {
-                    logging_open_db (m_dbConnection);
+                    m_dbConnection.Open();
+                    bRes = m_dbConnection.State == ConnectionState.Open;
+
+                    if ((bRes == true)
+                        && (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING))) {
+                        logging_open_db(m_dbConnection);
+                    } else
+                        ;
                 } else
                     ;
             } catch (Exception e) {
@@ -294,7 +298,7 @@ namespace ASUTP.Database {
                     ;
             }
 
-            return result;
+            return bRes;
         }
 
         /// <summary>
@@ -314,7 +318,9 @@ namespace ASUTP.Database {
                 ((ConnectionSettings)m_connectionSettings).password = ((ConnectionSettings)cs).password;
                 //((ConnectionSettings)m_connectionSettings).ignore = ((ConnectionSettings)cs).ignore;
 
-                needReconnect = RECONNECT.HARD;
+                needReconnect = (needReconnect == RECONNECT.NOT_REQ)
+                    ? RECONNECT.SOFT
+                        : RECONNECT.NEW;
             }
 
             if (bStarted == true)
@@ -570,7 +576,7 @@ namespace ASUTP.Database {
         {
             err = (int)Error.NO_ERROR;
 
-            needReconnect = RECONNECT.NOT_REQ;
+            needReconnect = RECONNECT.SOFT;
             bool bRes = Connect ();
 
             if (bRes == true)

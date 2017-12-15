@@ -251,6 +251,7 @@ namespace ASUTP.Database {
             /// Жесткий(полный) с обновлением 'DbCommand', 'DbAdapter'
             ///</summary>
             , HARD
+            , NEW
         }
         /// <summary>
         /// Признак необходимости выполнить повторное соединение с БД
@@ -480,9 +481,7 @@ namespace ASUTP.Database {
                 , counterFillError = -1;
 
             while (threadIsWorking) {
-                iReason = WaitHandle.WaitAny(waitHandleGetData);
-
-                switch (iReason) {
+                switch (iReason = WaitHandle.WaitAny(waitHandleGetData)) {
                     case 0:
                         (waitHandleGetData [iReason] as ManualResetEvent).Reset ();
                         break;
@@ -493,7 +492,6 @@ namespace ASUTP.Database {
                 lock (lockConnectionSettings) // атомарно читаю и сбрасываю флаг, чтобы при параллельной смене настроек не сбросить повторно выставленный флаг
                 {
                     reconnection = !(needReconnect == RECONNECT.NOT_REQ);
-                    needReconnect = RECONNECT.NOT_REQ;
                 }
 
                 if (reconnection == true) {
