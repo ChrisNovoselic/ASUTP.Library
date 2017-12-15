@@ -109,7 +109,7 @@ namespace ASUTP.Database {
             /// </summary>
             public DbInterfaceListener ()
             {
-                dataError = true;
+                dataError = false;
 
                 requestDB = null; //new object ();
                 _state = STATE_LISTENER.READY;
@@ -122,7 +122,7 @@ namespace ASUTP.Database {
             /// </summary>
             public void Reset ()
             {
-                dataError = true;
+                dataError = false;
 
                 requestDB = null;
                 State = STATE_LISTENER.READY;
@@ -136,7 +136,7 @@ namespace ASUTP.Database {
             /// <param name="req">Содержание запроса</param>
             public void SetRequest (string req)
             {
-                dataError = true;
+                dataError = false;
 
                 if (Equals(requestDB, null) == false)
                     requestDB = null;
@@ -167,14 +167,30 @@ namespace ASUTP.Database {
                         : STATE_LISTENER.REQUEST; // для возможности повтрной обработки(если успеем)
             }
 
+            /// <summary>
+            /// Тип запроса (выборка или вставка/обновление/удаление)
+            /// </summary>
+            public int IsSelected
+            {
+                get
+                {
+                    return (Equals (requestDB, null) == true)
+                        ? -1
+                            : (((string)requestDB).StartsWith ("INSERT", StringComparison.InvariantCultureIgnoreCase) == false)
+                                && (((string)requestDB).StartsWith ("UPDATE", StringComparison.InvariantCultureIgnoreCase) == false)
+                                && (((string)requestDB).StartsWith ("DELETE", StringComparison.InvariantCultureIgnoreCase) == false)
+                                ? 1
+                                    : 0;
+
+                }
+            }
+
             public bool Error
             {
                 get
                 {
                     return (dataError == true)
-                        || (Equals(requestDB, null) == true)
-                        || (((((string)requestDB).StartsWith("INSERT", StringComparison.InvariantCultureIgnoreCase) == false)
-                                || (((string)requestDB).StartsWith("UPDATE", StringComparison.InvariantCultureIgnoreCase) == false))
+                        || ((IsSelected == 1)
                             && (dataTable.Columns.Count == 0));
                 }
             }
@@ -220,9 +236,26 @@ namespace ASUTP.Database {
             }
         }
         /// <summary>
+        /// Тип ожидаемоего соединения: мягкий/штатный, жесткий/полный
+        /// </summary>
+        protected enum RECONNECT {
+            /// <summary>
+            /// Не требуется
+            /// </summary>
+            NOT_REQ
+            /// <summary>
+            /// Мягкий(штатный) - только объект 'DbConnection'
+            /// </summary>
+            , SOFT
+            ///<summary>
+            /// Жесткий(полный) с обновлением 'DbCommand', 'DbAdapter'
+            ///</summary>
+            , HARD
+        }
+        /// <summary>
         /// Признак необходимости выполнить повторное соединение с БД
         /// </summary>
-        protected bool needReconnect;
+        protected RECONNECT needReconnect;
         /// <summary>
         /// Признак установленного соединения с БД
         /// </summary>
@@ -241,14 +274,14 @@ namespace ASUTP.Database {
             m_dictListeners = new Dictionary<int, DbInterfaceListener> ();
 
             connected = false;
-            needReconnect = false;
+            needReconnect = RECONNECT.SOFT;
 
             dbThread = new Thread (new ParameterizedThreadStart (DbInterface_ThreadFunction));
             dbThread.Name = name;
             //Name = name;
             dbThread.IsBackground = true;
 
-            m_eventDbInterface_ThreadFunctionRun = new ManualResetEvent(false);
+            _eventDbInterface_ThreadFunctionRun = new ManualResetEvent(false);
         }
 
         /// <summary>
@@ -326,20 +359,10 @@ namespace ASUTP.Database {
             }
 
             if (dbThread.IsAlive == true) {
-                try {
-                    if (dbThread.Join(Constants.WAIT_TIME_MS) == false)
-                        // проверить текущее состояние
-                        if ((Equals(m_eventDbInterface_ThreadFunctionRun, null) == false)
-                            && (m_eventDbInterface_ThreadFunctionRun.WaitOne(0) == false))
-                        // разрешить обработку пустых запросов (для завершения потоковой ф-и)
-                            m_eventDbInterface_ThreadFunctionRun.Set();
-                        else
-                            ;
+                    if (dbThread.Join (Constants.WAIT_TIME_MS) == false)
+                        setEventDbInterface_ThreadFunctionRun (@"DbInterface::Stop () - ...");
                     else
                         ;
-                } catch (Exception e) {
-                    Logging.Logg ().Exception (e, @"DbInterface::Stop () - ...", Logging.INDEX_MESSAGE.NOT_SET);
-                }
 
                 joined = dbThread.Join (Constants.MAX_WATING);
                 if (!joined)
@@ -367,16 +390,7 @@ namespace ASUTP.Database {
 
                 m_dictListeners [listenerId].SetRequest(request);
 
-                try {
-                    // проверить текущее состояние
-                    if (m_eventDbInterface_ThreadFunctionRun?.WaitOne(0) == false)
-                    // разрешить обработку запросов
-                        m_eventDbInterface_ThreadFunctionRun?.Set ();
-                    else
-                        ;
-                } catch (Exception e) {
-                    Logging.Logg ().Exception (e, @"DbInterface::Request (int, string)", Logging.INDEX_MESSAGE.NOT_SET);
-                }
+                setEventDbInterface_ThreadFunctionRun (@"DbInterface::Request (int, string) - ...");
             }
 
             //Logging.Logg().Debug(@"DbInterface::Request (int, string) - " + listenerId + @", " + request);
@@ -416,17 +430,7 @@ namespace ASUTP.Database {
         /// </summary>
         protected void SetConnectionSettings ()
         {
-            try {
-                // проверить текущее состояние
-                if (m_eventDbInterface_ThreadFunctionRun?.WaitOne(0) == false)
-                // разрешить обработку запросов
-                    m_eventDbInterface_ThreadFunctionRun?.Set();
-                else
-                    ;
-            } catch (Exception e) {
-                Logging.Logg ().Exception (e, "DbInterface::SetConnectionSettings () - m_eventDbInterface_ThreadFunctionRun.Set()..."
-                    , Logging.INDEX_MESSAGE.NOT_SET);
-            }
+            setEventDbInterface_ThreadFunctionRun ("DbInterface::SetConnectionSettings () - m_eventDbInterface_ThreadFunctionRun.Set()...");
         }
 
         /// <summary>
@@ -441,7 +445,24 @@ namespace ASUTP.Database {
         /// <summary>
         /// Объект синхронизации для распознования команды на аварийное завершение подпотока получения данных запроса
         /// </summary>
-        private ManualResetEvent m_eventDbInterface_ThreadFunctionRun;
+        private
+            ManualResetEvent _eventDbInterface_ThreadFunctionRun
+            //Semaphore _semaDbInterface_ThreadFunctionRun
+            ;
+
+        private void setEventDbInterface_ThreadFunctionRun (string message)
+        {
+            try {
+                // проверить текущее состояние
+                if ((Equals (_eventDbInterface_ThreadFunctionRun, null) == false)
+                    && (_eventDbInterface_ThreadFunctionRun?.WaitOne (0) == false))
+                    // разрешить обработку пустых запросов (для завершения потоковой ф-и)
+                    _eventDbInterface_ThreadFunctionRun?.Set ();
+                else
+                    ;
+            } catch (Exception e) {
+            }
+        }
 
         private void DbInterface_ThreadFunction (object data)
         {
@@ -451,17 +472,28 @@ namespace ASUTP.Database {
             Thread threadGetData;
             // Массив объектов синхронизации текущего потока и подпотока ожидания
             // 0 - внешний инициатор, 1 - внутренний (при большом количестве отмененных запросов)
-            WaitHandle [] waitHandleGetData = new WaitHandle [] { m_eventDbInterface_ThreadFunctionRun, new AutoResetEvent (false) };
+            WaitHandle [] waitHandleGetData = new WaitHandle [] {
+                _eventDbInterface_ThreadFunctionRun
+                , new AutoResetEvent (false)
+            };
             int iReason = -1
                 , counterFillError = -1;
 
             while (threadIsWorking) {
                 iReason = WaitHandle.WaitAny(waitHandleGetData);
 
+                switch (iReason) {
+                    case 0:
+                        (waitHandleGetData [iReason] as ManualResetEvent).Reset ();
+                        break;
+                    default:
+                        break;
+                }
+
                 lock (lockConnectionSettings) // атомарно читаю и сбрасываю флаг, чтобы при параллельной смене настроек не сбросить повторно выставленный флаг
                 {
-                    reconnection = needReconnect;
-                    needReconnect = false;
+                    reconnection = !(needReconnect == RECONNECT.NOT_REQ);
+                    needReconnect = RECONNECT.NOT_REQ;
                 }
 
                 if (reconnection == true) {
@@ -469,9 +501,11 @@ namespace ASUTP.Database {
                     connected = false;
                     if (threadIsWorking == true) {
                         connected = Connect ();
-                        needReconnect = !connected;
+                        needReconnect = connected == true
+                            ? RECONNECT.NOT_REQ
+                                : RECONNECT.SOFT;
                     } else
-                        needReconnect = true; // выставлять флаг можно без блокировки
+                        needReconnect = RECONNECT.SOFT; // выставлять флаг можно без блокировки
                 } else
                     ;
 
@@ -535,7 +569,7 @@ namespace ASUTP.Database {
                             } else
                                 ;
                         } catch (ThreadAbortException ae) {
-                            counterFillError++;
+                            counterFillError = m_dictListeners.Count + 1;
 
                             Logging.Logg().Exception(ae, string.Format(@"::DbInterface_ThreadFunction () - {0}:{1}"
                                     , Name, pair.Key)
@@ -551,12 +585,16 @@ namespace ASUTP.Database {
                         } finally {
                             pair.Value.SetResult(result);
 
-                            needReconnect = counterFillError > 1;
+                            needReconnect = counterFillError > 1
+                                ? counterFillError > m_dictListeners.Count
+                                    ? RECONNECT.HARD
+                                        : RECONNECT.SOFT
+                                            : RECONNECT.NOT_REQ;
                         }
 
                         threadGetData = null;
 
-                        if (needReconnect == true) {
+                        if (!(needReconnect == RECONNECT.NOT_REQ)) {
                             //??? установить в сигнальное состояние для дальнейшего использования
                             (waitHandleGetData[1] as AutoResetEvent).Set();
                             // выйти из цикла обработки текущего списка запросов
