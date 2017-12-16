@@ -81,48 +81,31 @@ namespace ASUTP.Database {
 
             m_connectionSettings = new ConnectionSettings ();
 
-            switch (m_connectionType) {
-                case DB_TSQL_INTERFACE_TYPE.MySQL:
-                    m_dbConnection = new MySqlConnection ();
+            m_dbConnection = createDbConnection ();
 
-                    m_dbCommand = new MySqlCommand ();
-                    m_dbCommand.Connection = m_dbConnection;
-                    m_dbCommand.CommandType = CommandType.Text;
+            createDbAccessories ();
+        }
 
-                    m_dbAdapter = new MySqlDataAdapter ();
-                    break;
-                case DB_TSQL_INTERFACE_TYPE.MSSQL:
-                    m_dbConnection = new SqlConnection ();
-
-                    m_dbCommand = new SqlCommand ();
-                    m_dbCommand.Connection = m_dbConnection;
-                    m_dbCommand.CommandType = CommandType.Text;
-
-                    m_dbAdapter = new SqlDataAdapter ();
-                    break;
-                case DB_TSQL_INTERFACE_TYPE.Oracle:
-                    m_dbConnection = new OracleConnection ();
-
-                    m_dbCommand = new OracleCommand ();
-                    m_dbCommand.Connection = m_dbConnection;
-                    m_dbCommand.CommandType = CommandType.Text;
-
-                    m_dbAdapter = new OracleDataAdapter ();
-                    break;
-                case DB_TSQL_INTERFACE_TYPE.MSExcel:
-                    m_dbConnection = new OleDbConnection ();
-
-                    m_dbCommand = new OleDbCommand ();
-                    m_dbCommand.Connection = m_dbConnection;
-                    m_dbCommand.CommandType = CommandType.Text;
-
-                    m_dbAdapter = new OleDbDataAdapter ();
-                    break;
-                default:
-                    break;
+        protected override int Timeout
+        {
+            get
+            {
+                return m_dbCommand.CommandTimeout;
             }
 
-            m_dbAdapter.SelectCommand = m_dbCommand;
+            set
+            {
+                m_dbCommand.CommandTimeout = value;
+            }
+        }
+
+        /// <summary>
+        /// Создать объект соединения с БД
+        /// </summary>
+        /// <returns>Объект соединения с БД</returns>
+        private DbConnection createDbConnection ()
+        {
+            return createDbConnection (m_connectionType);
         }
 
         /// <summary>
@@ -151,6 +134,51 @@ namespace ASUTP.Database {
             }
 
             return connRes;
+        }
+
+        private bool createDbAccessories ()
+        {
+            bool bRes = false;
+
+            bRes = !(m_connectionType == DB_TSQL_INTERFACE_TYPE.UNKNOWN)
+                && (Equals (m_dbConnection, null) == false);
+
+            if (bRes == true) {
+                switch (m_connectionType) {
+                    case DB_TSQL_INTERFACE_TYPE.MySQL:
+                        m_dbCommand = new MySqlCommand ();
+                        m_dbAdapter = new MySqlDataAdapter ();
+                        break;
+                    case DB_TSQL_INTERFACE_TYPE.MSSQL:
+                        m_dbCommand = new SqlCommand ();
+                        m_dbAdapter = new SqlDataAdapter ();
+                        break;
+                    case DB_TSQL_INTERFACE_TYPE.Oracle:
+                        m_dbCommand = new OracleCommand ();
+                        m_dbAdapter = new OracleDataAdapter ();
+                        break;
+                    case DB_TSQL_INTERFACE_TYPE.MSExcel:
+                        m_dbCommand = new OleDbCommand ();
+                        m_dbAdapter = new OleDbDataAdapter ();
+                        break;
+                    default:
+                        break;
+                }
+
+                bRes = (Equals (m_dbCommand, null) == false)
+                    && (Equals (m_dbAdapter, null) == false);
+
+                if (bRes == true) {
+                    m_dbCommand.Connection = m_dbConnection;
+                    m_dbCommand.CommandType = CommandType.Text;
+                    m_dbAdapter.SelectCommand = m_dbCommand;
+                    m_dbAdapter.FillError += new FillErrorEventHandler (getData_OnFillError);
+                } else
+                    ;
+            } else
+                ;
+
+            return bRes;
         }
 
         /// <summary>
@@ -189,13 +217,13 @@ namespace ASUTP.Database {
             else
                 ;
 
-            bool result = false, bRes = false;
+            string conn_str = string.Empty;
 
-            if (m_dbConnection.State == ConnectionState.Open)
-                bRes = true;
-            else
-                ;
+            bool bRes = false;
 
+            bRes = m_dbConnection.State == ConnectionState.Open;
+
+            //??? зачем такая сложная конструкция
             try {
                 if (bRes == true)
                     return bRes;
@@ -205,10 +233,7 @@ namespace ASUTP.Database {
                 logging_catch_db (m_dbConnection, e);
             }
 
-            if (!(m_dbConnection.State == ConnectionState.Closed))
-                bRes = false;
-            else
-                ;
+            bRes = m_dbConnection.State == ConnectionState.Closed;
 
             if (bRes == false)
                 return bRes;
@@ -216,43 +241,54 @@ namespace ASUTP.Database {
                 ;
 
             lock (lockConnectionSettings) {
-                if (needReconnect) // если перед приходом в данную точку повторно были изменены настройки, то подключения со старыми настройками не делаем
+                if (IsNeedReconnectNew == true) // если перед приходом в данную точку повторно были изменены настройки, то подключения со старыми настройками не делаем
                     return false;
                 else
                     ;
 
-                //if (((ConnectionSettings)m_connectionSettings).ignore == true)
-                //    return false;
-                //else
-                //    ;
-
-                //string connStr = string.Empty;
                 switch (m_connectionType) {
                     case DB_TSQL_INTERFACE_TYPE.MSSQL:
-                        //connStr = connectionSettings.GetConnectionStringMSSQL();
-                        ((SqlConnection)m_dbConnection).ConnectionString = ((ConnectionSettings)m_connectionSettings).GetConnectionStringMSSQL ();
+                        conn_str = ((ConnectionSettings)m_connectionSettings).GetConnectionStringMSSQL();
                         break;
                     case DB_TSQL_INTERFACE_TYPE.MySQL:
-                        //connStr = connectionSettings.GetConnectionStringMySQL();
-                        ((MySqlConnection)m_dbConnection).ConnectionString = ((ConnectionSettings)m_connectionSettings).GetConnectionStringMySQL ();
+                        conn_str = ((ConnectionSettings)m_connectionSettings).GetConnectionStringMySQL ();
                         break;
                     case DB_TSQL_INTERFACE_TYPE.Oracle:
-                        ((OracleConnection)m_dbConnection).ConnectionString = ((ConnectionSettings)m_connectionSettings).GetConnectionStringOracle ();
+                        conn_str = ((ConnectionSettings)m_connectionSettings).GetConnectionStringOracle ();
                         break;
                     case DB_TSQL_INTERFACE_TYPE.MSExcel:
-                        //((OleDbConnection)m_dbConnection).ConnectionString = ConnectionSettings.GetConnectionStringExcel ();
+                        //conn_str = ConnectionSettings.GetConnectionStringExcel ();
                         break;
                     default:
                         break;
                 }
-                //m_dbConnection.ConnectionString = connStr;
+
+                bRes = !(string.IsNullOrEmpty (conn_str));
+
+                if (bRes == true)
+                    m_dbConnection.ConnectionString = conn_str;
+                else
+                    return bRes;
             }
 
             try {
-                m_dbConnection.Open ();
-                result = true;
-                if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) {
-                    logging_open_db (m_dbConnection);
+                if (bRes == true) {
+                    if (IsNeedReconnectHard == true) {
+                        m_dbAdapter.FillError -= new FillErrorEventHandler(getData_OnFillError); m_dbAdapter.SelectCommand = null; m_dbAdapter.Dispose(); m_dbAdapter = null;
+                        m_dbCommand.Connection = null; m_dbCommand.Dispose(); m_dbCommand = null;
+
+                        createDbAccessories();
+                    } else
+                        ;
+
+                    m_dbConnection.Open();
+                    bRes = m_dbConnection.State == ConnectionState.Open;
+
+                    if ((bRes == true)
+                        && (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING))) {
+                        logging_open_db(m_dbConnection);
+                    } else
+                        ;
                 } else
                     ;
             } catch (Exception e) {
@@ -262,7 +298,29 @@ namespace ASUTP.Database {
                     ;
             }
 
-            return result;
+            return bRes;
+        }
+
+        public override bool EqualeConnectionSettings(object cs)
+        {
+            return ((ConnectionSettings)m_connectionSettings).id == ((ConnectionSettings)cs).id
+            && ((ConnectionSettings)m_connectionSettings).server == ((ConnectionSettings)cs).server
+            && ((ConnectionSettings)m_connectionSettings).instance == ((ConnectionSettings)cs).instance
+            && ((ConnectionSettings)m_connectionSettings).port == ((ConnectionSettings)cs).port
+            && ((ConnectionSettings)m_connectionSettings).dbName == ((ConnectionSettings)cs).dbName
+            && ((ConnectionSettings)m_connectionSettings).userName == ((ConnectionSettings)cs).userName
+            && ((ConnectionSettings)m_connectionSettings).password == ((ConnectionSettings)cs).password
+            //&& ((ConnectionSettings)m_connectionSettings).ignore == ((ConnectionSettings)cs).ignore
+            ;
+        }
+
+        public override bool IsEmptyConnectionSettings
+        {
+            get
+            {
+                return string.IsNullOrEmpty(((ConnectionSettings)m_connectionSettings).server) == true
+                    || string.IsNullOrEmpty(((ConnectionSettings)m_connectionSettings).userName) == true;
+            }
         }
 
         /// <summary>
@@ -273,6 +331,8 @@ namespace ASUTP.Database {
         public override void SetConnectionSettings (object cs, bool bStarted)
         {
             lock (lockConnectionSettings) {
+                setConnectionSettings(cs);
+
                 ((ConnectionSettings)m_connectionSettings).id = ((ConnectionSettings)cs).id;
                 ((ConnectionSettings)m_connectionSettings).server = ((ConnectionSettings)cs).server;
                 ((ConnectionSettings)m_connectionSettings).instance = ((ConnectionSettings)cs).instance;
@@ -281,13 +341,11 @@ namespace ASUTP.Database {
                 ((ConnectionSettings)m_connectionSettings).userName = ((ConnectionSettings)cs).userName;
                 ((ConnectionSettings)m_connectionSettings).password = ((ConnectionSettings)cs).password;
                 //((ConnectionSettings)m_connectionSettings).ignore = ((ConnectionSettings)cs).ignore;
-
-                needReconnect = true;
             }
 
             if (bStarted == true)
                 //base.SetConnectionSettings (cs); //базовой function 'cs' не нужен
-                SetConnectionSettings ();
+                setConnectionSettings ();
             else
                 ;
         }
@@ -365,6 +423,8 @@ namespace ASUTP.Database {
         /// <returns>Признак получения результата</returns>
         protected override bool GetData (DataTable table, object query)
         {
+            //Thread.Sleep(Timeout * 1000);
+
             if (m_dbConnection.State != ConnectionState.Open)
                 return false;
             else
@@ -389,10 +449,9 @@ namespace ASUTP.Database {
             } catch (Exception e) {
                 logging_catch_db (m_dbConnection, e);
             } finally {
-                needReconnect = !result;
             }
 
-            if (needReconnect == true)
+            if (result == false)
                 Logging.Logg ().Error (@"DbTSQLInterface::GetData () - query=" + query, Logging.INDEX_MESSAGE.NOT_SET);
             else
                 ;
@@ -539,7 +598,7 @@ namespace ASUTP.Database {
         {
             err = (int)Error.NO_ERROR;
 
-            needReconnect = false;
+            // проверить значение _needReconnect: для для синхронных операций ВСЕГДА = 'SOFT' (из конструктора)
             bool bRes = Connect ();
 
             if (bRes == true)

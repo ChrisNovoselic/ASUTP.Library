@@ -49,7 +49,8 @@ namespace ASUTP.Database {
         /// <summary>
         /// Класс для описания подписчика еа выполнение запросов к БД
         /// </summary>
-        protected class DbInterfaceListener {
+        protected class DbInterfaceListener
+        {
             private volatile STATE_LISTENER _state;
             /// <summary>
             /// Состояние подписчика
@@ -161,9 +162,27 @@ namespace ASUTP.Database {
 
                 // requestDB сохранить до очередного назначения
                 // , чтобы результат соответствовал запросу
-                State = bResult == true
+                State = Error == false
                     ? STATE_LISTENER.READY
                         : STATE_LISTENER.REQUEST; // для возможности повтрной обработки(если успеем)
+            }
+
+            /// <summary>
+            /// Тип запроса (выборка или вставка/обновление/удаление)
+            /// </summary>
+            public int IsSelected
+            {
+                get
+                {
+                    return (Equals (requestDB, null) == true)
+                        ? -1
+                            : (((string)requestDB).StartsWith ("INSERT", StringComparison.InvariantCultureIgnoreCase) == false)
+                                && (((string)requestDB).StartsWith ("UPDATE", StringComparison.InvariantCultureIgnoreCase) == false)
+                                && (((string)requestDB).StartsWith ("DELETE", StringComparison.InvariantCultureIgnoreCase) == false)
+                                ? 1
+                                    : 0;
+
+                }
             }
 
             public bool Error
@@ -171,9 +190,9 @@ namespace ASUTP.Database {
                 get
                 {
                     return (dataError == true)
-                        || (Equals(requestDB, null) == true)
-                        || ((((string)requestDB).StartsWith("SELECT", StringComparison.InvariantCultureIgnoreCase) == true)
-                            && (dataTable.Columns.Count == 0));
+                        || ((IsSelected == 1)
+                            && ((dataTable.Columns.Count == 0)
+                                /*|| (dataTable.Rows.Count == 0)*/));
                 }
             }
         }
@@ -205,7 +224,7 @@ namespace ASUTP.Database {
         protected object lockConnectionSettings;
 
         private Thread dbThread;
-        private Semaphore sem;
+        //private Semaphore sem;
         private volatile bool threadIsWorking;
         /// <summary>
         /// Наименование интерфейса
@@ -218,13 +237,31 @@ namespace ASUTP.Database {
             }
         }
         /// <summary>
+        /// Тип ожидаемоего соединения: мягкий/штатный, жесткий/полный
+        /// </summary>
+        protected enum RECONNECT {
+            /// <summary>
+            /// Не требуется
+            /// </summary>
+            NOT_REQ
+            /// <summary>
+            /// Мягкий(штатный) - только объект 'DbConnection'
+            /// </summary>
+            , SOFT
+            ///<summary>
+            /// Жесткий(полный) с обновлением 'DbCommand', 'DbAdapter'
+            ///</summary>
+            , HARD
+            , NEW
+        }
+        /// <summary>
         /// Признак необходимости выполнить повторное соединение с БД
         /// </summary>
-        protected bool needReconnect;
+        private RECONNECT _needReconnect;
         /// <summary>
         /// Признак установленного соединения с БД
         /// </summary>
-        private bool connected;
+        private bool _connected;
 
         /// <summary>
         /// Конструктор - основной (с аргументом)
@@ -238,15 +275,15 @@ namespace ASUTP.Database {
             //listeners = new DbInterfaceListener[maxListeners];
             m_dictListeners = new Dictionary<int, DbInterfaceListener> ();
 
-            connected = false;
-            needReconnect = false;
+            _connected = false;
+            _needReconnect = RECONNECT.SOFT;
 
             dbThread = new Thread (new ParameterizedThreadStart (DbInterface_ThreadFunction));
             dbThread.Name = name;
             //Name = name;
             dbThread.IsBackground = true;
 
-            sem = new Semaphore (0, 1);
+            _eventDbInterface_ThreadFunctionRun = new ManualResetEvent(false);
         }
 
         /// <summary>
@@ -256,8 +293,27 @@ namespace ASUTP.Database {
         {
             get
             {
-                return connected;
+                return _connected;
             }
+        }
+
+        public bool IsNeedReconnectHard { get { return _needReconnect == RECONNECT.HARD; } }
+
+        public bool IsNeedReconnectNew { get { return _needReconnect == RECONNECT.NEW; } }
+
+        public abstract bool EqualeConnectionSettings(object cs);
+
+        public abstract bool IsEmptyConnectionSettings { get; }
+
+        protected void setConnectionSettings(object cs)
+        {
+            _needReconnect = (_needReconnect == RECONNECT.NOT_REQ)
+                ? RECONNECT.SOFT
+                    : EqualeConnectionSettings(cs) == true
+                        ? RECONNECT.SOFT
+                            : IsEmptyConnectionSettings == true
+                                ? RECONNECT.SOFT
+                                    : RECONNECT.NEW;
         }
 
         /// <summary>
@@ -292,17 +348,9 @@ namespace ASUTP.Database {
             if (m_dictListeners.ContainsKey (listenerId) == false)
                 return;
 
-            foreach (DbInterfaceListener listener in m_dictListeners.Values)
-                if (listener.State == STATE_LISTENER.BUSY) {
-                    ////if (m_threadGetData.CancellationPending == false)
-                    //    m_threadGetData.CancelAsync();
-                    ////else
-                    ////    ;
-                    m_eventGetDataBreak.Set ();
-
-                    break;
-                } else
-                    ;
+            if (m_dictListeners[listenerId].State == STATE_LISTENER.BUSY)
+            // команда на аварийное завершение
+                GetDataCancel();
 
             lock (lockListeners) {
                 m_dictListeners.Remove (listenerId);
@@ -332,14 +380,10 @@ namespace ASUTP.Database {
             }
 
             if (dbThread.IsAlive == true) {
-                try {
-                    if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0))
-                        sem.Release (1);
+                    if (dbThread.Join (Constants.WAIT_TIME_MS) == false)
+                        setEventDbInterface_ThreadFunctionRun (@"DbInterface::Stop () - ...");
                     else
                         ;
-                } catch (Exception e) {
-                    Logging.Logg ().Exception (e, @"DbInterface::Stop () - ...", Logging.INDEX_MESSAGE.NOT_SET);
-                }
 
                 joined = dbThread.Join (Constants.MAX_WATING);
                 if (!joined)
@@ -367,14 +411,7 @@ namespace ASUTP.Database {
 
                 m_dictListeners [listenerId].SetRequest(request);
 
-                try {
-                    if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0/*WaitHandle.WaitTimeout*/))
-                        sem.Release (1);
-                    else
-                        ;
-                } catch (Exception e) {
-                    Logging.Logg ().Exception (e, @"DbInterface::Request (int, string)", Logging.INDEX_MESSAGE.NOT_SET);
-                }
+                setEventDbInterface_ThreadFunctionRun (@"DbInterface::Request (int, string) - ...");
             }
 
             //Logging.Logg().Debug(@"DbInterface::Request (int, string) - " + listenerId + @", " + request);
@@ -412,13 +449,9 @@ namespace ASUTP.Database {
         /// <summary>
         /// Применить параметры соединения с источником данных - активировать объект доступа к нему
         /// </summary>
-        protected void SetConnectionSettings ()
+        protected void setConnectionSettings ()
         {
-            try {
-                sem.Release (1);
-            } catch (Exception e) {
-                Logging.Logg ().Exception (e, "DbInterface::SetConnectionSettings () - обращение к переменной sem (вызов: sem.Release ())", Logging.INDEX_MESSAGE.NOT_SET);
-            }
+            setEventDbInterface_ThreadFunctionRun ("DbInterface::SetConnectionSettings () - m_eventDbInterface_ThreadFunctionRun.Set()...");
         }
 
         /// <summary>
@@ -428,10 +461,29 @@ namespace ASUTP.Database {
         /// <param name="bStarted">Признак немедленной активации объекта доступа к источнику данных</param>
         public abstract void SetConnectionSettings (object cs, bool bStarted);
 
+        protected abstract int Timeout { get; set; }
+
         /// <summary>
         /// Объект синхронизации для распознования команды на аварийное завершение подпотока получения данных запроса
         /// </summary>
-        private AutoResetEvent m_eventGetDataBreak;
+        private
+            ManualResetEvent _eventDbInterface_ThreadFunctionRun
+            //Semaphore _semaDbInterface_ThreadFunctionRun
+            ;
+
+        private void setEventDbInterface_ThreadFunctionRun (string message)
+        {
+            try {
+                // проверить текущее состояние
+                if ((Equals (_eventDbInterface_ThreadFunctionRun, null) == false)
+                    && (_eventDbInterface_ThreadFunctionRun?.WaitOne (0) == false))
+                    // разрешить обработку пустых запросов (для завершения потоковой ф-и)
+                    _eventDbInterface_ThreadFunctionRun?.Set ();
+                else
+                    ;
+            } catch (Exception e) {
+            }
+        }
 
         private void DbInterface_ThreadFunction (object data)
         {
@@ -440,67 +492,58 @@ namespace ASUTP.Database {
             bool reconnection/* = false*/;
             Thread threadGetData;
             // Массив объектов синхронизации текущего потока и подпотока ожидания
-            // 0 - нормальное завершение, 1 - аврийное завершение
-            WaitHandle [] waitHandleGetData = new WaitHandle [] { new AutoResetEvent (false), m_eventGetDataBreak = new AutoResetEvent (false) };
-            int iGetData = -1;
-
-            //m_threadGetData = new BackgroundWorker() {
-            //    WorkerReportsProgress = true
-            //    , WorkerSupportsCancellation = true
-            //};
-            //m_threadGetData.DoWork += new DoWorkEventHandler((object sender, DoWorkEventArgs e) => {
-            //    e.Result = GetData((e.Argument as object[])[0] as DataTable, (string)(e.Argument as object[])[1]);
-            //});
-            //m_threadGetData.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender, RunWorkerCompletedEventArgs e) => {
-            //    if (e.Cancelled == false) {
-            //        result = (bool)e.Result;
-
-            //        (waitHandleGetData[0] as AutoResetEvent).Set();
-            //    } else
-            //        (waitHandleGetData[1] as AutoResetEvent).Set();
-            //});
+            // 0 - внешний инициатор, 1 - внутренний (при большом количестве отмененных запросов)
+            WaitHandle [] waitHandleGetData = new WaitHandle [] {
+                _eventDbInterface_ThreadFunctionRun
+                , new AutoResetEvent (false)
+            };
+            int iReason = -1
+                , counterFillError = -1
+                , counterDataError = -1; ;
 
             while (threadIsWorking) {
-                sem.WaitOne ();
+                switch (iReason = WaitHandle.WaitAny(waitHandleGetData)) {
+                    case 0:
+                        (waitHandleGetData [iReason] as ManualResetEvent).Reset ();
+                        break;
+                    default:
+                        break;
+                }
 
                 lock (lockConnectionSettings) // атомарно читаю и сбрасываю флаг, чтобы при параллельной смене настроек не сбросить повторно выставленный флаг
                 {
-                    reconnection = needReconnect;
-                    needReconnect = false;
+                    reconnection = !(_needReconnect == RECONNECT.NOT_REQ);
                 }
 
                 if (reconnection == true) {
                     Disconnect ();
-                    connected = false;
+                    _connected = false;
                     if (threadIsWorking == true) {
-                        connected = Connect ();
-                        needReconnect = !connected;
+                        _connected = Connect ();
+                        _needReconnect = _connected == true
+                            ? RECONNECT.NOT_REQ
+                                : RECONNECT.SOFT;
                     } else
-                        needReconnect = true; // выставлять флаг можно без блокировки
+                        _needReconnect = RECONNECT.SOFT; // выставлять флаг можно без блокировки
                 } else
                     ;
 
-                if (connected == false) // не удалось подключиться - не пытаемся получить данные
+                if (_connected == false) // не удалось подключиться - не пытаемся получить данные
                     continue;
                 else
                     ;
+
+                Timeout = Constants.MAX_WATING / 1000;
 
                 //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - m_listListeners.Count = " + m_listListeners.Count);
 
                 lock (lockListeners) {
                     // в новом цикле - новое состояние для прерывания
-                    iGetData = -1;
+                    counterFillError = 0;
+                    counterDataError = 0;
 
                     //??? внутри цикла при аварийном прерывании из словаря удаляется элемент
                     foreach (KeyValuePair<int, DbInterfaceListener> pair in m_dictListeners) {
-                        //??? если прервали обработку запроса одного из подписчиков, то остальные продолжаем обрабатывать
-                        //if (iGetData > 0)
-                        //    break;
-                        //else
-                        //    ;
-
-                        //lock (lockListeners)
-                        //{
                         if (pair.Value.State == STATE_LISTENER.READY) {
                             continue;
                         } else
@@ -513,7 +556,6 @@ namespace ASUTP.Database {
                             continue;
                         } else
                             ;
-                        //}
 
                         result = false;
                         pair.Value.State = STATE_LISTENER.BUSY;
@@ -521,94 +563,87 @@ namespace ASUTP.Database {
                         //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - GetData(...) - request = " + request);
 
                         try {
-                            //m_threadGetData.RunWorkerAsync(new object[] { pair.Value.dataTable, request });
-                            threadGetData = new Thread (new ParameterizedThreadStart (delegate (object obj) {
+                            threadGetData = new Thread(new ParameterizedThreadStart((obj) => {
                                 try {
-                                    result = GetData (pair.Value.dataTable, request);
-
-                                    (obj as AutoResetEvent).Set ();
-                                } catch (ThreadAbortException ae) {
-                                    Logging.Logg ().ExceptionDB (string.Format (@"::DbInterface_ThreadFunction () - {1}:{2}{0}{3}{0}{4}"
-                                        , Environment.NewLine
-                                        , Name, pair.Key
-                                        , ((!(ae.Data == null)) && (ae.Data.Count > 0))
-                                            ? string.Format (@"внешний объект(индекс-0)={0}", ae.Data [0])
-                                                : "внешний объект не указан"
-                                        , ae.Message, ae.StackTrace));
-
-                                    Thread.ResetAbort ();
-                                } catch (Exception e) {
-                                    Logging.Logg ().ExceptionDB (string.Format (@"DbInterface_ThreadFunction () - {1}:{2}{0}{3}{0}{4}"
-                                        , Environment.NewLine
-                                        , Name, pair.Key
-                                        , e.Message, e.StackTrace));
+                                    result = GetData(pair.Value.dataTable, request);
+                                } catch (ApplicationException e) {
+                                    // штатное завершение по превышению установленного лимита времени или другой ошибке (getData_OnFillError)
+                                    counterFillError++;
                                 } finally {
                                 }
-                            })) { // параметры для запуска потока
+                            })) {
                                 IsBackground = true
-                                , Name = string.Format (@"{0}:{1}", Name, pair.Key)
                                 , Priority = ThreadPriority.AboveNormal
                             };
-                            // запуск потока
-                            threadGetData.Start (waitHandleGetData [0]);
+                            threadGetData.Start();
 
-                            if ((iGetData = WaitHandle.WaitAny (waitHandleGetData, Constants.MAX_WATING)) > 0) {
-                                switch (iGetData) {
-                                    case WaitHandle.WaitTimeout:
-                                        // команда на аварийное завершение
-                                        GetDataCancel();
-                                        //??? установить в сигнальное состояние для дальнейшего использования
-                                        (waitHandleGetData [1] as AutoResetEvent).Set ();
-                                        needReconnect = true;
-                                        break;
-                                    default:
-                                        break;
-                                }
+                            if (threadGetData.Join(Constants.MAX_WATING) == false) {
+                                counterFillError++;
+                                GetDataCancel();
 
-                                // ждем мсек норм. завершения после исполнения команды на аварийное завершение внутр. потока
-                                if (waitHandleGetData [0].WaitOne (Constants.WAIT_TIME_MS) == false)
-                                    // ждем еще мсек норм. завершения
-                                    if (threadGetData.Join (Constants.WAIT_TIME_MS) == false) {
-                                        // аваавррийно завершаем
-                                        threadGetData.Abort (string.Format (@"Аварийное завершение подпотока получения данных..."));
-                                        //threadGetData.Interrupt ();
-                                        //// перейти к следующему подписчику
-                                        //continue;
-                                    } else
-                                        ;
-                                else
+                                if (threadGetData.Join(Constants.WAIT_TIME_MS) == false) {
+                                    threadGetData.Abort(string.Format(@"Аварийное завершение подпотока получения данных..."));
+                                } else
                                     ;
                             } else
-                                ;
-                            threadGetData = null;
-                        } catch (DbException e) {
-                            Logging.Logg ().Exception (e
-                                , string.Format ("DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - request = {0}", request)
+                            //// сброс счетчика при успехе
+                            //    counterFillError = 0
+                                    ;
+                        } catch (ThreadAbortException ae) {
+                            counterFillError = m_dictListeners.Count + 1;
+
+                            Logging.Logg().Exception(ae, string.Format(@"::DbInterface_ThreadFunction () - {0}:{1}"
+                                    , Name, pair.Key)
+                                , Logging.INDEX_MESSAGE.NOT_SET);
+
+                            Thread.ResetAbort();
+                        } catch (Exception e) {
+                            counterFillError++;
+
+                            Logging.Logg ().Exception (e, string.Format (@"DbInterface_ThreadFunction () - {0}:{1}"
+                                    , Name, pair.Key)
                                 , Logging.INDEX_MESSAGE.NOT_SET);
                         } finally {
-                            //??? непонятна необъодимость проверки
-                            if (request.Equals(pair.Value.requestDB) == true) {
-                                pair.Value.SetResult(result);
-                            } else
-                            //??? очевидно, недостижимый код
-                                throw new Exception($"::DbInterface_ThreadFunction () - запросы не совпадают в одной итерации...");
+                            // result(false) - признак возникновения исключения
+                            pair.Value.SetResult(result);
+                            counterFillError += result == false ? (m_dictListeners.Count + 1) : 0;
+                            counterDataError += pair.Value.Error == true ? 1 : 0;
+
+                            threadGetData = null;
                         }
 
+                        if (counterFillError > m_dictListeners.Count) {
+                            Logging.Logg().Error($"DbInterface_ThreadFunction () - {Name}:{pair.Key} - аврийное завершение цикла обработки запросов подписчиков..."
+                                , Logging.INDEX_MESSAGE.NOT_SET);
+
+                            break;
+                        } else
+                            ;
+
                         //Logging.Logg().Debug("DbInterface::DbInterface_ThreadFunction () - result = GetData(...) - pair.Value.dataPresent = " + pair.Value.dataPresent + @", pair.Value.dataError = " + pair.Value.dataError.ToString ());
-                        //}
-                    }
-                }
-            }
+                    } // foreach
+
+                    _needReconnect = counterFillError > 1
+                        ? counterFillError > m_dictListeners.Count
+                            ? RECONNECT.HARD
+                                : RECONNECT.SOFT
+                                    : RECONNECT.NOT_REQ;
+
+                    if ((!(_needReconnect == RECONNECT.NOT_REQ))
+                        || (counterDataError > 0)) {
+                    //??? установить в сигнальное состояние для дальнейшего использования
+                        (waitHandleGetData[1] as AutoResetEvent).Set();
+                    } else
+                        ;
+                } // lock
+            } // while
+
             try {
-                if (!(WaitHandle.WaitAny (new WaitHandle [] { sem }, 0) == 0))
-                    sem.Release (1);
-                else
-                    ;
+                foreach (WaitHandle eventAuto in waitHandleGetData)
+                    eventAuto.Close();
             } catch (Exception e) {
                 Logging.Logg ().Exception (e, "DbInterface::DbInterface_ThreadFunction () - выход...", Logging.INDEX_MESSAGE.NOT_SET);
             } finally {
-                foreach (WaitHandle eventAuto in waitHandleGetData)
-                    eventAuto.Close ();
             }
 
             Disconnect ();
@@ -630,7 +665,14 @@ namespace ASUTP.Database {
         /// <param name="err">Результат попытки разорвать соединенние с БД</param>
         public abstract void Disconnect (out int err);
 
-        protected abstract void GetDataCancel ();
+        protected abstract void GetDataCancel();
+
+        protected void getData_OnFillError(object sender, FillErrorEventArgs e)
+        {
+            e.Continue = false;
+
+            throw new ApplicationException($"::getData_OnFillError() - ...", e.Errors);
+        }
         /// <summary>
         /// Заполнить таблицу значениями - результатом запроса
         /// </summary>
