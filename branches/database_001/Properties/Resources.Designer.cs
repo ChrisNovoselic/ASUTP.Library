@@ -8,9 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HClassLibrary.Properties {
+namespace ASUTP.Library.Properties {
     using System;
-    
     
     /// <summary>
     ///   Класс ресурса со строгой типизацией для поиска локализованных строк и т.д.
@@ -39,7 +38,7 @@ namespace HClassLibrary.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HClassLibrary.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ASUTP.Library.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

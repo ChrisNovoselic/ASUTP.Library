@@ -241,7 +241,7 @@ namespace ASUTP.Database {
                 ;
 
             lock (lockConnectionSettings) {
-                if (needReconnect == RECONNECT.NEW) // если перед приходом в данную точку повторно были изменены настройки, то подключения со старыми настройками не делаем
+                if (IsNeedReconnectNew == true) // если перед приходом в данную точку повторно были изменены настройки, то подключения со старыми настройками не делаем
                     return false;
                 else
                     ;
@@ -273,7 +273,7 @@ namespace ASUTP.Database {
 
             try {
                 if (bRes == true) {
-                    if (needReconnect == RECONNECT.HARD) {
+                    if (IsNeedReconnectHard == true) {
                         m_dbAdapter.FillError -= new FillErrorEventHandler(getData_OnFillError); m_dbAdapter.SelectCommand = null; m_dbAdapter.Dispose(); m_dbAdapter = null;
                         m_dbCommand.Connection = null; m_dbCommand.Dispose(); m_dbCommand = null;
 
@@ -301,6 +301,28 @@ namespace ASUTP.Database {
             return bRes;
         }
 
+        public override bool EqualeConnectionSettings(object cs)
+        {
+            return ((ConnectionSettings)m_connectionSettings).id == ((ConnectionSettings)cs).id
+            && ((ConnectionSettings)m_connectionSettings).server == ((ConnectionSettings)cs).server
+            && ((ConnectionSettings)m_connectionSettings).instance == ((ConnectionSettings)cs).instance
+            && ((ConnectionSettings)m_connectionSettings).port == ((ConnectionSettings)cs).port
+            && ((ConnectionSettings)m_connectionSettings).dbName == ((ConnectionSettings)cs).dbName
+            && ((ConnectionSettings)m_connectionSettings).userName == ((ConnectionSettings)cs).userName
+            && ((ConnectionSettings)m_connectionSettings).password == ((ConnectionSettings)cs).password
+            //&& ((ConnectionSettings)m_connectionSettings).ignore == ((ConnectionSettings)cs).ignore
+            ;
+        }
+
+        public override bool IsEmptyConnectionSettings
+        {
+            get
+            {
+                return string.IsNullOrEmpty(((ConnectionSettings)m_connectionSettings).server) == true
+                    || string.IsNullOrEmpty(((ConnectionSettings)m_connectionSettings).userName) == true;
+            }
+        }
+
         /// <summary>
         /// Установить параметры соединения с источником данных
         /// </summary>
@@ -309,6 +331,8 @@ namespace ASUTP.Database {
         public override void SetConnectionSettings (object cs, bool bStarted)
         {
             lock (lockConnectionSettings) {
+                setConnectionSettings(cs);
+
                 ((ConnectionSettings)m_connectionSettings).id = ((ConnectionSettings)cs).id;
                 ((ConnectionSettings)m_connectionSettings).server = ((ConnectionSettings)cs).server;
                 ((ConnectionSettings)m_connectionSettings).instance = ((ConnectionSettings)cs).instance;
@@ -317,15 +341,11 @@ namespace ASUTP.Database {
                 ((ConnectionSettings)m_connectionSettings).userName = ((ConnectionSettings)cs).userName;
                 ((ConnectionSettings)m_connectionSettings).password = ((ConnectionSettings)cs).password;
                 //((ConnectionSettings)m_connectionSettings).ignore = ((ConnectionSettings)cs).ignore;
-
-                needReconnect = (needReconnect == RECONNECT.NOT_REQ)
-                    ? RECONNECT.SOFT
-                        : RECONNECT.NEW;
             }
 
             if (bStarted == true)
                 //base.SetConnectionSettings (cs); //базовой function 'cs' не нужен
-                SetConnectionSettings ();
+                setConnectionSettings ();
             else
                 ;
         }
@@ -403,6 +423,8 @@ namespace ASUTP.Database {
         /// <returns>Признак получения результата</returns>
         protected override bool GetData (DataTable table, object query)
         {
+            //Thread.Sleep(Timeout * 1000);
+
             if (m_dbConnection.State != ConnectionState.Open)
                 return false;
             else
@@ -576,7 +598,7 @@ namespace ASUTP.Database {
         {
             err = (int)Error.NO_ERROR;
 
-            needReconnect = RECONNECT.SOFT;
+            // проверить значение _needReconnect: для для синхронных операций ВСЕГДА = 'SOFT' (из конструктора)
             bool bRes = Connect ();
 
             if (bRes == true)
