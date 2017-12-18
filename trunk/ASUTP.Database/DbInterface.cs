@@ -179,6 +179,9 @@ namespace ASUTP.Database {
                             : (((string)requestDB).StartsWith ("INSERT", StringComparison.InvariantCultureIgnoreCase) == false)
                                 && (((string)requestDB).StartsWith ("UPDATE", StringComparison.InvariantCultureIgnoreCase) == false)
                                 && (((string)requestDB).StartsWith ("DELETE", StringComparison.InvariantCultureIgnoreCase) == false)
+                                && (((string)requestDB).StartsWith ("TRUNCATE", StringComparison.InvariantCultureIgnoreCase) == false)
+                                && (((string)requestDB).StartsWith ("MERGE", StringComparison.InvariantCultureIgnoreCase) == false)
+                                && (((string)requestDB).StartsWith ("EXECUTE", StringComparison.InvariantCultureIgnoreCase) == false)
                                 ? 1
                                     : 0;
 
