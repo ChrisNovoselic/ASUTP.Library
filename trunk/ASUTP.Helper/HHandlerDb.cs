@@ -23,32 +23,34 @@ namespace ASUTP.Helper
         void ErrorReport(string msg);
         void ReportClear(bool bClear);
         void Request(int idListener, string request);
-        void SetDelegateReport(DelegateStringFunc ferr, DelegateStringFunc fwar, DelegateStringFunc fact, DelegateBoolFunc fclr);
-        void SetDelegateWait(DelegateFunc dStart, DelegateFunc dStop, DelegateFunc dStatus);
+        void SetDelegateReport(Action<string> ferr, Action<string> fwar, Action<string> fact, Action<bool> fclr);
+        void SetDelegateWait(Action dStart, Action dStop, Action dStatus);
         void StartDbInterfaces();
         void Stop();
         void StopDbInterfaces();
         void WarningReport(string msg);
     }
 
+    /// <summary>
+    /// Класс отправления, обработки результатов запросов к источникам данных
+    /// </summary>
     public abstract class HHandlerDb : HHandler, ASUTP.Helper.IHHandlerDb {
         /// <summary>
-        /// Делегат функции оповещения о выполняемой операции (выполнение)
+        /// Делегат функции оповещения о выполняемой операции (выполнение, завершение, обновление состояния)
         /// </summary>
-        protected DelegateFunc delegateStartWait;
+        protected Action delegateStartWait
+            , delegateStopWait
+            , delegateEventUpdate;
         /// <summary>
-        /// Делегат функции оповещения о выполняемой операции (завершение)
+        /// Делегаты размещения сообщений в строке состояния (ошибкаб предупреждение, действие, очистить строку состояния)
         /// </summary>
-        protected DelegateFunc delegateStopWait;
+        protected Action<string> errorReport
+            , warningReport
+            , actionReport;
         /// <summary>
-        /// Делегат функции оповещения о выполняемой операции (обновление состояния)
+        /// Делегат очистки строки состояния
         /// </summary>
-        protected DelegateFunc delegateEventUpdate;
-
-        protected DelegateStringFunc errorReport;
-        protected DelegateStringFunc warningReport;
-        protected DelegateStringFunc actionReport;
-        protected DelegateBoolFunc clearReportStates;
+        protected Action<bool> clearReportStates;
         /// <summary>
         /// Идентификатор (текущий) соединения с источником информации при выполнении запроса
         /// </summary>
@@ -65,7 +67,8 @@ namespace ASUTP.Helper
         {
             //Словарь идентификаторов соединения с источником информации - пустой
             m_dictIdListeners = new Dictionary<int,int[]> ();
-        }        
+        }
+
         /// <summary>
         /// Регистрация источника информации с наименованием по ключю, типу, параметрами соединения
         /// </summary>
@@ -79,10 +82,12 @@ namespace ASUTP.Helper
             m_dictIdListeners[id][indx] = DbSources.Sources().Register(connSett, true, strDesc);
             //Console.WriteLine (@"HHandlerDb::register (" + strDesc + @") - iListenerId=" + m_dictIdListeners[id][indx]);
         }
+
         /// <summary>
         /// Старт обработки запросов
         /// </summary>
         public abstract void StartDbInterfaces();
+
         /// <summary>
         /// Остановить обрабртку запросов
         /// </summary>
@@ -104,6 +109,7 @@ namespace ASUTP.Helper
                 //Вообще нельзя что-либо инициализировать
                 Logging.Logg().Error(@"HHandlerDb::stopDbInterfaces () - m_dictIdListeners == null ...", Logging.INDEX_MESSAGE.NOT_SET);
         }
+
         /// <summary>
         /// Остановить обрабртку запросов
         /// </summary>
@@ -111,26 +117,28 @@ namespace ASUTP.Helper
         {
             stopDbInterfaces();
         }
+
         /// <summary>
         /// Установить делегаты оповещения о выполняемой операции
         /// </summary>
-        /// <param name="dStart">Делегат (выполнение)</param>
-        /// <param name="dStop"></param>
+        /// <param name="dStart">Делегат (начало выполнение)</param>
+        /// <param name="dStop">Делегат (окончание выполнения)</param>
         /// <param name="dStatus"></param>
-        public void SetDelegateWait(DelegateFunc dStart, DelegateFunc dStop, DelegateFunc dStatus)
+        public void SetDelegateWait(Action dStart, Action dStop, Action dStatus)
         {
             this.delegateStartWait = dStart;
             this.delegateStopWait = dStop;
             this.delegateEventUpdate = dStatus;
         }
+
         /// <summary>
         /// Установить делегаты оповещения о результатах выполнения опрерации
         /// </summary>
-        /// <param name="ferr"></param>
-        /// <param name="fwar"></param>
-        /// <param name="fact"></param>
-        /// <param name="fclr"></param>
-        public void SetDelegateReport(DelegateStringFunc ferr, DelegateStringFunc fwar, DelegateStringFunc fact, DelegateBoolFunc fclr)
+        /// <param name="ferr">Делегат (ошибка)</param>
+        /// <param name="fwar">Делегат (предупреждение)</param>
+        /// <param name="fact">Делегат (действие)</param>
+        /// <param name="fclr">Делегат (очичтить строку состояния)</param>
+        public void SetDelegateReport(Action<string> ferr, Action<string> fwar, Action<string> fact, Action<bool> fclr)
         {
             this.errorReport = ferr;
             this.warningReport = fwar;
@@ -145,13 +153,23 @@ namespace ASUTP.Helper
             Logging.Logg().Error(msg, Logging.INDEX_MESSAGE.NOT_SET);
         }
 
-        //protected abstract bool InitDbInterfaces ();
-
+        /// <summary>
+        /// Отправить запрос к источнику данных
+        /// </summary>
+        /// <param name="idListener">Идентификатор подписчика обработки запросов</param>
+        /// <param name="request">Содержание запроса</param>
         public void Request(int idListener, string request)
         {
             DbSources.Sources().Request(m_IdListenerCurrent = idListener, request);
         }
 
+        /// <summary>
+        /// Принять результат выполнения запроса
+        /// </summary>
+        /// <param name="idListener">Идентификатор подписчика обработки запросов</param>
+        /// <param name="error">Признак ошибки при выполнении запроса</param>
+        /// <param name="outobj">Таблица - результат запроса</param>
+        /// <returns>Результат обработки результатат запроса</returns>
         protected virtual int response(int idListener, out bool error, out object outobj/*, bool bIsTec*/)
         {
             //return DbSources.Sources().Response(idListener, out error, out table);
@@ -164,6 +182,12 @@ namespace ASUTP.Helper
             return iRes;
         }
 
+        /// <summary>
+        /// Принять результат выполнения запроса
+        /// </summary>
+        /// <param name="error">Признак ошибки при выполнении запроса</param>
+        /// <param name="outobj">Таблица - результат запроса</param>
+        /// <returns>Результат обработки результатат запроса</returns>
         protected int response(out bool error, out object outobj/*, bool bIsTec*/)
         {
             return response(m_IdListenerCurrent, out error, out outobj);
@@ -192,26 +216,26 @@ namespace ASUTP.Helper
             StopDbInterfaces ();
             
             base.Stop ();
-        }        
+        }
+
         /// <summary>
         /// Отправляет запрос на получение текущего времени сервера ~ типа СУБД
         /// </summary>
         /// <param name="typeDB">Тип СУБД</param>
-        /// <param name="idListatener">Активный идентификатор соединения с БД</param>
+        /// <param name="idListener">Активный идентификатор соединения с БД</param>
         protected void GetCurrentTimeRequest(DbInterface.DB_TSQL_INTERFACE_TYPE typeDB, int idListener)
         {
             string query = string.Empty;
 
-            switch (typeDB)
-            {
+            switch (typeDB) {
                 case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
-                    query = @"SELECT now()";
+                    query = @"SELECT LOCALTIMESTAMP(), UTC_TIMESTAMP()";
                     break;
                 case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
-                    query = @"SELECT GETDATE()";
+                    query = @"SELECT GETDATE(), GETUTCDATE()";
                     break;
                 case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
-                    query = @"SELECT SYSTIMESTAMP FROM dual";
+                    query = @"SELECT SYSTIMESTAMP, SYS_EXTRACT_UTC(SYSTIMESTAMP)UTC_SYS FROM dual";
                     break;
                 default:
                     break;
@@ -222,6 +246,7 @@ namespace ASUTP.Helper
             else
                 ;
         }
+
         /// <summary>
         /// Передать строку сообщения с ошибкой для отображения
         /// </summary>
@@ -233,6 +258,7 @@ namespace ASUTP.Helper
             else
                 ;
         }
+
         /// <summary>
         /// Передать строку сообщения с предупреждением для отображения
         /// </summary>
@@ -245,6 +271,7 @@ namespace ASUTP.Helper
             else
                 ;
         }
+
         /// <summary>
         /// Передать строку сообщения с описанием действия для отображения
         /// </summary>
@@ -257,6 +284,7 @@ namespace ASUTP.Helper
             else
                 ;
         }
+
         /// <summary>
         /// Очистить все переданные ранее сообщения для отображения
         /// </summary>

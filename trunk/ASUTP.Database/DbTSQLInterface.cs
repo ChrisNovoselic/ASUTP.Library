@@ -301,6 +301,11 @@ namespace ASUTP.Database {
             return bRes;
         }
 
+        /// <summary>
+        /// Сравнить объекты с параметрами соединения с БД
+        /// </summary>
+        /// <param name="cs">Объект с параметрами соединения для </param>
+        /// <returns></returns>
         public override bool EqualeConnectionSettings(object cs)
         {
             return ((ConnectionSettings)m_connectionSettings).id == ((ConnectionSettings)cs).id
