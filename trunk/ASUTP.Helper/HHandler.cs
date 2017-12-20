@@ -331,14 +331,14 @@ namespace ASUTP.Helper
                             }
                         }
 
-                        if (requestSent == 0)
+                        if (!(requestSent < 0))
                         {
                             if ((requestDone == 0)
                                 && (error == false)
                                 && (newState == false))
                                 responseReceived = StateResponse(currentState, objRes);
                             else
-                                responseReceived = -1;
+                                responseReceived = requestSent == 0 ? -1 : 1;
 
                             if (responseReceived == -102)
                                 //Для алгоритма сигнализации 'TecView::AlarmEventRegistred () - ...'

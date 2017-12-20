@@ -219,6 +219,32 @@ namespace ASUTP.Helper
         }
 
         /// <summary>
+        /// Возвратить содержание запроса для получения текущих даты/времени сервера
+        /// </summary>
+        /// <param name="typeDB">Тип БД</param>
+        /// <returns>Содержание запроса для получения текущих даты/времени сервера</returns>
+        protected string GetCurrentTimeQuery (DbInterface.DB_TSQL_INTERFACE_TYPE typeDB)
+        {
+            string strRes = string.Empty;
+
+            switch (typeDB) {
+                case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
+                    strRes = @"SELECT LOCALTIMESTAMP(), UTC_TIMESTAMP()";
+                    break;
+                case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
+                    strRes = @"SELECT GETDATE(), GETUTCDATE()";
+                    break;
+                case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
+                    strRes = @"SELECT SYSTIMESTAMP, SYS_EXTRACT_UTC(SYSTIMESTAMP)UTC_SYS FROM dual";
+                    break;
+                default:
+                    break;
+            }
+
+            return strRes;
+        }
+
+        /// <summary>
         /// Отправляет запрос на получение текущего времени сервера ~ типа СУБД
         /// </summary>
         /// <param name="typeDB">Тип СУБД</param>
@@ -227,19 +253,7 @@ namespace ASUTP.Helper
         {
             string query = string.Empty;
 
-            switch (typeDB) {
-                case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
-                    query = @"SELECT LOCALTIMESTAMP(), UTC_TIMESTAMP()";
-                    break;
-                case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
-                    query = @"SELECT GETDATE(), GETUTCDATE()";
-                    break;
-                case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
-                    query = @"SELECT SYSTIMESTAMP, SYS_EXTRACT_UTC(SYSTIMESTAMP)UTC_SYS FROM dual";
-                    break;
-                default:
-                    break;
-            }
+            query = GetCurrentTimeQuery (typeDB);
 
             if (query.Equals(string.Empty) == false)
                 Request(idListener, query);
@@ -262,7 +276,7 @@ namespace ASUTP.Helper
         /// <summary>
         /// Передать строку сообщения с предупреждением для отображения
         /// </summary>
-        /// <param name="msg"></param>
+        /// <param name="msg">Строка-содержание предупреждения</param>
         public void WarningReport(string msg)
         {
             if (!(warningReport == null))
@@ -275,7 +289,7 @@ namespace ASUTP.Helper
         /// <summary>
         /// Передать строку сообщения с описанием действия для отображения
         /// </summary>
-        /// <param name="msg"></param>
+        /// <param name="msg">Строка-содержание действия</param>
         public void ActionReport(string msg)
         {
             if (! (actionReport == null))
@@ -288,7 +302,7 @@ namespace ASUTP.Helper
         /// <summary>
         /// Очистить все переданные ранее сообщения для отображения
         /// </summary>
-        /// <param name="bClear"></param>
+        /// <param name="bClear">Признак немедленной очистки строки состояния</param>
         public void ReportClear (bool bClear)
         {
             if (!(clearReportStates == null))
