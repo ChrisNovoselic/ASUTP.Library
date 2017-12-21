@@ -57,10 +57,12 @@ namespace ASUTP.Forms {
         //private bool _focused;
         private Form _parent;
         private ParameterizedThreadStart _parameterizedThreadStart;
+
         /// <summary>
         /// Получить объект из внешенго кода
         /// </summary>
         public static FormWait This { get { if (_this == null) _this = new FormWait(); else ; return _this; } }
+
         /// <summary>
         /// Конструктор - основной (без параметров)
         /// </summary>
@@ -91,6 +93,7 @@ namespace ASUTP.Forms {
             //FormClosed += new FormClosedEventHandler(FormWait_FormClosed);
             //this.HandleDestroyed += new EventHandler(FormWait_HandleDestroyed);
         }
+
         /// <summary>
         /// Вызвать на отображение окно
         /// </summary>
@@ -129,6 +132,7 @@ namespace ASUTP.Forms {
                     ;
             }
         }
+
         /// <summary>
         /// Снять с отображения окно
         /// </summary>
@@ -226,6 +230,7 @@ namespace ASUTP.Forms {
                     ;
             }
         }
+
         ///// <summary>
         ///// Обработчик события - 
         ///// </summary>

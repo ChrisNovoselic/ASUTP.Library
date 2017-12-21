@@ -9,8 +9,14 @@ using ASUTP.Database;
 using ASUTP;
 using ASUTP.Core;
 
+/// <summary>
+/// Пространство для классов по организации обработки состояний/событий
+/// </summary>
 namespace ASUTP.Helper
 {
+    /// <summary>
+    /// Класс - базовый для обработки состояний/событий
+    /// </summary>
     public abstract class HHandler : object
     {
         /// <summary>
@@ -28,7 +34,11 @@ namespace ASUTP.Helper
         /// <summary>
         /// Индексы для массива объектов синхронизации
         /// </summary>
-        public enum INDEX_WAITHANDLE_REASON { SUCCESS, ERROR, BREAK, COUNT_INDEX_WAITHANDLE_REASON }
+        public enum INDEX_WAITHANDLE_REASON {
+            SUCCESS
+            , ERROR
+            , BREAK
+                , COUNT_INDEX_WAITHANDLE_REASON }
         /// <summary>
         /// Массив объектов синхронизации
         /// </summary>

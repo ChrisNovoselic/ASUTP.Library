@@ -23,8 +23,8 @@ namespace ASUTP.Helper
         void ErrorReport(string msg);
         void ReportClear(bool bClear);
         void Request(int idListener, string request);
-        void SetDelegateReport(Action<string> ferr, Action<string> fwar, Action<string> fact, Action<bool> fclr);
-        void SetDelegateWait(Action dStart, Action dStop, Action dStatus);
+        void SetDelegateReport(DelegateStringFunc ferr, DelegateStringFunc fwar, DelegateStringFunc fact, DelegateBoolFunc fclr);
+        void SetDelegateWait(DelegateFunc dStart, DelegateFunc dStop, DelegateFunc dStatus);
         void StartDbInterfaces();
         void Stop();
         void StopDbInterfaces();
@@ -38,19 +38,19 @@ namespace ASUTP.Helper
         /// <summary>
         /// Делегат функции оповещения о выполняемой операции (выполнение, завершение, обновление состояния)
         /// </summary>
-        protected Action delegateStartWait
+        protected DelegateFunc delegateStartWait
             , delegateStopWait
             , delegateEventUpdate;
         /// <summary>
         /// Делегаты размещения сообщений в строке состояния (ошибкаб предупреждение, действие, очистить строку состояния)
         /// </summary>
-        protected Action<string> errorReport
+        protected DelegateStringFunc errorReport
             , warningReport
             , actionReport;
         /// <summary>
         /// Делегат очистки строки состояния
         /// </summary>
-        protected Action<bool> clearReportStates;
+        protected DelegateBoolFunc clearReportStates;
         /// <summary>
         /// Идентификатор (текущий) соединения с источником информации при выполнении запроса
         /// </summary>
@@ -124,7 +124,7 @@ namespace ASUTP.Helper
         /// <param name="dStart">Делегат (начало выполнение)</param>
         /// <param name="dStop">Делегат (окончание выполнения)</param>
         /// <param name="dStatus"></param>
-        public void SetDelegateWait(Action dStart, Action dStop, Action dStatus)
+        public void SetDelegateWait(DelegateFunc dStart, DelegateFunc dStop, DelegateFunc dStatus)
         {
             this.delegateStartWait = dStart;
             this.delegateStopWait = dStop;
@@ -138,7 +138,7 @@ namespace ASUTP.Helper
         /// <param name="fwar">Делегат (предупреждение)</param>
         /// <param name="fact">Делегат (действие)</param>
         /// <param name="fclr">Делегат (очичтить строку состояния)</param>
-        public void SetDelegateReport(Action<string> ferr, Action<string> fwar, Action<string> fact, Action<bool> fclr)
+        public void SetDelegateReport(DelegateStringFunc ferr, DelegateStringFunc fwar, DelegateStringFunc fact, DelegateBoolFunc fclr)
         {
             this.errorReport = ferr;
             this.warningReport = fwar;
