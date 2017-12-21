@@ -464,21 +464,22 @@ namespace ASUTP.Database {
         /// <returns>Строка соединения СУБД Oracle</returns>
         public string GetConnectionStringOracle ()
         {
-            OracleConnectionStringBuilder csb = new OracleConnectionStringBuilder ();
+            //OracleConnectionStringBuilder csb = new OracleConnectionStringBuilder ();
 
             return
-                //@"Provider=OraOLEDB.Oracle"
-                //+ @"; host=" + server + @":" + port
-                //+ @"; Data Source=" + dbName
-                //+ @"; User Id=" + userName
-                //+ @"; Password=" + password
-                //+ @"; OLEDB.NET=True;"
-                csb.DataSource = dbName;
-                csb.UserID = userName;
-                csb.Password = password;
+                @"Provider=OraOLEDB.Oracle"
+                + @"; host=" + server + @":" + port
+                + @"; Data Source=" + dbName
+                + @"; User Id=" + userName
+                + @"; Password=" + password
+                + @"; OLEDB.NET=True;"
+                ////??? не работает (нет 'server', 'port')
+                //csb.DataSource = dbName;
+                //csb.UserID = userName;
+                //csb.Password = password;
                 ;
 
-            return csb.ConnectionString;
+            //return csb.ConnectionString;
         }
     }
 }
