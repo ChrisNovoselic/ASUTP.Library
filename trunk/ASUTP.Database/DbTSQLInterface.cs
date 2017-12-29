@@ -249,8 +249,9 @@ namespace ASUTP.Database {
                 } else
                     ;
             } else {
-                needConnect = Equals (_dbConnectionLeaving, null)
-                    && !(_dbConnectionLeaving.State == ConnectionState.Open);
+                needConnect = (Equals (_dbConnectionLeaving, null) == true)
+                    || ((Equals (_dbConnectionLeaving, null) == true)
+                        && !(_dbConnectionLeaving.State == ConnectionState.Open));
             }
 
             if (needConnect == true)
