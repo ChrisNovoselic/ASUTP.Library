@@ -181,17 +181,82 @@ namespace ASUTP.Database {
             return bRes;
         }
 
+        #region Mode
+
+        /// <summary>
+        /// Перечисление - возможные режимы разрыва соединения при вызове статических методов обращения к БД
+        /// </summary>
+        public enum ModeStaticConnectionLeaving {
+            /// <summary>
+            /// Разрывать соединение
+            /// </summary>
+            No
+            /// <summary>
+            /// Оставлять соединение, ожидая что выполняется группа запросов
+            ///  , разрыв соединения при изменении режима на 'No'
+            /// </summary>
+            , Yes
+        }
+
+        private static DbConnection _dbConnectionLeaving;
+
+        private static DateTime _datetimeDbConnectionLeaving;
+
+        private static ModeStaticConnectionLeaving _modeStaticConnectionLeave;
+        /// <summary>
+        /// Режим разрыва соединения при вызове статических методов обращения к БД
+        /// </summary>
+        public static ModeStaticConnectionLeaving ModeStaticConnectionLeave
+        {
+            get
+            {
+                return _modeStaticConnectionLeave;
+            }
+
+            set
+            {
+                Error err = Error.NO_ERROR;
+
+                if (value == ModeStaticConnectionLeaving.Yes) {
+                    _datetimeDbConnectionLeaving = DateTime.UtcNow;
+                } else
+                    if (Equals(_dbConnectionLeaving, null) == false)
+                        disconnect(ref _dbConnectionLeaving, out err);
+                    else
+                        ;
+
+                _modeStaticConnectionLeave = value;
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// Установить соединение
         /// </summary>
         /// <param name="connSett">Параметры соединения с БД</param>
         /// <param name="err">Признак ошибкт при установке соединения</param>
         /// <returns>Признак установки соединения</returns>
-        private static DbConnection connect (ConnectionSettings connSett, out Error err)
+        private static void connect (ConnectionSettings connSett, out Error err)
         {
             err = Error.NO_ERROR;
 
-            return createDbConnection (getTypeDB (connSett));
+            bool needConnect = true;
+
+            if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
+                if (Equals (_dbConnectionLeaving, null) == false) {
+                    disconnect (ref _dbConnectionLeaving, out err);
+                } else
+                    ;
+            } else {
+                needConnect = Equals (_dbConnectionLeaving, null)
+                    && !(_dbConnectionLeaving.State == ConnectionState.Open);
+            }
+
+            if (needConnect == true)
+                _dbConnectionLeaving = createDbConnection (getTypeDB (connSett));
+            else
+                ;
         }
 
         /// <summary>
@@ -203,7 +268,15 @@ namespace ASUTP.Database {
         {
             err = Error.NO_ERROR;
 
-            conn.Close ();
+            if (Equals (conn, null) == false) {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close ();
+                else
+                    ;
+
+                conn = null;
+            } else
+                ;
         }
 
         /// <summary>
@@ -834,16 +907,18 @@ namespace ASUTP.Database {
             DataTable tableRes;
             er = 0;
 
-            Error err;
-            DbConnection conn;
+            Error err = Error.NO_ERROR;
 
-            conn = connect (connSett, out err);
+            connect (connSett, out err);
 
             if (err == Error.NO_ERROR) {
-                tableRes = Select (ref conn, query, null, null, out er);
+                tableRes = Select (ref _dbConnectionLeaving, query, null, null, out er);
                 err = (Error)er;
 
-                disconnect (ref conn, out err);
+                if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
+                    disconnect (ref _dbConnectionLeaving, out err);
+                } else
+                ;
             } else
                 tableRes = new DataTable ();
 
@@ -1075,14 +1150,15 @@ namespace ASUTP.Database {
             er = 0;
             Error err;
 
-            DbConnection conn;
-
-            conn = connect (connSett, out err);
+            connect (connSett, out err);
 
             if (err == Error.NO_ERROR) {
-                ExecNonQuery (ref conn, query, null, null, out er);
+                ExecNonQuery (ref _dbConnectionLeaving, query, null, null, out er);
 
-                disconnect (ref conn, out err);
+                if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No)
+                    disconnect (ref _dbConnectionLeaving, out err);
+                else
+                    ;
             } else
                 ;
 
