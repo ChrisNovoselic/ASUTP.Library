@@ -241,23 +241,39 @@ namespace ASUTP.Database {
         {
             err = Error.NO_ERROR;
 
-            bool needConnect = true;
+            bool needCreate = true
+                , needConnect = true;
+
+            needCreate = Equals (_dbConnectionLeaving, null);
 
             if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
-                if (Equals (_dbConnectionLeaving, null) == false) {
+                if (needCreate == false) {
                     disconnect (ref _dbConnectionLeaving, out err);
                 } else
                     ;
             } else {
-                needConnect = (Equals (_dbConnectionLeaving, null) == true)
-                    || ((Equals (_dbConnectionLeaving, null) == true)
-                        && !(_dbConnectionLeaving.State == ConnectionState.Open));
+                if (needCreate == false)
+                    needConnect = !(_dbConnectionLeaving.State == ConnectionState.Open);
+                else
+                    ;
             }
 
-            if (needConnect == true)
-                _dbConnectionLeaving = createDbConnection (getTypeDB (connSett));
-            else
-                ;
+            try {
+                if (needCreate == true) {
+                    _dbConnectionLeaving = createDbConnection (getTypeDB (connSett));
+                    _dbConnectionLeaving.ConnectionString = connSett.GetConnectionString (getTypeDB (connSett));
+                } else
+                    ;
+
+                if (needConnect == true)
+                    _dbConnectionLeaving.Open ();
+                else
+                    ;
+
+                err = _dbConnectionLeaving.State == ConnectionState.Open ? Error.NO_ERROR : Error.DBCONN_NOT_OPEN;
+            } catch (Exception e) {
+                logging_catch_db (_dbConnectionLeaving, e);
+            }
         }
 
         /// <summary>
@@ -320,22 +336,7 @@ namespace ASUTP.Database {
                 else
                     ;
 
-                switch (m_connectionType) {
-                    case DB_TSQL_INTERFACE_TYPE.MSSQL:
-                        conn_str = ((ConnectionSettings)m_connectionSettings).GetConnectionStringMSSQL();
-                        break;
-                    case DB_TSQL_INTERFACE_TYPE.MySQL:
-                        conn_str = ((ConnectionSettings)m_connectionSettings).GetConnectionStringMySQL ();
-                        break;
-                    case DB_TSQL_INTERFACE_TYPE.Oracle:
-                        conn_str = ((ConnectionSettings)m_connectionSettings).GetConnectionStringOracle ();
-                        break;
-                    case DB_TSQL_INTERFACE_TYPE.MSExcel:
-                        //conn_str = ConnectionSettings.GetConnectionStringExcel ();
-                        break;
-                    default:
-                        break;
-                }
+                conn_str = ((ConnectionSettings)m_connectionSettings).GetConnectionString (m_connectionType);
 
                 bRes = !(string.IsNullOrEmpty (conn_str));
 
@@ -1430,6 +1431,42 @@ namespace ASUTP.Database {
         public static bool IsConnected (ref DbConnection obj)
         {
             return (!(obj == null)) && (!(obj.State == ConnectionState.Closed)) && (!(obj.State == ConnectionState.Broken));
+        }
+    }
+
+    /// <summary>
+    /// Класс расширение для 'class ConnectionSettings'
+    /// </summary>
+    public static class ConnectionSettingsExtension
+    {
+        /// <summary>
+        /// Возвратить строку соединения СУБД в ~ от аргумента
+        /// </summary>
+        /// <param name="connSett">Объект с параметрами соединения</param>
+        /// <param name="type">Тип СУБД</param>
+        /// <returns>Строка соединения СУБД</returns>
+        public static string GetConnectionString (this ConnectionSettings connSett, DbTSQLInterface.DB_TSQL_INTERFACE_TYPE type)
+        {
+            string strRes = string.Empty;
+
+            switch (type) {
+                case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
+                    strRes = connSett.GetConnectionStringMSSQL ();
+                    break;
+                case DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
+                    strRes = connSett.GetConnectionStringMySQL ();
+                    break;
+                case DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
+                    strRes = connSett.GetConnectionStringOracle ();
+                    break;
+                case DbTSQLInterface.DB_TSQL_INTERFACE_TYPE.MSExcel:
+                    //conn_str = GetConnectionStringExcel ();
+                    break;
+                default:
+                    break;
+            }
+
+            return strRes;
         }
     }
 }
