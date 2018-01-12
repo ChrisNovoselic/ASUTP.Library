@@ -401,6 +401,9 @@ namespace ASUTP.Database {
             return idReg;
         }
 
+        /// <summary>
+        /// Отменить регитсрацию всех подписчиков
+        /// </summary>
         public void UnRegister ()
         {
             List<int> keys = new List<int> ();
@@ -411,21 +414,11 @@ namespace ASUTP.Database {
                 UnRegister (id);
         }
 
-        ///// <summary>
-        ///// Отмена регистрации клиента соединения
-        ///// </summary>
-        ///// <param name="id">зарегистрированный идентификатор</param>
-        //public void UnRegister(int id)
-        //{
-        //    m_queueToUnRegistered.Enqueue(id);
-
-        //    m_arSyncProc[(int)INDEX_SYNCHRONIZE.UNREGISTER].Set();
-
-        //    m_arEvtComleted[(int)INDEX_SYNCHRONIZE.UNREGISTER - 1].WaitOne();
-        //}
-
+        /// <summary>
+        /// Отменить регистрацию подписчика по идентификатору
+        /// </summary>
+        /// <param name="id">Идентификатор подписчика - активного соединения с БД</param>
         public void UnRegister (int id)
-        //private void unRegister(int id)
         {
             int err = -1;
 
@@ -436,21 +429,11 @@ namespace ASUTP.Database {
                     if (!(m_dictDbInterfaces [m_dictListeners [id].idDbInterface].ListenerCount > 0)) {
                         m_dictDbInterfaces [m_dictListeners [id].idDbInterface].Stop ();
 
-                        ////Вариант №1
-                        //m_dictDbInterfaces.Remove(m_dictListeners[id].idDbInterface);
-                        //if (m_dictListeners[id].dbConn == null)
-                        //{
-                        //}
-                        //else
-                        //{
-                        //    DbTSQLInterface.closeConnection(ref m_dictListeners[id].dbConn, out err);                                
-                        //}
-
-                        //Вариант №2
                         m_dictDbInterfaces [m_dictListeners [id].idDbInterface].Disconnect (out err);
-                        if (!(m_dictListeners [id].dbConn == null))
+                        if (Equals (m_dictListeners [id].dbConn, null) == false)
                             if (!(m_dictListeners [id].dbConn.State == ConnectionState.Closed))
-                                ; //Ошибка ???
+                                Logging.Logg ().Warning ($"DbSources::UnRegister (идентификатор={id}) - состояние объекта соединения \"Открыто\"..."
+                                    , Logging.INDEX_MESSAGE.NOT_SET);
                             else
                                 m_dictListeners [id].dbConn = null;
                         else
@@ -506,6 +489,7 @@ namespace ASUTP.Database {
 
             return iRes;
         }
+
         /// <summary>
         /// Возвратить объект установленного соединения для указанного идентификатора
         /// </summary>
@@ -518,10 +502,12 @@ namespace ASUTP.Database {
             err = -1;
 
             //lock (m_objDictListeners) {
-            if ((m_dictListeners.ContainsKey (id) == true) && (!(m_dictListeners [id].dbConn == null))) {
+            if ((m_dictListeners.ContainsKey (id) == true)
+                && (!(m_dictListeners [id].dbConn == null))) {
                 res = m_dictListeners [id].dbConn;
 
-                err = (res.State == ConnectionState.Broken) || (res.State == ConnectionState.Closed) ? -2 : 0;
+                err = (res.State == ConnectionState.Broken)
+                    || (res.State == ConnectionState.Closed) ? -2 : 0;
             } else
                 ;
             //}

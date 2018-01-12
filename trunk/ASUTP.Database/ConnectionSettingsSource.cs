@@ -15,14 +15,8 @@ namespace ASUTP.Database
     /// </summary>
     public class ConnectionSettingsSource
     {
-        /// <summary>
-        /// Идентификатор БД конфигурации
-        /// </summary>
-        private int m_idListener;
-
-        public ConnectionSettingsSource (int idListener)
+        public ConnectionSettingsSource ()
         {
-            m_idListener = idListener;
         }
 
         /// <summary>
@@ -38,7 +32,6 @@ namespace ASUTP.Database
         /// <summary>
         /// Запрос пароля (шифрованного для 2.Х.Х и не шифрованного для 1.9.Х)
         /// </summary>
-        /// <param name="typeDB_CFG">тип базы данных конфигурации (1.9.Х/2.Х.Х)</param>
         /// <param name="id">идентификатор пользователя(роли) - часть составного ключа</param>
         /// <param name="id_role">роль пользователя (только для 2.Х.Х), "роль" источника данных 501</param>
         /// <returns>текст запроса</returns>
@@ -98,31 +91,42 @@ namespace ASUTP.Database
             return src;
         }
 
-        /*public static DataTable GetConnectionSettings (ConnectionSettings connSett, int id_ext, int id_role, out int er)
+        /// <summary>
+        /// Возвратить таблицу (!одна строка) с параметрами для устанвления соединения с БД
+        /// </summary>
+        /// <param name="iListenerId">Идентификатор актуального соединения с БД, в которой размещается информация о запрашиваемых параметрах (БД конфигурации)</param>
+        /// <param name="id_ext">Идентификатор источника данных (параметры для соединения с источником данных)</param>
+        /// <param name="id_role">Идентификатор типа источника данных</param>
+        /// <param name="er">Признак ошибки впри выполнении запроса значений</param>
+        /// <returns>Таблица (!одна строка) с параметрами соединения</returns>
+        public static DataTable GetConnectionSettings (int iListenerId, int id_ext, int id_role, out int er)
         {
-            er = 0;
+            DataTable tableRes = new DataTable ();
 
-            DataTable tableRes = DbTSQLInterface.Select(connSett, ConnectionSettingsRequest(id_ext), out er),
-                    tablePsw = DbTSQLInterface.Select(connSett, PasswordRequest(id_ext, id_role), out er);
+            DbConnection dbConn = DbSources.Sources ().GetConnection (iListenerId, out er);
 
-            return GetConnectionSettings (ref tableRes, 0, ref tablePsw, 0);
-        }*/
-
-        public static DataTable GetConnectionSettings(/*TYPE_DATABASE_CFG typeCfg,*/ int idListener, int id_ext, int id_role, out int er)
-        {
-            DbConnection conn = DbSources.Sources ().GetConnection (idListener, out er);
             if (er == 0)
-                return GetConnectionSettings (ref conn, id_ext, id_role, out er);
+                tableRes = GetConnectionSettings (ref dbConn, id_ext, id_role, out er);
             else
-                return null;
+                ;
+
+            return tableRes;
         }
 
+        /// <summary>
+        /// Возвратить таблицу (!одна строка) с параметрами для устанвления соединения с БД
+        /// </summary>
+        /// <param name="conn">Объект для соединения с БД, в которой размещается информация о запрашиваемых параметрах (БД конфигурации)</param>
+        /// <param name="id_ext">Идентификатор источника данных (параметры для соединения с источником данных)</param>
+        /// <param name="id_role">Идентификатор типа источника данных</param>
+        /// <param name="er">Признак ошибки впри выполнении запроса значений</param>
+        /// <returns>Таблица (!одна строка) с параметрами соединения</returns>
         public static DataTable GetConnectionSettings(ref DbConnection conn, int id_ext, int id_role, out int er)
         {
             er = 0;
 
-            DataTable tableRes = DbTSQLInterface.Select(ref conn, ConnectionSettingsRequest(id_ext), null, null, out er),
-                    tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(id_ext, id_role), null, null, out er);
+            DataTable tableRes = DbTSQLInterface.Select(ref conn, ConnectionSettingsRequest(id_ext), null, null, out er)
+                , tablePsw = DbTSQLInterface.Select(ref conn, PasswordRequest(id_ext, id_role), null, null, out er);
 
             if ((tableRes.Rows.Count > 0) && (tablePsw.Rows.Count > 0))
                 tableRes = GetConnectionSettings(ref tableRes, 0, ref tablePsw, 0);

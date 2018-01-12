@@ -181,7 +181,7 @@ namespace ASUTP.Database {
             return bRes;
         }
 
-        #region Mode
+        #region Mode - Статическое обращение к БД
 
         /// <summary>
         /// Перечисление - возможные режимы разрыва соединения при вызове статических методов обращения к БД
@@ -198,7 +198,9 @@ namespace ASUTP.Database {
             , Yes
         }
 
-        private static DbConnection _dbConnectionLeaving;
+        private static int _counterModeStaticConnectionLeaveChanged = -1;
+
+        private static int _iListenerIdLeaving;
 
         private static DateTime _datetimeDbConnectionLeaving;
 
@@ -219,11 +221,13 @@ namespace ASUTP.Database {
 
                 if (value == ModeStaticConnectionLeaving.Yes) {
                     _datetimeDbConnectionLeaving = DateTime.UtcNow;
-                } else
-                    if (Equals(_dbConnectionLeaving, null) == false)
-                        disconnect(ref _dbConnectionLeaving, out err);
-                    else
-                        ;
+
+                    _counterModeStaticConnectionLeaveChanged += _counterModeStaticConnectionLeaveChanged < 0 ? 2 : 1;
+                } else {
+                    _counterModeStaticConnectionLeaveChanged--;
+
+                    unregister (out err);
+                }
 
                 _modeStaticConnectionLeave = value;
             }
@@ -231,69 +235,96 @@ namespace ASUTP.Database {
 
         #endregion
 
-        /// <summary>
-        /// Установить соединение
-        /// </summary>
-        /// <param name="connSett">Параметры соединения с БД</param>
-        /// <param name="err">Признак ошибкт при установке соединения</param>
-        /// <returns>Признак установки соединения</returns>
-        private static void connect (ConnectionSettings connSett, out Error err)
-        {
-            err = Error.NO_ERROR;
+        ///// <summary>
+        ///// Установить соединение
+        ///// </summary>
+        ///// <param name="connSett">Параметры соединения с БД</param>
+        ///// <param name="err">Признак ошибкт при установке соединения</param>
+        ///// <returns>Признак установки соединения</returns>
+        //private static void connect (ConnectionSettings connSett, out Error err)
+        //{
+        //    err = Error.NO_ERROR;
 
-            bool needCreate = true
-                , needConnect = true;
+        //    bool needCreate = true
+        //        , needConnect = true;
 
-            needCreate = Equals (_dbConnectionLeaving, null);
+        //    needCreate = Equals (_dbConnectionLeaving, null);
 
-            if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
-                if (needCreate == false) {
-                    disconnect (ref _dbConnectionLeaving, out err);
-                } else
-                    ;
-            } else {
-                if (needCreate == false)
-                    needConnect = !(_dbConnectionLeaving.State == ConnectionState.Open);
-                else
-                    ;
-            }
+        //    if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
+        //        if (needCreate == false) {
+        //            disconnect (ref _dbConnectionLeaving, false, false, out err);
+        //        } else
+        //            ;
+        //    } else {
+        //        if (needCreate == false)
+        //            needConnect = !(_dbConnectionLeaving.State == ConnectionState.Open);
+        //        else
+        //            ;
+        //    }
 
-            try {
-                if (needCreate == true) {
-                    _dbConnectionLeaving = createDbConnection (getTypeDB (connSett));
-                    _dbConnectionLeaving.ConnectionString = connSett.GetConnectionString (getTypeDB (connSett));
-                } else
-                    ;
+        //    try {
+        //        if (needCreate == true) {
+        //            _dbConnectionLeaving = createDbConnection (getTypeDB (connSett));
+        //            _dbConnectionLeaving.ConnectionString = connSett.GetConnectionString (getTypeDB (connSett));
+        //        } else
+        //            ;
 
-                if (needConnect == true)
-                    _dbConnectionLeaving.Open ();
-                else
-                    ;
+        //        if (needConnect == true) {
+        //            _dbConnectionLeaving.Open ();
 
-                err = _dbConnectionLeaving.State == ConnectionState.Open ? Error.NO_ERROR : Error.DBCONN_NOT_OPEN;
-            } catch (Exception e) {
-                logging_catch_db (_dbConnectionLeaving, e);
-            }
-        }
+        //            logging_open_db (_dbConnectionLeaving);
+        //        } else
+        //            ;
+
+        //        err = _dbConnectionLeaving.State == ConnectionState.Open ? Error.NO_ERROR : Error.DBCONN_NOT_OPEN;
+        //    } catch (Exception e) {
+        //        logging_catch_db (_dbConnectionLeaving, e);
+        //    }
+        //}
 
         /// <summary>
         /// Разорвать соединение с БД
         /// </summary>
         /// <param name="conn">Объект соединения с БД</param>
+        /// <param name="bIsActive">Признак активного соединения (проверять счетчик или нет)</param>
+        /// <param name="bConnIsLogging">Признак определяющий, является ли объект соединения с БД соединением для логгирования</param>
         /// <param name="err">Признак ошибки при выполнении операции</param>
-        private static void disconnect (ref DbConnection conn, out Error err)
+        private static void disconnect (ref DbConnection conn, bool bIsActive, bool bConnIsLogging, out Error err)
         {
-            err = Error.NO_ERROR;
+            err = (int)Error.NO_ERROR;
 
-            if (Equals (conn, null) == false) {
-                if (conn.State == ConnectionState.Open)
-                    conn.Close ();
+            if ((bIsActive == false)
+                && (_counterModeStaticConnectionLeaveChanged > 0))
+                return;
+            else
+                ;
+
+            try {
+                if (Equals (conn, null) == false) {
+                    if (!(conn.State == ConnectionState.Closed)) {
+                        conn.Close ();
+
+                        if (bConnIsLogging == false)
+                            logging_close_db (conn);
+                        else
+                            ;
+                    } else
+                        ;
+                } else
+                    ;
+            } catch (Exception e) {
+                if (bConnIsLogging == false)
+                    logging_catch_db (conn, e);
                 else
                     ;
 
-                conn = null;
-            } else
-                ;
+                err = Error.CATCH_DBCONN;
+            } finally {
+                if (bIsActive == false)
+                    conn = null;
+                else
+                    ;
+            }
         }
 
         /// <summary>
@@ -380,26 +411,21 @@ namespace ASUTP.Database {
         /// Сравнить объекты с параметрами соединения с БД
         /// </summary>
         /// <param name="cs">Объект с параметрами соединения для </param>
-        /// <returns></returns>
+        /// <returns>Признак идентичности текущегоо объекта и объекта, полученного в аргументе для сравнения</returns>
         public override bool EqualeConnectionSettings(object cs)
         {
-            return ((ConnectionSettings)m_connectionSettings).id == ((ConnectionSettings)cs).id
-            && ((ConnectionSettings)m_connectionSettings).server == ((ConnectionSettings)cs).server
-            && ((ConnectionSettings)m_connectionSettings).instance == ((ConnectionSettings)cs).instance
-            && ((ConnectionSettings)m_connectionSettings).port == ((ConnectionSettings)cs).port
-            && ((ConnectionSettings)m_connectionSettings).dbName == ((ConnectionSettings)cs).dbName
-            && ((ConnectionSettings)m_connectionSettings).userName == ((ConnectionSettings)cs).userName
-            && ((ConnectionSettings)m_connectionSettings).password == ((ConnectionSettings)cs).password
-            //&& ((ConnectionSettings)m_connectionSettings).ignore == ((ConnectionSettings)cs).ignore
-            ;
+            return (m_connectionSettings is ConnectionSettings)
+                && ((ConnectionSettings)m_connectionSettings) == ((ConnectionSettings)cs);
         }
 
+        /// <summary>
+        /// Признак наличия значений основных параметров для установления соединения
+        /// </summary>
         public override bool IsEmptyConnectionSettings
         {
             get
             {
-                return string.IsNullOrEmpty(((ConnectionSettings)m_connectionSettings).server) == true
-                    || string.IsNullOrEmpty(((ConnectionSettings)m_connectionSettings).userName) == true;
+                return ((ConnectionSettings)m_connectionSettings).IsEmpty;
             }
         }
 
@@ -436,33 +462,11 @@ namespace ASUTP.Database {
         /// <returns>Признак выполнения операции разъединения</returns>
         protected override bool Disconnect ()
         {
-            bool result = false;
+            Error error = Error.NO_ERROR;
 
-            try {
-                result = Equals (m_dbConnection, null);
+            disconnect (ref m_dbConnection, true, ((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING, out error);
 
-                if (result == false) {
-                    result = (m_dbConnection.State == ConnectionState.Closed)
-                        || (m_dbConnection.State == ConnectionState.Broken);
-
-                    if (result == false) {
-                        m_dbConnection.Close ();
-                        result = true;
-
-                        if (!(((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING)) {
-                            logging_close_db (m_dbConnection);
-                        } else
-                            ;
-                    } else
-                        ;
-                } else
-                    ;
-
-            } catch (Exception e) {
-                logging_catch_db (m_dbConnection, e);
-            }
-
-            return result;
+            return error == Error.NO_ERROR;
         }
 
         /// <summary>
@@ -471,25 +475,17 @@ namespace ASUTP.Database {
         /// <param name="er">Признак наличия ошибки при выполнении операции</param>
         public override void Disconnect (out int er)
         {
+            er = -1;
+            Error error = Error.CATCH_DBCONN;
+
+            disconnect (ref m_dbConnection, true, ((ConnectionSettings)m_connectionSettings).id == ConnectionSettings.ID_LISTENER_LOGGING, out error);
+
             er = (int)Error.NO_ERROR;
-
-            try {
-                if ((Equals(m_dbConnection, null) == false)
-                    && (!(m_dbConnection.State == ConnectionState.Closed))) {
-                    m_dbConnection.Close ();
-
-                    logging_close_db (m_dbConnection);
-
-                    m_dbConnection = null;
-                } else
-                    ;
-            } catch (Exception e) {
-                Logging.Logg ().Exception (e, @"DbTSQLInterface::CloseConnection () - ...", Logging.INDEX_MESSAGE.NOT_SET);
-
-                er = (int)Error.CATCH_DBCONN;
-            }
         }
 
+        /// <summary>
+        /// Инициировать отмену выполняющегося запроса
+        /// </summary>
         protected override void GetDataCancel ()
         {
             m_dbCommand?.Cancel ();
@@ -898,6 +894,21 @@ namespace ASUTP.Database {
             return dataTableRes;
         }
 
+        private static void register (ConnectionSettings connSett, out Error err)
+        {
+            err = Error.NO_ERROR;
+
+            _iListenerIdLeaving = DbSources.Sources ().Register (connSett, false, connSett.name, false);
+        }
+
+        private static void unregister (out Error err)
+        {
+            err = Error.NO_ERROR;
+
+            DbSources.Sources ().UnRegister (_iListenerIdLeaving);
+            _iListenerIdLeaving = -1;
+        }
+
         /// <summary>
         /// Отправить/выполнить запрос не требующий возвращения результата
         /// </summary>
@@ -906,21 +917,45 @@ namespace ASUTP.Database {
         /// <param name="er">Признак ошибки при выполнеии запроса</param>
         public static DataTable Select (ConnectionSettings connSett, string query, out int er)
         {
+        //!!! Внимание. Полная копия метода 'ExecNonQuery'. устранить дублирование
             DataTable tableRes;
             er = 0;
 
             Error err = Error.NO_ERROR;
+            DbConnection dbConn = null;
 
-            connect (connSett, out err);
+            if ((ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No)
+                && (!(_iListenerIdLeaving < 0))) {
+            // нештатная ситуация: соединение удерживать не требуется, но идентификатор имеет признак регистрации
+                // отменить регистрацию
+                unregister (out err);
+
+                Logging.Logg ().Error (@"DbTSQLInterface::Select() - несоответствие значения подписчика и режима удержания соединения...", Logging.INDEX_MESSAGE.NOT_SET);
+            } else if ((ModeStaticConnectionLeave == ModeStaticConnectionLeaving.Yes)
+                && (_iListenerIdLeaving < 0)) {
+            // нештатная ситуация: требуется удерживать соединение, но идендификатор имеет признак отсутствия регистрации
+            } else
+            // штатная ситуация
+                ;
+
+            if (_iListenerIdLeaving < 0)
+                register (connSett, out err);
+            else
+                ;
 
             if (err == Error.NO_ERROR) {
-                tableRes = Select (ref _dbConnectionLeaving, query, null, null, out er);
-                err = (Error)er;
+                dbConn = DbSources.Sources ().GetConnection (_iListenerIdLeaving, out er);
 
-                if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
-                    disconnect (ref _dbConnectionLeaving, out err);
+                if (er == 0) {
+                    tableRes = Select (ref dbConn, query, null, null, out er);
+                    err = (Error)er;
+
+                    if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
+                        unregister(out err);
+                    } else
+                        ;
                 } else
-                ;
+                    tableRes = new DataTable ();
             } else
                 tableRes = new DataTable ();
 
@@ -1058,7 +1093,8 @@ namespace ASUTP.Database {
                     //cmd.Parameters.AddWithValue(string.Empty, parametrs[commandMySQL.Parameters.Count - 1]);
                     //cmd.Parameters.Add(new SqlParameter(cmd.Parameters.Count.ToString (), parametrs[cmd.Parameters.Count]));
                     cmd.Parameters.Add (new SqlParameter (string.Empty, parametrs [cmd.Parameters.Count]));
-                } else
+                }
+            else
                 ;
         }
 
@@ -1149,22 +1185,46 @@ namespace ASUTP.Database {
         /// <param name="er">Признак ошибки при выполнении операции</param>
         public static void ExecNonQuery (ConnectionSettings connSett, string query, out int er)
         {
+        //!!! Внимание. Полная копия метода 'Select'. устранить дублирование
             er = 0;
-            Error err;
 
-            connect (connSett, out err);
+            Error err = Error.NO_ERROR;
+            DbConnection dbConn = null;
+
+            if ((ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No)
+                && (!(_iListenerIdLeaving < 0))) {
+                // нештатная ситуация: соединение удерживать не требуется, но идентификатор имеет признак регистрации
+                // отменить регистрацию
+                unregister (out err);
+
+                Logging.Logg ().Error (@"DbTSQLInterface::Select() - несоответствие значения подписчика и режима удержания соединения...", Logging.INDEX_MESSAGE.NOT_SET);
+            } else if ((ModeStaticConnectionLeave == ModeStaticConnectionLeaving.Yes)
+                && (_iListenerIdLeaving < 0)) {
+                // нештатная ситуация: требуется удерживать соединение, но идендификатор имеет признак отсутствия регистрации
+            } else
+                // штатная ситуация
+                ;
+
+            if (_iListenerIdLeaving < 0)
+                register (connSett, out err);
+            else
+                ;
 
             if (err == Error.NO_ERROR) {
-                ExecNonQuery (ref _dbConnectionLeaving, query, null, null, out er);
+                dbConn = DbSources.Sources ().GetConnection (_iListenerIdLeaving, out er);
 
-                if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No)
-                    disconnect (ref _dbConnectionLeaving, out err);
-                else
+                if (er == 0) {
+                    ExecNonQuery (ref dbConn, query, null, null, out er);
+                    err = (Error)er;
+
+                    if (ModeStaticConnectionLeave == ModeStaticConnectionLeaving.No) {
+                        unregister (out err);
+                    } else
+                        ;
+                } else
                     ;
             } else
                 ;
-
-            er = (int)err;
         }
 
         /// <summary>

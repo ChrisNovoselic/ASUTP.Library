@@ -480,5 +480,17 @@ namespace ASUTP.Database {
             csb.Password = password;
             return csb.ConnectionString;
         }
+
+        /// <summary>
+        /// Признак наличия значений основных параметров для установления соединения
+        /// </summary>
+        public bool IsEmpty
+        {
+            get
+            {
+                return string.IsNullOrEmpty (server) == true
+                    || string.IsNullOrEmpty (userName) == true;
+            }
+        }
     }
 }
