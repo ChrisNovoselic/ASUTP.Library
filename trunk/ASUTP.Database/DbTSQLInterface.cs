@@ -181,7 +181,8 @@ namespace ASUTP.Database {
             return bRes;
         }
 
-        #region Mode - Статическое обращение к БД
+#if MODE_STATIC_CONNECTION_LEAVING
+#region Mode - Статическое обращение к БД
 
         /// <summary>
         /// Перечисление - возможные режимы разрыва соединения при вызове статических методов обращения к БД
@@ -200,11 +201,11 @@ namespace ASUTP.Database {
 
         private static int _counterModeStaticConnectionLeaveChanged = -1;
 
-        private static int _iListenerIdLeaving;
+        private static int _iListenerIdLeaving = -1;
 
-        private static DateTime _datetimeDbConnectionLeaving;
+        private static DateTime _datetimeDbConnectionLeaving = DateTime.MinValue;
 
-        private static ModeStaticConnectionLeaving _modeStaticConnectionLeave;
+        private static ModeStaticConnectionLeaving _modeStaticConnectionLeave = ModeStaticConnectionLeaving.No;
         /// <summary>
         /// Режим разрыва соединения при вызове статических методов обращения к БД
         /// </summary>
@@ -233,7 +234,8 @@ namespace ASUTP.Database {
             }
         }
 
-        #endregion
+#endregion
+#endif
 
         ///// <summary>
         ///// Установить соединение
@@ -293,11 +295,13 @@ namespace ASUTP.Database {
         {
             err = (int)Error.NO_ERROR;
 
+#if MODE_STATIC_CONNECTION_LEAVING
             if ((bIsActive == false)
                 && (_counterModeStaticConnectionLeaveChanged > 0))
                 return;
             else
                 ;
+#endif
 
             try {
                 if (Equals (conn, null) == false) {
@@ -894,6 +898,7 @@ namespace ASUTP.Database {
             return dataTableRes;
         }
 
+#if MODE_STATIC_CONNECTION_LEAVING
         private static void register (ConnectionSettings connSett, out Error err)
         {
             err = Error.NO_ERROR;
@@ -961,6 +966,7 @@ namespace ASUTP.Database {
 
             return tableRes;
         }
+#endif
 
         /// <summary>
         /// Отправить/выполнить запрос асинхронно к источнику данных синхронного типа
@@ -1177,6 +1183,7 @@ namespace ASUTP.Database {
                 ;
         }
 
+#if MODE_STATIC_CONNECTION_LEAVING
         /// <summary>
         /// Выполнить запрос не требующий возвращения результата
         /// </summary>
@@ -1226,6 +1233,7 @@ namespace ASUTP.Database {
             } else
                 ;
         }
+#endif
 
         /// <summary>
         /// Выполнить запрос не требующий возвращения результата

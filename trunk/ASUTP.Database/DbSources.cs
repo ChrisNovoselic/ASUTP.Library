@@ -393,7 +393,7 @@ namespace ASUTP.Database {
                 ;
 
             if (err == 0) {
-                //Console.WriteLine(@"DbSources::registerListener (id=" + id + @", idReg=" + idReg + @") - ...");                
+                //Console.WriteLine(@"DbSources::registerListener (id=" + id + @", idReg=" + idReg + @") - ...");
                 m_dictListeners.Add (idReg, new DbSourceListener (id, idListener, dbConn));
             } else
                 ;
