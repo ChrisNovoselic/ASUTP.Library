@@ -74,8 +74,9 @@ namespace ASUTP.Database {
         /// </summary>
         /// <param name="type">Тип источника данных</param>
         /// <param name="name">Наименование объекта для доступа к источнику данных</param>
-        public DbTSQLInterface (DB_TSQL_INTERFACE_TYPE type, string name)
-            : base (name)
+        /// <param name="bIsActive">Признак необходимости запуска рабочего потока(асинхронное обращение к БД)</param>
+        public DbTSQLInterface (DB_TSQL_INTERFACE_TYPE type, string name, bool bIsActive = true)
+            : base (name, bIsActive)
         {
             m_connectionType = type;
 
@@ -86,6 +87,9 @@ namespace ASUTP.Database {
             createDbAccessories ();
         }
 
+        /// <summary>
+        /// Длительность интервала ожидания результатат запроса
+        /// </summary>
         protected override int Timeout
         {
             get

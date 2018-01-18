@@ -279,7 +279,7 @@ namespace ASUTP.Database {
                             case DbInterface.DB_TSQL_INTERFACE_TYPE.MSSQL:
                             case DbInterface.DB_TSQL_INTERFACE_TYPE.MySQL:
                             case DbInterface.DB_TSQL_INTERFACE_TYPE.Oracle:
-                                m_dictDbInterfaces.Add (((ConnectionSettings)connSett).id, new DbTSQLInterface (dbType, @"Интерфейс: " + dbNameType + @"-БД" + @"; " + desc));
+                                m_dictDbInterfaces.Add (((ConnectionSettings)connSett).id, new DbTSQLInterface (dbType, $"Интерфейс: {dbNameType}-БД; {desc}", active));
                                 break;
                             default:
                                 break;

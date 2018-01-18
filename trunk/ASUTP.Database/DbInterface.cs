@@ -236,7 +236,19 @@ namespace ASUTP.Database {
         {
             get
             {
-                return dbThread.Name;
+                if (IsAcsync == true)
+                    return dbThread.Name;
+                else
+                    return _name;
+            }
+        }
+
+        public bool IsAcsync
+        {
+            get
+            {
+                return (string.IsNullOrEmpty(_name) == true)
+                    &&(Equals(dbThread, null) == false);
             }
         }
         /// <summary>
@@ -266,11 +278,32 @@ namespace ASUTP.Database {
         /// </summary>
         private bool _connected;
 
+        private string _name;
+
+        /// <summary>
+        /// Установить новое наименование интерфейса обмена данными с источником данных
+        ///  , возможно только для синхронного (без рабочего потока) интерфейса
+        ///  , новое наименование может быть установлено в конструкторе
+        ///  , и при изменени параметров соедиения с источником
+        /// </summary>
+        /// <param name="newName">Новое наименование интерфейса</param>
+        protected void setName (string newName)
+        {
+            if (IsAcsync == false)
+                if (_name.Equals (newName) == false)
+                    _name = newName;
+                else
+                    Logging.Logg().Warning($"Database.DbInterface::setName (новое наим.={newName}) - возможно, повторная регистрация...", Logging.INDEX_MESSAGE.NOT_SET);
+            else
+                throw new InvalidOperationException ($"Database.DbInterface::setName () - возможно только для синхронного (без рабочего потока) интерфейса...");
+        }
+
         /// <summary>
         /// Конструктор - основной (с аргументом)
         /// </summary>
         /// <param name="name">Наименование интерфейса (рабочего потока)</param>
-        public DbInterface (string name)
+        /// <param name="bIsActive">Признак необходимости запуска рабочего потока(асинхронное обращение к БД)</param>
+        public DbInterface (string name, bool bIsActive = true)
         {
             lockListeners = new object ();
             lockConnectionSettings = new object ();
@@ -281,12 +314,15 @@ namespace ASUTP.Database {
             _connected = false;
             _needReconnect = RECONNECT.SOFT;
 
-            dbThread = new Thread (new ParameterizedThreadStart (DbInterface_ThreadFunction));
-            dbThread.Name = name;
-            //Name = name;
-            dbThread.IsBackground = true;
+            if (bIsActive == true) {
+                dbThread = new Thread (new ParameterizedThreadStart (DbInterface_ThreadFunction));
+                dbThread.Name = name;
+                //Name = name;
+                dbThread.IsBackground = true;
 
-            _eventDbInterface_ThreadFunctionRun = new ManualResetEvent(false);
+                _eventDbInterface_ThreadFunctionRun = new ManualResetEvent (false);
+            } else
+                _name = name;
         }
 
         /// <summary>
@@ -382,7 +418,8 @@ namespace ASUTP.Database {
                     pair.Value.Reset();
             }
 
-            if (dbThread.IsAlive == true) {
+            if ((IsAcsync == true)
+                && (dbThread.IsAlive == true)) {
                     if (dbThread.Join (Constants.WAIT_TIME_MS) == false)
                         setEventDbInterface_ThreadFunctionRun (@"DbInterface::Stop () - ...");
                     else
