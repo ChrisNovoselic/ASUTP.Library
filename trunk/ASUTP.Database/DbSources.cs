@@ -422,33 +422,36 @@ namespace ASUTP.Database {
         {
             int err = -1;
 
-            //lock (m_objDictListeners) {
-            if (m_dictListeners.ContainsKey (id) == true) {
-                if (m_dictDbInterfaces.ContainsKey (m_dictListeners [id].idDbInterface) == true) {
-                    m_dictDbInterfaces [m_dictListeners [id].idDbInterface].ListenerUnregister (m_dictListeners [id].iListenerId);
-                    if (!(m_dictDbInterfaces [m_dictListeners [id].idDbInterface].ListenerCount > 0)) {
-                        m_dictDbInterfaces [m_dictListeners [id].idDbInterface].Stop ();
+            try {
+                if (m_dictListeners.ContainsKey (id) == true) {
+                    if (m_dictDbInterfaces.ContainsKey (m_dictListeners [id].idDbInterface) == true) {
+                        m_dictDbInterfaces [m_dictListeners [id].idDbInterface].ListenerUnregister (m_dictListeners [id].iListenerId);
+                        if (!(m_dictDbInterfaces [m_dictListeners [id].idDbInterface].ListenerCount > 0)) {
+                            m_dictDbInterfaces [m_dictListeners [id].idDbInterface].Stop ();
 
-                        m_dictDbInterfaces [m_dictListeners [id].idDbInterface].Disconnect (out err);
-                        if (Equals (m_dictListeners [id].dbConn, null) == false)
-                            if (!(m_dictListeners [id].dbConn.State == ConnectionState.Closed))
-                                Logging.Logg ().Warning ($"DbSources::UnRegister (идентификатор={id}) - состояние объекта соединения \"Открыто\"..."
-                                    , Logging.INDEX_MESSAGE.NOT_SET);
+                            m_dictDbInterfaces [m_dictListeners [id].idDbInterface].Disconnect (out err);
+                            if (Equals (m_dictListeners [id].dbConn, null) == false)
+                                if (!(m_dictListeners [id].dbConn.State == ConnectionState.Closed))
+                                    Logging.Logg ().Warning ($"DbSources::UnRegister (идентификатор={id}) - состояние объекта соединения \"Открыто\"..."
+                                        , Logging.INDEX_MESSAGE.NOT_SET);
+                                else
+                                    m_dictListeners [id].dbConn = null;
                             else
-                                m_dictListeners [id].dbConn = null;
-                        else
+                                ;
+                            m_dictDbInterfaces.Remove (m_dictListeners [id].idDbInterface);
+                        } else
                             ;
-                        m_dictDbInterfaces.Remove (m_dictListeners [id].idDbInterface);
                     } else
                         ;
+
+                    //Console.WriteLine(@"DbSources::UnregisterListener (idReg=" + id + @") - ...");
+                    m_dictListeners.Remove (id);
                 } else
                     ;
-
-                //Console.WriteLine(@"DbSources::UnregisterListener (idReg=" + id + @") - ...");
-                m_dictListeners.Remove (id);
-            } else
-                ;
-            //}
+            } catch (Exception e) {
+                Logging.Logg ().Exception (e, $"DbSources::UnRegister (идентификатор={id}) - ..."
+                    , Logging.INDEX_MESSAGE.NOT_SET);
+            }
         }
 
         /// <summary>
