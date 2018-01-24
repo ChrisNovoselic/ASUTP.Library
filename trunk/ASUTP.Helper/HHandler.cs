@@ -61,13 +61,15 @@ namespace ASUTP.Helper
         /// </summary>
         private volatile bool newState;
         /// <summary>
+        /// Перечисление - возможные признаки для состояния
+        /// </summary>
+        protected enum FLAG { New = -3, Request, Error, Ok, Warning }
+        /// <summary>
         /// Список событий (состояний) для обработки (или очередь)
         /// </summary>
-        protected volatile List<int /*StatesMachine*/> states;
-        ///// <summary>
-        ///// Признак активности потока
-        ///// </summary>
-        //private bool actived;
+        protected volatile List<int> states;
+
+        private List<FLAG> flags;
         /// <summary>
         /// Свойство - Признак активности потока
         /// </summary>
@@ -98,7 +100,8 @@ namespace ASUTP.Helper
 
             m_lockState = new Object();
             //Список событий - пустой
-            states = new List<int /*StatesMachine*/>();
+            states = new List<int>();
+            flags = new List<FLAG>();
         }
         /// <summary>
         /// признак 1-ой активации
@@ -107,6 +110,9 @@ namespace ASUTP.Helper
         {
             get { return threadStateIsWorking == 1; }
         }
+        /// <summary>
+        /// Признак выполнения потоковой функции (был вызван метод 'Старт')
+        /// </summary>
         public virtual bool IsStarted
         {
             get { return ! (threadStateIsWorking < 0); }
@@ -174,7 +180,7 @@ namespace ASUTP.Helper
         {
             bool joined;
             threadStateIsWorking = -1;
-            //Очисить очередь событий
+            //Очистить очередь событий
             ClearStates();
             //Прверить выполнение потоковой функции
             if ((!(taskThreadState == null)) && (taskThreadState.IsAlive == true))
@@ -216,7 +222,7 @@ namespace ASUTP.Helper
         /// <returns>Признак выполнения условия</returns>
         protected bool isLastState (int state)
         {
-            return states.IndexOf(state) == (states.Count - 1);
+            return states.Count > 0 ? states[states.Count - 1] == state : false;
         }
         /// <summary>
         /// Добавить состояние в список
@@ -225,15 +231,22 @@ namespace ASUTP.Helper
         public void AddState(int state)
         {
             states.Add(state);
+            flags.Add(FLAG.New);
+        }
+
+        private void clearStates(bool newState = false)
+        {
+            this.newState = newState;
+            states.Clear();
+            flags.Clear();
         }
         /// <summary>
         /// Очистить список состояний (событий)
         /// </summary>
         public virtual void ClearStates()
         {
-            newState = true;
-            states.Clear();
-        }        
+            clearStates(true);
+        }
         /// <summary>
         /// Получить результат обработки события
         /// </summary>
@@ -275,7 +288,7 @@ namespace ASUTP.Helper
         /// <param name="data">Параметр при старте потоковой функции</param>
         private void ThreadStates(object data)
         {
-            int /*StatesMachine*/ currentState;
+            int currentState;
             bool bRes = false;
 
             int requestSent = 0
@@ -304,97 +317,107 @@ namespace ASUTP.Helper
 
                     while (true)
                     {
-                        requestSent =
-                        responseReceived = 0;
-                        reason = INDEX_WAITHANDLE_REASON.SUCCESS;
+                        if (!(flags[_indexCurState] == FLAG.Ok)) {
+                        // только для не обработанных состояний или состояний с ошибками/предупреждениями
+                            requestSent =
+                            responseReceived = 0;
+                            reason = INDEX_WAITHANDLE_REASON.SUCCESS;
 
-                        bool error = true;
-                        int requestDone = -1;
-                        object objRes = null;
-                        for (int i = 0;
-                            i < Constants.MAX_RETRY
-                                && (!(requestDone == 0))
-                                && (newState == false);
-                            i++)
-                        {
-                            if (error)
+                            bool error = true;
+                            int requestDone = -1;
+                            object objRes = null;
+                            for (int i = 0;
+                                i < Constants.MAX_RETRY
+                                    && (!(requestDone == 0))
+                                    && (newState == false);
+                                i++)
                             {
-                                requestSent = StateRequest(currentState);
-                                if (!(requestSent == 0))
-                                    break;
+                                if (error)
+                                {
+                                    flags[_indexCurState] = FLAG.Request;
+                                    requestSent = StateRequest(currentState);
+                                    if (!(requestSent == 0))
+                                        break;
+                                    else
+                                        ;
+                                }
                                 else
                                     ;
-                            }
-                            else
-                                ;
 
-                            error = false;
-                            for (int j = 0;
-                                j < Constants.MAX_WAIT_COUNT
-                                    && (!(requestDone == 0))
-                                    && (error == false)
-                                    && (newState == false);
-                                j++)
-                            {
-                                System.Threading.Thread.Sleep(Constants.WAIT_TIME_MS);
-                                requestDone = StateCheckResponse(currentState, out error, out objRes);
-                            }
-                        }
-
-                        if (!(requestSent < 0))
-                        {
-                            if ((requestDone == 0)
-                                && (error == false)
-                                && (newState == false))
-                                responseReceived = StateResponse(currentState, objRes);
-                            else
-                                responseReceived = requestSent == 0 ? -1 : 1;
-
-                            if (responseReceived == -102)
-                                //Для алгоритма сигнализации 'TecView::AlarmEventRegistred () - ...'
-                                reason = INDEX_WAITHANDLE_REASON.BREAK;
-                            else
-                                if (((!(responseReceived == 0))
-                                        || (!(requestDone == 0))
-                                        || (error == true))
-                                    && (newState == false))
+                                error = false;
+                                for (int j = 0;
+                                    j < Constants.MAX_WAIT_COUNT
+                                        && (!(requestDone == 0))
+                                        && (error == false)
+                                        && (newState == false);
+                                    j++)
                                 {
-                                    if (responseReceived < 0)
+                                    System.Threading.Thread.Sleep(Constants.WAIT_TIME_MS);
+                                    requestDone = StateCheckResponse(currentState, out error, out objRes);
+                                }
+                            }
+
+                            if (!(requestSent < 0))
+                            {
+                                if ((requestDone == 0)
+                                    && (error == false)
+                                    && (newState == false)) {
+                                    flags[_indexCurState] = FLAG.Ok;
+                                    responseReceived = StateResponse(currentState, objRes);
+                                } else
+                                    responseReceived = requestSent == 0 ? -1 : 1;
+
+                                if (responseReceived == -102)
+                                    //Для алгоритма сигнализации 'TecView::AlarmEventRegistred () - ...'
+                                    reason = INDEX_WAITHANDLE_REASON.BREAK;
+                                else
+                                    if (((!(responseReceived == 0))
+                                            || (!(requestDone == 0))
+                                            || (error == true))
+                                        && (newState == false))
                                     {
-                                        reason = StateErrors(currentState, requestSent, responseReceived);
-                                        lock (m_lockState)
+                                        if (responseReceived < 0)
                                         {
-                                            if (newState == false)
+                                            flags[_indexCurState] = FLAG.Error;
+                                            reason = StateErrors(currentState, requestSent, responseReceived);
+                                            lock (m_lockState)
                                             {
-                                                states.Clear();
-                                                break;
+                                                if (newState == false)
+                                                {
+                                                    clearStates();
+                                                    break;
+                                                }
+                                                else
+                                                    ;
                                             }
-                                            else
-                                                ;
+                                        }
+                                        else {
+                                            flags[_indexCurState] = FLAG.Warning;
+                                            StateWarnings(currentState, requestSent, responseReceived);
                                         }
                                     }
                                     else
-                                        StateWarnings(currentState, requestSent, responseReceived);
-                                }
-                                else
-                                    ;
-                        }
-                        else
-                        {
-                            //14.04.2015 ???
-                            //StateErrors(currentState, requestIsOk, -1);
-
-                            lock (m_lockState)
-                            {
-                                if (newState == false)
-                                {
-                                    states.Clear();
-                                    break;
-                                }
-                                else
-                                    ;
+                                        ;
                             }
-                        }
+                            else
+                            {
+                                //14.04.2015 ???
+                                //StateErrors(currentState, requestIsOk, -1);
+
+                                lock (m_lockState)
+                                {
+                                    if (newState == false)
+                                    {
+                                        clearStates();
+                                        break;
+                                    }
+                                    else
+                                        ;
+                                }
+                            }
+                        } else
+                        // состояние уже было обработано
+                            ;
 
                         _indexCurState++;
 
@@ -405,7 +428,7 @@ namespace ASUTP.Helper
                             else
                                 ;
 
-                            if (newState)
+                            if (newState == true)
                                 break;
                             else
                                 ;
