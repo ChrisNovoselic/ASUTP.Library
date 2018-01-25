@@ -17,8 +17,7 @@ namespace ASUTP.Helper
     /// <summary>
     /// Класс - базовый для обработки состояний/событий
     /// </summary>
-    public abstract class HHandler : object
-    {
+    public abstract class HHandler : object, IHHandler {
         /// <summary>
         /// Объект для синхронизации изменения списка событий
         /// </summary>

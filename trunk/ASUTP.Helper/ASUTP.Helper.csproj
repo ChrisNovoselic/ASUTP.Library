@@ -47,6 +47,7 @@
     <Compile Include="HHandlerDb.cs" />
     <Compile Include="HHandlerQueue.cs" />
     <Compile Include="IForm.cs" />
+    <Compile Include="IHHandler.cs" />
     <Compile Include="Passwords.cs" />
     <Compile Include="Profiles.cs" />
     <Compile Include="ProgramBase.cs" />
