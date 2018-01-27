@@ -66,7 +66,7 @@ namespace ASUTP.Helper
         /// <summary>
         /// Список событий (состояний) для обработки (или очередь)
         /// </summary>
-        protected volatile List<int> states;
+        private volatile List<int> states;
 
         private List<FLAG> flags;
         /// <summary>

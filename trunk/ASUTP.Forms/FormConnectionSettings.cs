@@ -171,10 +171,14 @@ namespace ASUTP.Forms
         public void addConnSett(ConnectionSettings connSett)
         {
             m_connectionSettings.Add(connSett);
-            m_connectionSettingsEdit.Add(connSett);
+            ///!!! при ошибке чтения из файла - добавляется 2-ой! Д.б. равное количество!
+            if (m_connectionSettingsEdit.Count < m_connectionSettings.Count)
+                m_connectionSettingsEdit.Add(connSett);
+            else
+                ;
 
             m_connectionSettings[m_connectionSettings.Count - 1].port =
-            m_connectionSettingsEdit[m_connectionSettingsEdit.Count - 1].port = 3306;
+            m_connectionSettingsEdit[m_connectionSettingsEdit.Count - 1].port = 1433;
 
             SetItemText ();
         }
