@@ -661,7 +661,7 @@ namespace ASUTP.Helper
         }
 
         /// <summary>
-        /// Функция взятия ролей из БД
+        /// Возвратить роли(группы польтзователей, объединеных по функц./признаку) из БД
         /// </summary>
         public static void GetRoles(ref DbConnection conn, string where, string orderby, out DataTable roles, out int err)
         {
@@ -688,7 +688,7 @@ namespace ASUTP.Helper
         }
 
         /// <summary>
-        /// Возвращает ИД пользователя
+        /// Возвратить ИД пользователя
         /// </summary>
         public static int Id
         {
@@ -699,7 +699,7 @@ namespace ASUTP.Helper
         }
 
         /// <summary>
-        /// Возвращает доменное имя
+        /// Возвратить доменное имя
         /// </summary>
         public static string DomainName
         {
@@ -710,7 +710,9 @@ namespace ASUTP.Helper
         }
 
         /// <summary>
-        /// Возвращает ИД ТЭЦ
+        /// Возвращает ИД ТЭЦ  для текущего пользователя
+        ///  , признак прав доступа к значениям подразделений
+        ///  (0 - разрешены все ТЭЦ)
         /// </summary>
         public static int allTEC
         {
@@ -720,10 +722,47 @@ namespace ASUTP.Helper
             }
         }
 
-
+        /// <summary>
+        /// Возвратить значение параметра профиля для текущего пользователя, если его тип логический
+        /// </summary>
+        /// <param name="id">Идентификатор параметра профиля</param>
+        /// <returns>Значение параметра для текущего пользователя</returns>
         public static bool IsAllowed (int id) { return bool.Parse(GetAllowed (id)); }
+
+        /// <summary>
+        /// Возвратить таблицу со описанием параметров профиля
+        /// </summary>
         public static DataTable GetTableProfileUnits { get { return HProfiles.GetTableUnits; } }
+
+        /// <summary>
+        /// Возвратить значение параметра для текущего пользователя, если его тип отличен от логического
+        /// </summary>
+        /// <param name="id">Идентификатор параметра профиля</param>
+        /// <returns>Значение параметра для текущего пользователя</returns>
         public static string GetAllowed(int id) { return (string)HProfiles.GetAllowed(id); }
-        public static void SetAllowed(int iListenerId, int id, string val) { HProfiles.SetAllowed(iListenerId, id, val); }
+
+        /// <summary>
+        /// Возвратить значение параметра для указанного в аргументе пользователя, если его тип отличен от логического
+        /// </summary>
+        /// <param name="dbConn">Ссылка на объект соединения с БД конфигурации</param>
+        /// <param name="role">Идентификатор роли(группы), к которой принадлежит пользователь</param>
+        /// <param name="user">Идентификатор пользователя</param>
+        /// <param name="id">Идентификатор параметра профиля</param>
+        /// <returns>Значение параметра для текущего пользователя</returns>
+        public static string GetAllowed(ref DbConnection dbConn, int role, int user,int id)
+        {
+            return (string)HProfiles.GetAllowed(ref dbConn, role, user, id);
+        }
+
+        /// <summary>
+        /// Установить значение для параметра профиля текущего пользователя
+        /// </summary>
+        /// <param name="iListenerId">Идентификатор подпичсика </param>
+        /// <param name="id">Идентификатор параметра профиля</param>
+        /// <param name="val">Новое значение для параметра</param>
+        public static void SetAllowed(int iListenerId, int id, string val)
+        {
+            HProfiles.SetAllowed(iListenerId, id, val);
+        }
     }
 }

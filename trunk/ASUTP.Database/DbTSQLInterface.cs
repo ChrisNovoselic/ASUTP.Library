@@ -526,8 +526,12 @@ namespace ASUTP.Database {
             table.Locale = System.Globalization.CultureInfo.InvariantCulture;
 
             try {
-                m_dbAdapter.Fill (table);
-                result = true;
+                if (Equals(m_dbAdapter, null) == false) {
+                //KhryapinAN 29.01.2018
+                    m_dbAdapter.Fill(table);
+                    result = true;
+                } else
+                    ;
             } catch (DbException e) {
                 logging_catch_db (m_dbConnection, e);
             } catch (Exception e) {

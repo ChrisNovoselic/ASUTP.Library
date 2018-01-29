@@ -18,7 +18,7 @@ namespace ASUTP.Helper
             public static string s_nameTableProfilesData = @"profiles"
                 , s_nameTableProfilesUnit = @"profiles_unit";
             /// <summary>
-            /// Таблица БД со значениями параметров профиля
+            /// Таблица БД со значениями параметров профиля текущего пользователя
             /// </summary>
             protected static DataTable m_tblValues;
             /// <summary>
@@ -46,6 +46,28 @@ namespace ASUTP.Helper
             }
 
             /// <summary>
+            /// Возвратить таблицу БД со значениями параметров пользователя, принадлежащего роли(группе)
+            /// </summary>
+            /// <param name="dbConn">Ссылка на объект соединения с БД конфигурации</param>
+            /// <param name="id_role">Идентифактор роли(группы) пользователя</param>
+            /// <param name="id_user">Идентификатор пользователя</param>
+            /// <param name="err">Признак ошибки при выполнении метода</param>
+            /// <returns>Таблица БД со значениями параметров профиля</returns>
+            private static DataTable getDataTableUserValues(ref DbConnection dbConn, int id_role, int id_user, out int err)
+            {
+                err = -1;
+
+                DataTable tableRes;
+
+                string query = string.Empty;
+
+                query = $@"SELECT * FROM {s_nameTableProfilesData} WHERE (ID_EXT={id_role} AND IS_ROLE=1) OR (ID_EXT={id_user} AND IS_ROLE=0)";
+                tableRes = DbTSQLInterface.Select(ref dbConn, query, null, null, out err);
+
+                return tableRes;
+            }
+
+            /// <summary>
             /// Обновить(прочитать) значения параметров профиля, список параметров
             /// </summary>
             /// <param name="iListenerId">Идентификатор подписчика объекта обращения к данным</param>
@@ -63,8 +85,7 @@ namespace ASUTP.Helper
                 if (!(err == 0))
                     errMsg = @"нет соединения с БД";
                 else {
-                    query = $@"SELECT * FROM {s_nameTableProfilesData} WHERE (ID_EXT={id_role} AND IS_ROLE=1) OR (ID_EXT={id_user} AND IS_ROLE=0)";
-                    m_tblValues = DbTSQLInterface.Select (ref dbConn, query, null, null, out err);
+                    m_tblValues = getDataTableUserValues(ref dbConn, id_role, id_user, out err);
 
                     if (!(err == 0))
                         errMsg = @"Ошибка при чтении НАСТРоек для группы(роли) (irole = " + id_role + @"), пользователя (iuser=" + id_user + @")";
@@ -89,11 +110,22 @@ namespace ASUTP.Helper
             }
 
             /// <summary>
-            /// Функция получения значения права доступа
+            /// Возвратить значение параметра профиля(например, права доступа к элементу интерфейса) текущего пользователя
             /// </summary>
             /// <param name="id">ID типа(unit)</param>
             /// <returns>Признак права доступа к элменту с указанным идентификатором</returns>
             public static object GetAllowed (int id)
+            {
+                return GetAllowed(m_tblValues, id);
+            }
+
+            /// <summary>
+            /// Возвратить значение параметра профиля(например, права доступа к элементу интерфейса)
+            /// </summary>
+            /// <param name="tableValues">Таблица БД со значениями параметров профиля одного из пользователей</param>
+            /// <param name="id">ID типа(unit)</param>
+            /// <returns>Признак права доступа к элменту с указанным идентификатором</returns>
+            public static object GetAllowed(DataTable tableValues, int id)
             {
                 object objRes = false;
                 bool bValidate = false;
@@ -102,7 +134,7 @@ namespace ASUTP.Helper
                    , type = -1;
                 string strVal = string.Empty;
 
-                DataRow [] rowsAllowed = m_tblValues.Select ($"ID_UNIT={id}");
+                DataRow [] rowsAllowed = tableValues.Select ($"ID_UNIT={id}");
                 switch (rowsAllowed.Length) {
                     case 1:
                         indxRowAllowed = 0;
@@ -153,6 +185,25 @@ namespace ASUTP.Helper
                 //} else ;
 
                 return objRes;
+            }
+
+            /// <summary>
+            /// Возвратить значение параметра профиля(например, права доступа к элементу интерфейса) указанного в аргументе пользователя
+            /// </summary>
+            /// <param name="dbConn">Ссылка на объект соединения с БД конфигурации</param>
+            /// <param name="role">Идентификатор роли(группы), к которой принадлежит пользователь</param>
+            /// <param name="user">Идентификатор пользователя</param>
+            /// <param name="id">ID типа(unit)</param>
+            /// <returns>Признак права доступа к элменту с указанным идентификатором</returns>
+            public static object GetAllowed(ref DbConnection dbConn, int role, int user, int id)
+            {
+                int err = -1;
+
+                DataTable tableUserValues;
+
+                tableUserValues = getDataTableUserValues(ref dbConn, role, user, out err);
+
+                return GetAllowed(tableUserValues, id);
             }
 
             /// <summary>
