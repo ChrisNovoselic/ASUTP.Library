@@ -35,33 +35,83 @@ namespace ASUTP.Helper
             }
         }
 
+        /// <summary>
+        /// Метод для освобождения ресурсов - реализация интерфейса 'IDisposable'
+        /// </summary>
         public void Dispose ()
         {
         }
 
+        /// <summary>
+        /// Создать объект для доступа к значениям профиля пользователя
+        /// </summary>
+        /// <param name="iListenerId">Идентификатор подписки к источнику БД(конфигурации)</param>
+        /// <param name="id_role">Идентификатор роли(группы), к которой принадлежит пользователь</param>
+        /// <param name="id_user">Идентификатор пользователя</param>
+        /// <returns>Объект для доступа к значениям профиля пользователя</returns>
         protected virtual HProfiles createProfiles(int iListenerId, int id_role, int id_user)
         {
             return new HProfiles(iListenerId, id_role, id_user);
         }
 
+        /// <summary>
+        /// Объект для доступа к значениям параметров профиля пользователя
+        /// </summary>
         protected static HProfiles m_profiles;
 
+        /// <summary>
+        /// Аргумент командной строки
+        /// </summary>
         protected struct ARGUMENTS
         {
+            /// <summary>
+            /// Ключ, по которому происходит распознование аргумента
+            /// </summary>
             public string m_key;
-
+            /// <summary>
+            /// Строка помощи по использованию аршумента
+            /// </summary>
             public string m_help;
-
+            /// <summary>
+            /// Состояние (значения)аргумента
+            /// </summary>
             public INDEX_REGISTRATION m_indxRegistration;
-
+            /// <summary>
+            /// Тип (значения)аргумента
+            /// </summary>
             public Type m_type;
         }
 
-        //Данные о пользователе
+        /// <summary>
+        /// Перечисление - возможные (индексы) некоторых данных о пользователе
+        /// </summary>
         public enum INDEX_REGISTRATION { ID, DOMAIN_NAME, ROLE, ID_TEC, COUNT_INDEX_REGISTRATION };
-        public static object [] s_REGISTRATION_INI = new object [(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION]; //Предустановленные в файле/БД конфигурации
-
-        protected enum STATE_REGISTRATION { UNKNOWN = -1, CMD, /*INI,*/ ENV, COUNT_STATE_REGISTRATION };
+        /// <summary>
+        /// Массив значений с данными о пользователе (предустановленные в ??? файле/БД конфигурации)
+        /// </summary>
+        public static object [] s_REGISTRATION_INI = new object [(int)INDEX_REGISTRATION.COUNT_INDEX_REGISTRATION];
+        /// <summary>
+        /// Перечисление - возможные состояния значений аргументов
+        /// </summary>
+        protected enum STATE_REGISTRATION {
+            /// <summary>
+            /// Неизвестный источник
+            /// </summary>
+            UNKNOWN = -1,
+            /// <summary>
+            /// Получены из командной строки
+            /// </summary>
+            CMD,
+            /*INI,*/
+            /// <summary>
+            /// Получены из "окружения" (Environment)
+            /// </summary>
+            ENV,
+                COUNT_STATE_REGISTRATION
+        };
+        /// <summary>
+        /// Массив с известными аргументами
+        /// </summary>
         protected static ARGUMENTS[] m_Arguments = new ARGUMENTS[] //Длина = COUNT_INDEX_REGISTRATION
         {
             new ARGUMENTS() { m_key = @"iusr", m_indxRegistration = INDEX_REGISTRATION.ID, m_type = typeof(Int32), m_help = string.Format(@"/{0} - формат: /{0}=ИДЕНТИФИКАТОР_ПОЛЬЗОВАТЕЛЯ, , например: /{0}=59", @"iusr") }
@@ -73,38 +123,6 @@ namespace ASUTP.Helper
 
         protected static object [] s_DataRegistration;
         protected static STATE_REGISTRATION[] s_StateRegistration;
-
-        //private bool compareIpVal (int [] ip_trust, int [] ip)
-        //{
-        //    bool bRes = true;
-        //    int j = -1;
-
-        //    for (j = 0; j < ip_trust.Length; j ++) {
-        //        if (ip_trust [j] == ip [j])
-        //            continue;
-        //        else {
-        //            bRes = false;
-        //            break;
-        //        }
-
-        //    }
-
-        //    return bRes;
-        //}
-
-        //private int [] strIpToVal (string [] str) {
-        //    int j = -1;
-        //    int [] val = new int[str.Length];
-            
-        //    for (j = 0; j < str.Length; j++)
-        //    {
-        //        Logging.Logg().Debug(@"val[" + j.ToString () + "] = " + val [j]);
-
-        //        val[j] = Convert.ToInt32(str[j]);
-        //    }
-
-        //    return val;
-        //}
 
         private bool isRegistration {
             get {
@@ -124,8 +142,17 @@ namespace ASUTP.Helper
             }
         }
 
-        private DelegateObjectFunc[] f_arRegistration; // = { registrationCmdLine, registrationINI, registrationEnv };
+        /// <summary>
+        /// Массив методов регистрации(получения данных о пользователе) в различных средах
+        ///  , в соответствии с 'STATE_REGISTRATION'
+        /// </summary>
+        private DelegateObjectFunc [] f_arRegistration; // = { registrationCmdLine, registrationINI, registrationEnv };
 
+        /// <summary>
+        /// Конструктор - основной (с аргументами)
+        /// </summary>
+        /// <param name="iListenerId">Идентификатор подписки к источнику данных (БД конфигурации)</param>
+        /// <param name="mode">Режим регистрации</param>
         public HUsers(int iListenerId, MODE_REGISTRATION mode = MODE_REGISTRATION.USER_DOMAINNAME)
         {
             object argFReg = null;
@@ -164,11 +191,28 @@ namespace ASUTP.Helper
             }
         }
 
+        /// <summary>
+        /// Прочитать значения параметров профиля полбзователя из БД и разместить их в статические переменные для последующего доступа
+        /// </summary>
+        /// <param name="iListenerId">Идентификатор подписки к источнику данных</param>
+        [Obsolete("Use 'Read' instead. The name is more appropriate than the current one")]
         public static void Update (int iListenerId)
         {
-            m_profiles.Update(iListenerId, (int)s_DataRegistration[(int)INDEX_REGISTRATION.ROLE], (int)s_DataRegistration[(int)INDEX_REGISTRATION.ID], false);
-        } 
+            Read(iListenerId);
+        }
 
+        /// <summary>
+        /// Прочитать значения параметров профиля полбзователя из БД и разместить их в статические переменные для последующего доступа
+        /// </summary>
+        /// <param name="iListenerId">Идентификатор подписки к источнику данных</param>
+        public static void Read (int iListenerId)
+        {
+            m_profiles.Read (iListenerId, (int)s_DataRegistration [(int)INDEX_REGISTRATION.ROLE], (int)s_DataRegistration [(int)INDEX_REGISTRATION.ID], false);
+        }
+
+        /// <summary>
+        /// Очистиь значения регистрации
+        /// </summary>
         protected void ClearValues () {
             int i = -1;
             for (i = 0; i < s_DataRegistration.Length; i++)
@@ -178,6 +222,10 @@ namespace ASUTP.Helper
                 s_StateRegistration[i] = STATE_REGISTRATION.UNKNOWN;
         }
 
+        /// <summary>
+        /// Метод получения данных регистрации из командной строки (по указанным значениям известных аргументов)
+        /// </summary>
+        /// <param name="par">Аргументы командной строки</param>
         private void registrationCmdLine(object par)
         {
             Logging.Logg().Debug(@"HUsers::HUsers () - ... registrationCmdLine () - вХод ...", Logging.INDEX_MESSAGE.NOT_SET);
@@ -305,12 +353,36 @@ namespace ASUTP.Helper
         //    }
         //}
 
-        public enum MODE_REGISTRATION { USER_DOMAINNAME, MACHINE_DOMAINNAME, MIXED }
+        /// <summary>
+        /// Режим проверки аутентификации
+        /// </summary>
+        public enum MODE_REGISTRATION {
+            /// <summary>
+            /// Только по наименование учетной записи в домене
+            /// </summary>
+            USER_DOMAINNAME,
+            /// <summary>
+            /// Только по наименованию рабочей станции
+            /// </summary>
+            MACHINE_DOMAINNAME,
+            /// <summary>
+            /// Смешанный: и по наименование учетной записи в домене, и по наименованию рабочей станции
+            /// </summary>
+            MIXED
+        }
 
+        /// <summary>
+        /// Предусановленный режим аутентификации
+        /// </summary>
         private static MODE_REGISTRATION s_modeRegistration = MODE_REGISTRATION.USER_DOMAINNAME;
-
+        /// <summary>
+        /// Разделитель наименования рабочей станции и наименования учетной записи в домене при смешанном режиме аутентификации
+        /// </summary>
         private const string DELIMETER_DOMAINNAME = @"::";
 
+        /// <summary>
+        /// Получить ограничения для запроса перечня пользовтелей
+        /// </summary>
         private string whereQueryUsers
         {
             get
@@ -340,12 +412,18 @@ namespace ASUTP.Helper
                             else
                                 ;
                             break;
-                    }                
+                    }
 
                 return strRes;
             }
         }
 
+        /// <summary>
+        /// Получить доменное наименование пользователя для аутентификации, учитывая установленный режим аутентификации
+        /// </summary>
+        /// <param name="dbDomainName">Наименование доменной учетной записи пользователя</param>
+        /// <param name="dbMashineName">Наименование доменной учетной записи рабочей станции</param>
+        /// <returns>Полное наименование  с учетом режим аутентификации</returns>
         private string getUserDomainNameEnvironment (string dbDomainName, string dbMashineName)
         {
             string strRes = string.Empty;
@@ -367,16 +445,25 @@ namespace ASUTP.Helper
             return strRes;
         }
 
+        /// <summary>
+        /// Сравнить данные, указанные в аргументе и полученные в процессе регистрации
+        /// </summary>
+        /// <param name="dbDomainName">Наименование доменной учетной записи пользователя</param>
+        /// <param name="dbMashineName">Наименование доменной учетной записи рабочей станции</param>
+        /// <returns>Признак результата сравнения</returns>
         private bool equalsDomainName(string dbDomainName, string dbMashineName)
         {
             bool bRes = false;
-            string strTesting = getUserDomainNameEnvironment(dbDomainName, dbMashineName);            
+            string strTesting = getUserDomainNameEnvironment(dbDomainName, dbMashineName);
 
             bRes = strTesting.Equals((string)s_DataRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME], StringComparison.CurrentCultureIgnoreCase);
 
             return bRes;
         }
 
+        /// <summary>
+        /// Наименование рабочей станции
+        /// </summary>
         public static string MachineName
         {
             get {
@@ -414,6 +501,9 @@ namespace ASUTP.Helper
             }
         }
 
+        /// <summary>
+        /// Сообщение при отсутствии пользователя в БД конфигурации
+        /// </summary>
         private static string messageUserIDNotFind
         {
             get
@@ -443,9 +533,21 @@ namespace ASUTP.Helper
             }
         }
 
+        /// <summary>
+        /// Перечисление - возможные ошибки ???аутентификации
+        /// </summary>
         public enum ERROR_CODE : short {
+            /// <summary>
+            /// Нет соединения с БД конфигурации
+            /// </summary>
             NOT_CONNECT_CONFIGDB = -4
+            /// <summary>
+            /// Учетная запись пользователя не найдена
+            /// </summary>
             , UDN_NOT_FOUND
+            /// <summary>
+            /// Запрос результата аутентификации не выполнен
+            /// </summary>
             , QUERY_FAILED
             ,
         }
@@ -493,7 +595,7 @@ namespace ASUTP.Helper
                         }
                 } catch (Exception e) {
                     Logging.Logg().Exception(e, @"HUsers::HUsers () - ... registrationEnv () ... Проверка ИМЯ_ПОЛЬЗОВАТЕЛЯ ... ", Logging.INDEX_MESSAGE.NOT_SET);
-                    throw e;                    
+                    throw e;
                 }
 
                 int err = -1;
@@ -516,7 +618,7 @@ namespace ASUTP.Helper
                             || (s_StateRegistration[(int)INDEX_REGISTRATION.DOMAIN_NAME] == STATE_REGISTRATION.ENV))
                             for (i = 0; i < dataUsers.Rows.Count; i++)
                             {
-                                //Проверка IP-адрес                    
+                                //Проверка IP-адрес
                                 //for (indxIP = 0; indxIP < listIP.Length; indxIP ++) {
                                 //    if (listIP[indxIP].Equals(System.Net.IPAddress.Parse (dataUsers.Rows[i][@"IP"].ToString())) == true) {
                                 //        //IP найден
@@ -629,7 +731,7 @@ namespace ASUTP.Helper
 
         /*public void GetUsers(string where, string orderby, out DataTable users, out int err)
         {
-            err = 0;            
+            err = 0;
             users = new DataTable ();
 
             users = DbTSQLInterface.Select(connSettConfigDB, getUsersRequest(where, orderby), out err);
@@ -752,6 +854,27 @@ namespace ASUTP.Helper
         public static string GetAllowed(ref DbConnection dbConn, int role, int user,int id)
         {
             return (string)HProfiles.GetAllowed(ref dbConn, role, user, id);
+        }
+
+        /// <summary>
+        /// Возвратить значение параметра для указанного в аргументе пользователя, если его тип отличен от логического
+        /// </summary>
+        /// <param name="iListenerId">Идентификатор подписчика объекта обращения к данным</param>
+        /// <param name="role">Идентификатор роли(группы), к которой принадлежит пользователь</param>
+        /// <param name="user">Идентификатор пользователя</param>
+        /// <param name="id">Идентификатор параметра профиля</param>
+        /// <returns>Значение параметра для текущего пользователя</returns>
+        public static string GetAllowed (int iListenerId, int role, int user, int id)
+        {
+            int err = -1;
+
+            DbConnection dbConn = null;
+
+            dbConn = DbSources.Sources ().GetConnection (iListenerId, out err);
+
+            return err == 0
+                ? (string)HProfiles.GetAllowed (ref dbConn, role, user, id)
+                    : string.Empty;
         }
 
         /// <summary>

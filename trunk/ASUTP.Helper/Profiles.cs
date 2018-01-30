@@ -74,7 +74,20 @@ namespace ASUTP.Helper
             /// <param name="id_role">Идентификатор группы(роли) пользователей</param>
             /// <param name="id_user">Идентификатор пользователя</param>
             /// <param name="bThrow">Признак инициирования исключения при ошибке</param>
+            [Obsolete ("Use 'Read' instead. The name is more appropriate than the current one")]
             public void Update (int iListenerId, int id_role, int id_user, bool bThrow)
+            {
+                Read (iListenerId, id_role, id_user, bThrow);
+            }
+
+            /// <summary>
+            /// Обновить(прочитать) значения параметров профиля, список параметров
+            /// </summary>
+            /// <param name="iListenerId">Идентификатор подписчика объекта обращения к данным</param>
+            /// <param name="id_role">Идентификатор группы(роли) пользователей</param>
+            /// <param name="id_user">Идентификатор пользователя</param>
+            /// <param name="bThrow">Признак инициирования исключения при ошибке</param>
+            public void Read (int iListenerId, int id_role, int id_user, bool bThrow)
             {
                 int err = -1;
                 string query = string.Empty
@@ -85,7 +98,7 @@ namespace ASUTP.Helper
                 if (!(err == 0))
                     errMsg = @"нет соединения с БД";
                 else {
-                    m_tblValues = getDataTableUserValues(ref dbConn, id_role, id_user, out err);
+                    m_tblValues = getDataTableUserValues (ref dbConn, id_role, id_user, out err);
 
                     if (!(err == 0))
                         errMsg = @"Ошибка при чтении НАСТРоек для группы(роли) (irole = " + id_role + @"), пользователя (iuser=" + id_user + @")";
