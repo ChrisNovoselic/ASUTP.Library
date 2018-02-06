@@ -348,7 +348,8 @@ namespace ASUTP.Database {
             }
 
             // IndexOf: '\'', '\"', '\\', '/', '?', '<', '>', '*', '|', ':', ';'
-            if (reg.IsMatch (password) == false) {
+            if ((string.IsNullOrEmpty(password) == false) //!!! пустой пароль не проверять
+                && (reg.IsMatch (password) == false)) {
                 //MessageBox.Show("Недопустимый символ в пароле пользователя.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 errRes |= ConnectionSettingsError.IllegalSymbolPassword;
             }
