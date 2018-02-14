@@ -109,26 +109,33 @@ namespace ASUTP.Helper
             foreach (Form f in Application.OpenForms)
                 listApplicationOpenForms.Add(f);
 
-            foreach (Form f in listApplicationOpenForms) {
-                if (f is IFormMainBase)
-                    (f as IFormMainBase).Close(true);
-                else
-                    if (f is IFormWait) {
-                    //Здесь м. возникнуть ошибка -
-                    // вызов формы из потока в котором форма не была создана ???
-                    (f as IFormWait).StopWaitForm();
-                } else
-                    f.Close();
+            try {
+                foreach (Form f in listApplicationOpenForms) {
+                    try {
+                        if (f is IFormMainBase)
+                            (f as IFormMainBase).Close (true);
+                        else
+                            if (f is IFormWait) {
+                            //Здесь м. возникнуть ошибка -
+                            // вызов формы из потока в котором форма не была создана ???
+                            (f as IFormWait).StopWaitForm ();
+                        } else
+                            f.Close ();
+                    } catch (Exception e) {
+                        Logging.Logg ().Exception (e, $"ProgramBase::Exit () - форма=<{f.Name}>...", Logging.INDEX_MESSAGE.NOT_SET);
+                    }
+                }
+
+                Logging.Logg ().PostStop (MessageExit);
+                Logging.Logg ().Stop ();
+
+                DbSources.Sources ().UnRegister ();
+
+                Application.Exit (new System.ComponentModel.CancelEventArgs (true));
+            } catch {
+            } finally {
+                HCmd_Arg.SingleInstance.ReleaseMtx ();
             }
-
-            Logging.Logg().PostStop(MessageExit);
-            Logging.Logg().Stop();
-
-            DbSources.Sources().UnRegister();
-
-            Application.Exit(new System.ComponentModel.CancelEventArgs(true));
-
-            HCmd_Arg.SingleInstance.ReleaseMtx();
         }
 
         /// <summary>
