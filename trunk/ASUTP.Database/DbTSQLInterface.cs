@@ -1122,20 +1122,22 @@ namespace ASUTP.Database {
         {
             err = (int)Error.NO_ERROR;
 
-            //if ((!(types == null)) || (!(parametrs == null)))
-            if ((types == null) || (parametrs == null))
-                ;
+            if ((Equals(types, null) == true)
+                || (Equals(parametrs, null) == true))
+                return;
             else
-                if ((!(types == null)) && (!(parametrs == null))) {
-                if (!(types.Length == parametrs.Length)) {
-                    err = (int)Error.PARAMQUERY_LENGTH;
+                if ((Equals (types, null) == false)
+                    && (Equals (parametrs, null) == false)) {
+                    if (!((types.Length - parametrs.Length) == 0)) {
+                        err = (int)Error.PARAMQUERY_LENGTH;
+                    } else
+                        ;
                 } else
-                    ;
-            } else
-                err = (int)Error.PARAMQUERY_NULL;
+                // недостижимый код...
+                    err = (int)Error.PARAMQUERY_NULL;
 
             if (!(err == 0)) {
-                Logging.Logg ().Error ("!Ошибка! static DbTSQLInterface::ParametrsValidate () - types OR parametrs не корректны", Logging.INDEX_MESSAGE.NOT_SET);
+                Logging.Logg ().Error ("static DbTSQLInterface::ParametrsValidate () - types OR parametrs не корректны...", Logging.INDEX_MESSAGE.NOT_SET);
             } else
                 ;
         }
@@ -1154,41 +1156,45 @@ namespace ASUTP.Database {
 
             DbCommand cmd = null;
 
-            queryValidateOfTypeDB (conn.ConnectionString, ref query);
+            if (Equals (conn, null) == false) {
+                queryValidateOfTypeDB (conn.ConnectionString, ref query);
 
-            ParametrsValidate (types, parametrs, out er);
+                ParametrsValidate (types, parametrs, out er);
 
-            if (er == 0) {
-                lock (lockConn) {
-                    if (conn is MySqlConnection) {
-                        cmd = new MySqlCommand ();
-                    } else if (conn is SqlConnection) {
-                        cmd = new SqlCommand ();
-                    } else
-                        ;
+                if (er == 0) {
+                    lock (lockConn) {
+                        if (conn is MySqlConnection) {
+                            cmd = new MySqlCommand ();
+                        } else if (conn is SqlConnection) {
+                            cmd = new SqlCommand ();
+                        } else
+                            ;
 
-                    if (!(cmd == null)) {
-                        cmd.Connection = conn;
-                        cmd.CommandType = CommandType.Text;
+                        if (!(cmd == null)) {
+                            cmd.Connection = conn;
+                            cmd.CommandType = CommandType.Text;
 
-                        cmd.CommandText = query;
-                        ParametrsAdd (cmd, types, parametrs);
+                            cmd.CommandText = query;
+                            ParametrsAdd (cmd, types, parametrs);
 
-                        try {
-                            if (conn.State == ConnectionState.Open) {
-                                cmd.ExecuteNonQuery ();
-                            } else
-                                er = (int)Error.DBCONN_NOT_OPEN;
-                        } catch (Exception e) {
-                            logging_catch_db (conn, e);
+                            try {
+                                if (conn.State == ConnectionState.Open) {
+                                    cmd.ExecuteNonQuery ();
+                                } else
+                                    er = (int)Error.DBCONN_NOT_OPEN;
+                            } catch (Exception e) {
+                                logging_catch_db (conn, e);
 
-                            er = (int)Error.CATCH_DBCONN;
-                        }
-                    } else
-                        er = (int)Error.DBADAPTER_NULL;
-                }
+                                er = (int)Error.CATCH_DBCONN;
+                            }
+                        } else
+                            er = (int)Error.DBADAPTER_NULL;
+                    }
+                } else
+                // 'er' получила значение в 'ParametrsValidate'
+                    ;
             } else
-                ;
+                er = (int)Error.DBCONN_NULL;
         }
 
 #if MODE_STATIC_CONNECTION_LEAVING
