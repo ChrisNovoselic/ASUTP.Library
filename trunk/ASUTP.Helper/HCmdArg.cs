@@ -12,6 +12,12 @@ namespace ASUTP.Helper {
     /// Класс обработки камандной строки
     /// </summary>
     public class HCmd_Arg : IDisposable {
+        private enum Error : int {
+            Process = -2
+            , HandleMainWindow
+            , No
+            , Message
+        }
         /// <summary>
         /// Значения командной строки
         /// </summary>
@@ -36,7 +42,7 @@ namespace ASUTP.Helper {
             // экземпляр НЕ единственный ИЛИ указана команда "стоп"
                 execCmdLine (!m_dictCmdArgs.ContainsKey ("stop"), bIsOnlyInstance);
             else
-                // экземпляр единственный И нет команды "стоп"
+            // экземпляр единственный И нет команды "стоп"
                 ;
         }
 
@@ -164,17 +170,18 @@ namespace ASUTP.Helper {
         /// Класс по работе с запущенным приложением
         /// </summary>
         public static class SingleInstance {
-            static private string s_NameMutex = ProgramInfo.NameMtx.ToString ();
-            static Mutex s_mutex;
+            private static string s_NameMutex = ProgramInfo.NameMtx.ToString ();
+
+            private static Mutex s_mutex;
 
             /// <summary>
             /// Проверка на повторный запуск
             /// </summary>
-            static public bool IsOnlyInstance
+            public static bool IsOnlyInstance
             {
                 get
                 {
-                    bool bRes = false;            
+                    bool bRes = false;
 
                     try {
                         s_mutex = new Mutex (true, s_NameMutex, out bRes);
@@ -192,9 +199,11 @@ namespace ASUTP.Helper {
             /// для его активации
             /// </summary>
             /// <param name="hWnd">Дескриптор окна</param>
-            private static int sendMsg (IntPtr hWnd, int iMsg, IntPtr wParam)
+            /// <param name="iMsg">Идентификатор передаваемого сообщения</param>
+            /// <param name="wParam">Дополнительный аргумент для передачи</param>
+            static private Error sendMsg (IntPtr hWnd, int iMsg, IntPtr wParam)
             {
-                int iRes = 0;
+                Error iRes = 0;
 
                 Thread thread;
                 IntPtr iRet = IntPtr.Zero;
@@ -210,7 +219,7 @@ namespace ASUTP.Helper {
                 if (thread.Join (ASUTP.Core.Constants.MAX_WATING) == false) {
                     thread.Abort();
 
-                    iRes = -1;
+                    iRes = Error.Message;
                 } else
                     ;
 
@@ -219,11 +228,11 @@ namespace ASUTP.Helper {
                 return iRes;
             }
 
-            private static bool postMsg (IntPtr hWnd, uint iMsg, IntPtr wParam)
+            private static Error postMsg (IntPtr hWnd, uint iMsg, IntPtr wParam)
             {
                 //Logging.Logg().Debug(@"SingleInstance::sendMsg () - to Ptr=" + hWnd + @"; iMsg=" + iMsg + @" ...", Logging.INDEX_MESSAGE.NOT_SET);
 
-                return WinApi.PostMessage (hWnd, iMsg, wParam, IntPtr.Zero);
+                return WinApi.PostMessage (hWnd, iMsg, wParam, IntPtr.Zero) == true ? Error.No : Error.Message;
             }
 
             /// <summary>
@@ -241,30 +250,48 @@ namespace ASUTP.Helper {
             /// </summary>
             public static int StopDupApp ()
             {
-                int iRes = 0;
+                Error iRes = 0;
 
                 Process procDup = null;
                 IntPtr hDupWnd = IntPtr.Zero;
                 int msecProcDupToExit = -1;
-
-                procDup = ProcessDup;
-                hDupWnd = getHandleDupWnd(procDup);
-
-                Logging.Logg().Debug (string.Format("HCmd_Arg.SingleInstatnce.StopDupApp () - дубликат [процесс={0}, окно={1}] ..."
-                        , !(procDup == null) ? procDup.Id.ToString() : "не найден", !(hDupWnd == IntPtr.Zero) ? hDupWnd.ToString() : "не найдено")
-                    , Logging.INDEX_MESSAGE.NOT_SET);
-
-                //procDup.Exited += (object obj, EventArgs ev) => { };
-                iRes =
-                    //sendMsg
-                    postMsg
-                        (hDupWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE) == true ? 0 : -1;
+                string mesKill = string.Empty;
 
                 try {
-                    if (iRes < 0)
-                    // приложению не было отправлено сообщение
-                        procDup.Kill ();
-                    else {
+                    procDup = ProcessDup;
+                    hDupWnd = getHandleDupWnd(procDup);
+
+                    iRes = Equals (procDup, null) == false ? 0 : Error.Process;
+
+                    if (!(iRes < 0)) {
+                        if ((Equals (hDupWnd, IntPtr.Zero) == true)
+                            || (Equals (hDupWnd, IntPtr.Zero) == true))
+                            iRes = Error.HandleMainWindow;
+                        else
+                            ;
+
+                        if (!(iRes < 0)) {
+                            //procDup.Exited += (object obj, EventArgs ev) => { };
+
+                            iRes =
+                                //sendMsg
+                                postMsg
+                                    (hDupWnd, WinApi.WM_CLOSE, (IntPtr)WinApi.SC_CLOSE);
+                        } else
+                            ;
+                    } else
+                        ;
+                } catch (Exception e) {
+                    Logging.Logg ().Exception (e, string.Format ($"HCmd_Arg.SingleInstance::StopDupApp () - 1-ая ч. поиск дубликата(процесса, гл.окна процесса)..."), Logging.INDEX_MESSAGE.NOT_SET);
+                }
+
+                Logging.Logg ().Debug (string.Format ("HCmd_Arg.SingleInstatnce.StopDupApp () - дубликат [процесс={0}, окно={1}] ..."
+                        , !(procDup == null) ? procDup.Id.ToString () : "не найден", !(hDupWnd == IntPtr.Zero) ? hDupWnd.ToString () : "не найдено")
+                    , Logging.INDEX_MESSAGE.NOT_SET);
+
+                try {
+                    if (!(iRes < 0)) {
+                    // приложению отправлено сообщение
                         if (int.TryParse (m_dictCmdArgs ["stop"], out msecProcDupToExit) == true)
                             msecProcDupToExit *= 1000;
                         else
@@ -275,24 +302,30 @@ namespace ASUTP.Helper {
                             // приложение не обработало сообщение в течение 'MAX_WATING'
                                 procDup.Kill ();
 
-                                Logging.Logg ().Debug (string.Format ("HCmd_Arg.SingleInstatnce.StopDupApp () - дублирующий процесс [{0}] аварийно завершен ..."
-                                        , procDup.Id)
-                                    , Logging.INDEX_MESSAGE.NOT_SET);
+                                mesKill = string.Format("аварийно с ожиданием <{0} мсек> ", msecProcDupToExit);
                             } else
                                 ;
                         else
-                        // процесс уже завешился
+                        // процесс уже завершился
                             ;
+                    } else if (iRes > Error.Process) {
+                    // приложению не было отправлено сообщение
+                        procDup.Kill ();
 
-                        Logging.Logg ().Debug (string.Format ("HCmd_Arg.SingleInstatnce.StopDupApp () - дублирующий процесс [{0}] завершен ..."
-                                , !(procDup == null) ? procDup.Id.ToString () : "не найден")
-                            , Logging.INDEX_MESSAGE.NOT_SET);
-                    }
+                        mesKill = "аварийно <без ожидания> ";
+                    } else
+                        mesKill = "НЕ ";
+
+                    Logging.Logg ().Debug (string.Format ("HCmd_Arg.SingleInstatnce.StopDupApp () - дублирующий процесс [{0}] {1}завершен, рез-т={2} ..."
+                            , !(procDup == null) ? procDup.Id.ToString () : "не найден"
+                            , mesKill
+                            , iRes.ToString())
+                        , Logging.INDEX_MESSAGE.NOT_SET);
                 } catch (Exception e) {
-                    Logging.Logg ().Exception (e, string.Format ($"HCmd_Arg.SingleInstance::StopDupApp () - ..."), Logging.INDEX_MESSAGE.NOT_SET);
+                    Logging.Logg ().Exception (e, string.Format ($"HCmd_Arg.SingleInstance::StopDupApp () - 2-ая ч. завершение процесса..."), Logging.INDEX_MESSAGE.NOT_SET);
                 }
 
-                return iRes;
+                return (int)iRes;
             }
 
             /// <summary>
@@ -437,11 +470,16 @@ namespace ASUTP.Helper {
             static public void SwitchToDupInstance ()
             {
                 IntPtr hDupWnd = IntPtr.Zero;
-                int iResponse = -1;
+                Error iResponse = Error.No;
 
                 hDupWnd = getHandleDupWnd();
 
-                if (hDupWnd.Equals (IntPtr.Zero) == false) {
+                iResponse = (hDupWnd.Equals (null) == false)
+                    && (hDupWnd.Equals (IntPtr.Zero) == false)
+                        ? 0
+                            : Error.HandleMainWindow;
+
+                if (iResponse > Error.HandleMainWindow) {
                     iResponse = sendMsg (hDupWnd, WinApi.SW_RESTORE, IntPtr.Zero);
 
                     try {
