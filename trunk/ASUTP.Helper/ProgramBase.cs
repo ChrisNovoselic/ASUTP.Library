@@ -44,8 +44,6 @@ namespace ASUTP.Helper
         ParseError,
     }
 
-    //public enum TYPE_DATABASE_CFG { CFG_190, CFG_200, COUNT };
-
     /// <summary>
     /// Базовый класс для класса приложения
     /// </summary>
@@ -54,7 +52,15 @@ namespace ASUTP.Helper
         /// <summary>
         /// Перечисление - идентификаторы приложений из состава ИС Статистика
         /// </summary>
-        public enum ID_APP { STATISTIC = 1, TRANS_GTP, TRANS_GTP_TO_NE22, TRANS_GTP_FROM_NE22, TRANS_BYISK_GTP_TO_NE22, TRANS_MODES_CENTRE, TRANS_MODES_CENTRE_GUI, TRANS_MODES_CENTRE_CMD, TRANS_MODES_TERMINALE, TRANS_TG }
+        public enum ID_APP { UNKNOWN = -1
+            , STATISTIC = 1
+            , DIAGNOSTIC, ANALYZER, TIME_SYNC, COMMON_AUX, ALARM
+            , TRANS_GTP_TO_RESERVE, TRANS_GTP_FROM_RESERVE, TRANS_GTP_TO_BIYSK, TRANS_GTP_TO_FUTURE_1
+            , TRANS_MODES_CENTRE, TRANS_MODES_CENTRE_GUI, TRANS_MODES_CENTRE_CMD, TRANS_MODES_TERMINALE
+            , TRANS_TG
+            , FUTURE_1, FUTURE_2, FUTURE_N
+            , COUNT
+        }
 
         public static System.Globalization.CultureInfo ss_MainCultureInfo = new System.Globalization.CultureInfo(@"ru-Ru");
 
@@ -89,7 +95,7 @@ namespace ASUTP.Helper
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            Logging.AppId = ProgramBase.s_iAppID;
+            Logging.AppId = (int)ProgramBase.s_iAppID;
             Logging.AppName = ProgramBase.s_AppName;
             Logging.DelegateProgramAbort = Abort;
             Logging.SetMode (log_mode);
@@ -241,7 +247,7 @@ namespace ASUTP.Helper
             }
         }
 
-        public static int s_iAppID = -1;
+        public static ID_APP s_iAppID = ID_APP.UNKNOWN;
         public static int s_iMessageShowUnhandledException = -1;
         public static int s_iMessageShowUnhandledExceptionDetail = -1;
 

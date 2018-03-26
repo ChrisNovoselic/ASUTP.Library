@@ -653,7 +653,7 @@ namespace ASUTP.Database {
                         }
 
                         if (counterFillError > m_dictListeners.Count) {
-                            Logging.Logg().Error($"DbInterface_ThreadFunction () - {Name}:{pair.Key} - аврийное завершение цикла обработки запросов подписчиков..."
+                            Logging.Logg().Error($"DbInterface_ThreadFunction () - {Name}:{pair.Key} - аварийное завершение цикла обработки запросов подписчиков..."
                                 , Logging.INDEX_MESSAGE.NOT_SET);
 
                             break;
