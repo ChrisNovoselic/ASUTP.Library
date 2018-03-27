@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C80D3057-23DE-4034-9DFB-4E1E71BF81C5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ASUTP.Forms</RootNamespace>
+    <AssemblyName>ASUTP.Forms</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\bin\Debug\ASUTP.Forms.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FormConnectionSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormConnectionSettings.Designer.cs">
+      <DependentUpon>FormConnectionSettings.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormMainBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMainBaseWithStatusStrip.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormMainFloat.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormParametersBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormPassword.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormPassword.Designer.cs">
+      <DependentUpon>FormPassword.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormPasswordBase.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormPasswordBase.designer.cs">
+      <DependentUpon>FormPasswordBase.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormSetPassword.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormSetPassword.Designer.cs">
+      <DependentUpon>FormSetPassword.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormWait.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormWait.Designer.cs">
+      <DependentUpon>FormWait.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="FormConnectionSettings.resx">
+      <DependentUpon>FormConnectionSettings.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormPassword.resx">
+      <DependentUpon>FormPassword.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormPasswordBase.resx">
+      <DependentUpon>FormPasswordBase.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormSetPassword.resx">
+      <DependentUpon>FormSetPassword.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormWait.resx">
+      <DependentUpon>FormWait.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ASUTP.Control\ASUTP.Control.csproj">
+      <Project>{F0FB03C7-1913-4F80-8D08-DBFC5AB1C65C}</Project>
+      <Name>ASUTP.Control</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ASUTP.Core\ASUTP.Core.csproj">
+      <Project>{FCE97844-5285-4C26-BC9C-0A66B81F52A0}</Project>
+      <Name>ASUTP.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ASUTP.Database\ASUTP.Database.csproj">
+      <Project>{358980ac-98e5-4491-a27d-43cf384634e9}</Project>
+      <Name>ASUTP.Database</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ASUTP.Helper\ASUTP.Helper.csproj">
+      <Project>{51ACDB2B-A241-4321-8CDA-20EE57FA179D}</Project>
+      <Name>ASUTP.Helper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ASUTP.Logging\ASUTP.Logging.csproj">
+      <Project>{a686b761-cdb6-457f-be0e-11cd14b5490c}</Project>
+      <Name>ASUTP.Logging</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

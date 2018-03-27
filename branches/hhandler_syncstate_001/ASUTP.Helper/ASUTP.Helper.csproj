@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{51ACDB2B-A241-4321-8CDA-20EE57FA179D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ASUTP.Helper</RootNamespace>
+    <AssemblyName>ASUTP.Helper</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;_SEPARATE_APPDOMAIN</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\bin\Debug\ASUTP.Helper.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FileINI.cs" />
+    <Compile Include="HCmdArg.cs" />
+    <Compile Include="HHandler.cs" />
+    <Compile Include="HHandlerDb.cs" />
+    <Compile Include="HHandlerQueue.cs" />
+    <Compile Include="IForm.cs" />
+    <Compile Include="IHHandler.cs" />
+    <Compile Include="Passwords.cs" />
+    <Compile Include="Profiles.cs" />
+    <Compile Include="ProgramBase.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Users.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ASUTP.Core\ASUTP.Core.csproj">
+      <Project>{FCE97844-5285-4C26-BC9C-0A66B81F52A0}</Project>
+      <Name>ASUTP.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ASUTP.Database\ASUTP.Database.csproj">
+      <Project>{358980AC-98E5-4491-A27D-43CF384634E9}</Project>
+      <Name>ASUTP.Database</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ASUTP.Logging\ASUTP.Logging.csproj">
+      <Project>{A686B761-CDB6-457F-BE0E-11CD14B5490C}</Project>
+      <Name>ASUTP.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ASUTP.PlugIn\ASUTP.PlugIn.csproj">
+      <Project>{DFDE592F-E18C-4871-A888-54C906AE61FB}</Project>
+      <Name>ASUTP.PlugIn</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
