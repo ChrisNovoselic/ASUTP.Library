@@ -164,8 +164,8 @@ namespace ASUTP.Helper {
                 semaQueue = new Semaphore(1, 1);
 
                 //InitializeSyncState();
-                //Установить в "несигнальное" состояние
-                m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS].WaitOne(System.Threading.Timeout.Infinite, true);
+                //Установить в "несигнальное" состояние (т.к. 'SUCCESS' - AutoReset, а исходной состояние "сигнальное")
+                WaitOne(INDEX_WAITHANDLE_REASON.SUCCESS, System.Threading.Timeout.Infinite, true);
 
                 semaQueue.WaitOne();
                 taskThreadQueue.Start();
@@ -279,7 +279,7 @@ namespace ASUTP.Helper {
                     Run (@"HHandler::ThreadQueue ()");
 
                     //Ожидать обработки всех состояний
-                    m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS].WaitOne (System.Threading.Timeout.Infinite, true);
+                    WaitOne(INDEX_WAITHANDLE_REASON.SUCCESS, System.Threading.Timeout.Infinite, true);
 
                     lock (m_lockQueue)
                     {
