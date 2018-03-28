@@ -37,7 +37,9 @@ namespace ASUTP.Helper
             SUCCESS
             , ERROR
             , BREAK
-                , COUNT_INDEX_WAITHANDLE_REASON }
+                , COUNT_INDEX_WAITHANDLE_REASON
+            , TIMEOUT = WaitHandle.WaitTimeout
+        }
         /// <summary>
         /// Массив объектов синхронизации
         /// </summary>
@@ -177,9 +179,19 @@ namespace ASUTP.Helper
                 Logging.Logg ().Warning ($"HHandler::InitializeSyncState () - объект синхронизации <{indx}> создается автоматически...", Logging.INDEX_MESSAGE.NOT_SET);
         }
 
+        protected void SetSyncState (INDEX_WAITHANDLE_REASON indx)
+        {
+            if (typeof (AutoResetEvent).IsAssignableFrom (m_waitHandleState [(int)indx].GetType ()) == true)
+                (m_waitHandleState [(int)indx] as AutoResetEvent).Set ();
+            else if (typeof (ManualResetEvent).IsAssignableFrom (m_waitHandleState [(int)indx].GetType ()) == true)
+                (m_waitHandleState [(int)indx] as ManualResetEvent).Set ();
+            else
+                ;
+        }
+
         private void initializeSyncState (INDEX_WAITHANDLE_REASON indx, Type syncType, bool bInitState)
         {
-            m_waitHandleState [(int)indx] = (WaitHandle)Activator.CreateInstance (syncType, System.Reflection.BindingFlags.CreateInstance, new object [] { bInitState });
+            m_waitHandleState [(int)indx] = (WaitHandle)Activator.CreateInstance (syncType, new object [] { bInitState });
         }
         /// <summary>
         /// Старт потоковой функции обработки событий
@@ -503,14 +515,14 @@ namespace ASUTP.Helper
             {
                 if (((int)indxEv == (int)INDEX_WAITHANDLE_REASON.SUCCESS)
                     || ((int)indxEv > (m_waitHandleState.Length - 1)))
-                    ((AutoResetEvent)m_waitHandleState[(int)INDEX_WAITHANDLE_REASON.SUCCESS]).Set();
+                    SetSyncState(INDEX_WAITHANDLE_REASON.SUCCESS);
                 else
-                    ((ManualResetEvent)m_waitHandleState[(int)indxEv]).Set();
+                    SetSyncState(indxEv);
 
             }
             catch (Exception e)
             {
-                Logging.Logg().Exception(e, "HHandler::ThreadFunction () - m_waitHandleState[0]).Set()", Logging.INDEX_MESSAGE.NOT_SET);
+                Logging.Logg().Exception(e, $"HHandler::ThreadFunction () - m_waitHandleState[{indxEv}]).Set() - ...", Logging.INDEX_MESSAGE.NOT_SET);
             }
         }
 
@@ -541,25 +553,38 @@ namespace ASUTP.Helper
             return WaitOne(indxEv, (int)ts_wait.TotalMilliseconds, bExitContext);
         }
 
-        public int WaitAny (int msec_wait, bool bExitContext)
+        //public int WaitAny (int msec_wait = System.Threading.Timeout.Infinite, bool bExitContext = true)
+        //{
+        //    return WaitHandle.WaitAny (m_waitHandleState, msec_wait, bExitContext);
+        //}
+
+        public INDEX_WAITHANDLE_REASON WaitAny (int msec_wait, bool bExitContext)
         {
-            return WaitHandle.WaitAny(m_waitHandleState, msec_wait, bExitContext);
+            INDEX_WAITHANDLE_REASON indxRes = INDEX_WAITHANDLE_REASON.SUCCESS;
+
+            indxRes = (INDEX_WAITHANDLE_REASON)WaitHandle.WaitAny(m_waitHandleState, msec_wait, bExitContext);
+
+            return
+                //indxRes == INDEX_WAITHANDLE_REASON.TIMEOUT ? INDEX_WAITHANDLE_REASON.ERROR :
+                indxRes
+                    ;
         }
 
-        public int WaitAny (TimeSpan ts_wait, bool bExitContext)
+        public INDEX_WAITHANDLE_REASON WaitAny (TimeSpan ts_wait, bool bExitContext)
         {
             return WaitAny ((int)ts_wait.TotalMilliseconds, bExitContext);
         }
 
-        public void Reset ()
+        public void ResetSyncState ()
         {
             for (INDEX_WAITHANDLE_REASON indx = INDEX_WAITHANDLE_REASON.ERROR; indx < INDEX_WAITHANDLE_REASON.COUNT_INDEX_WAITHANDLE_REASON; indx ++)
-                Reset (indx);
+                ResetSyncState (indx);
         }
 
-        public void Reset (INDEX_WAITHANDLE_REASON indx)
+        public void ResetSyncState (INDEX_WAITHANDLE_REASON indx)
         {
-            if (typeof (ManualResetEvent).IsAssignableFrom (m_waitHandleState [(int)indx].GetType ()) == true)
+            if (((int)indx < m_waitHandleState.Length)
+                && (typeof (ManualResetEvent).IsAssignableFrom (m_waitHandleState [(int)indx].GetType ()) == true))
                 (m_waitHandleState [(int)indx] as ManualResetEvent).Reset ();
             else
                 ;
